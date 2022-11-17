@@ -7,12 +7,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import org.copalis.builder.Timestamped;
+import org.copalis.builder.Checked;
 
 /**
  * A reference to an existent file
  */
-public class File implements Timestamped, Externalizable {
+public class File implements Checked, Externalizable {
     private Path path;
     private long modified;
 

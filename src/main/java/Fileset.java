@@ -15,9 +15,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.builder.Timestamped;
+import org.copalis.builder.Checked;
 
-public class Fileset implements Timestamped, Serializable {
+public class Fileset implements Checked, Serializable {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
@@ -25,18 +25,26 @@ public class Fileset implements Timestamped, Serializable {
             Collectors.collectingAndThen(Collectors.toSet(), Fileset::new);
 
     private final Set<File> files;
+    private final String base, pattern;
 
     public Fileset(Set<File> files) {
-        this.files = files;
+        this(files, null, null);
     }
 
-    static Fileset find(Path base, String pattern) {
+    private Fileset(Set<File> files, String base, String pattern) {
+        this.files = files;
+        this.base = base;
+        this.pattern = pattern;
+    }
+
+    static Fileset find(String base, String pattern) {
+        Path path = Path.of(base);
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
         Set<File> matches = new LinkedHashSet<>();
         try {
-            Files.walkFileTree(base, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (matcher.matches(base.relativize(file))) {
+                    if (matcher.matches(path.relativize(file))) {
                         matches.add(new File(file));
                     }
                     return FileVisitResult.CONTINUE;
@@ -45,7 +53,7 @@ public class Fileset implements Timestamped, Serializable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Fileset(matches);
+        return new Fileset(matches, base, pattern);
     }
 
     public Fileset add(File file) {
@@ -69,14 +77,23 @@ public class Fileset implements Timestamped, Serializable {
     }
 
     public boolean isCurrent() {
-        return files.stream().map(File::isCurrent).allMatch(Boolean.TRUE::equals);
+        return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
+                && files.stream().map(File::isCurrent).allMatch(Boolean.TRUE::equals);
     }
 
     @Override public String toString() {
         return Objects.toString(files);
     }
 
+    @Override public int hashCode() {
+        return Objects.hashCode(pattern) + files.size();
+    }
+
     @Override public boolean equals(Object obj) {
-        return obj instanceof Fileset && files.equals(((Fileset) obj).files);
+        if (!(obj instanceof Fileset)) return false;
+
+        Fileset other = (Fileset) obj;
+        return Objects.equals(files, other.files) && Objects.equals(base, other.base)
+                && Objects.equals(pattern, other.pattern);
     }
 }

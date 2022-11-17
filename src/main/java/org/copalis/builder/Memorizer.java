@@ -1,3 +1,4 @@
+package org.copalis.builder;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,16 +10,15 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import org.copalis.builder.Timestamped;
+import java.util.Set;
 
 /**
  * Instantiates an interface using a dynamic proxy and memoizes the method calls.
@@ -27,7 +27,6 @@ import org.copalis.builder.Timestamped;
  * @author gilesjb
  */
 public class Memorizer {
-    private static final String CACHE_FILE = ".build-cache.ser";
 
     public interface Listener {
         default void starting(boolean cached, Method method, List<Object> params) { }
@@ -40,36 +39,35 @@ public class Memorizer {
         }
     }
 
-    record Result(Object value, Map<String, Fileset> sources) implements Serializable { }
+    record Result(Object value, Set<Checked> sources) implements Serializable { }
 
-    private final LinkedList<Map<String, Fileset>> sourcefiles = new LinkedList<>();
+    private final LinkedList<Set<Checked>> dependencies = new LinkedList<>();
     private Map<Signature, Result> cache = new HashMap<>();
     private Listener listener = new Listener() { };
 
-    void setListener(Listener listener) {
+    public void setListener(Listener listener) {
         this.listener = listener;
     }
 
-    void validateCache() {
+    public void validateCache() {
         Map<Signature, Result> copy = new HashMap<>();
         cache.forEach((signature, result) -> {
             for (Object param : signature.params) {
-                if (param instanceof Timestamped && !((Timestamped) param).isCurrent()) {
+                if (param instanceof Checked && !((Checked) param).isCurrent()) {
                     return;
                 }
             }
 
-            if (result.value() instanceof Timestamped && !((Timestamped) result.value()).isCurrent()) {
+            if (result.value() instanceof Checked && !((Checked) result.value()).isCurrent()) {
                 return;
             }
 
-            Map<String, Fileset> depended = result.sources();
-            for (Map.Entry<String, Fileset> entry : depended.entrySet()) {
-                Fileset files = Fileset.find(Path.of(""), entry.getKey());
-                if (!files.equals(entry.getValue())) {
+            for (Checked depended : result.sources) {
+                if (!depended.isCurrent()) {
                     return;
                 }
             }
+
             copy.put(signature, result);
         });
 
@@ -77,8 +75,8 @@ public class Memorizer {
     }
 
     @SuppressWarnings("unchecked")
-    void loadCache(String path) {
-        try (FileInputStream file = new FileInputStream(new java.io.File(path, CACHE_FILE))) {
+    public void loadCache(String path) {
+        try (FileInputStream file = new FileInputStream(path)) {
             try (ObjectInputStream obj = new ObjectInputStream(file)) {
                 cache = (HashMap<Signature, Result>) obj.readObject();
             }
@@ -88,8 +86,8 @@ public class Memorizer {
         }
     }
 
-    void saveCache(String path) {
-        try (FileOutputStream file = new FileOutputStream(new java.io.File(path, CACHE_FILE))) {
+    public void saveCache(String path) {
+        try (FileOutputStream file = new FileOutputStream(path)) {
             try (ObjectOutputStream out = new ObjectOutputStream(file)) {
                 out.writeObject(cache);
             }
@@ -104,13 +102,13 @@ public class Memorizer {
      * @param files
      * @return the supplied files
      */
-    Fileset dependsOn(String pattern, Fileset files) {
-        sourcefiles.peek().put(pattern, files);
+    public <T extends Checked> T dependsOn(T files) {
+        dependencies.peek().add(files);
         return files;
     }
 
-    <T, R> T instantiate(Class<T> t) {
-        sourcefiles.push(new HashMap<>());
+    public <T, R> T instantiate(Class<T> t) {
+        dependencies.push(new HashSet<>());
 
         T maker = t.cast(Proxy.newProxyInstance(t.getClassLoader(), new Class[]{t}, (proxy, method, args) -> {
             Signature signature = new Signature(method, args);
@@ -118,22 +116,22 @@ public class Memorizer {
             if (cache.containsKey(signature)) {
                 listener.starting(true, method, signature.params());
                 Result result = cache.get(signature);
-                sourcefiles.peek().putAll(result.sources());
+                dependencies.peek().addAll(result.sources());
                 listener.completed(true, method, signature.params(), result.value());
                 return result.value();
             } else {
-                sourcefiles.push(new HashMap<>());
+                dependencies.push(new HashSet<>());
                 listener.starting(false, method, signature.params());
 
                 try {
                     Object value = InvocationHandler.invokeDefault(proxy, method, args);
-                    Result result = new Result(value, sourcefiles.peek());
+                    Result result = new Result(value, dependencies.peek());
                     cache.put(signature, result);
                     listener.completed(false, method, signature.params(), result.value());
                     return value;
                 } finally {
-                    Map<String, Fileset> used = sourcefiles.pop();
-                    sourcefiles.peek().putAll(used);
+                    Set<Checked> used = dependencies.pop();
+                    dependencies.peek().addAll(used);
                 }
             }
         }));

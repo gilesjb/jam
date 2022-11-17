@@ -1,9 +1,11 @@
+//#!/usr/bin/java -classpath target/classes --source 19
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-public interface TestProject extends Builder {
+public interface TestProject extends Project {
 
-    @Override default String buildPath() {
+    @Override default String buildDir() {
         return "target/test-output";
     }
 
@@ -12,21 +14,21 @@ public interface TestProject extends Builder {
     }
 
     default List<File> fileCopies() {
-        return sources("test/resources/*.txt").stream()
+        return sourceFiles("test/resources/*.txt").stream()
                 .map(this::fileCopy).toList();
     }
 
-    default String concatenatedMessage() {
+    default String messages() {
         return fileCopies().stream()
                 .map(File::read)
                 .collect(Collectors.joining(", "));
     }
 
     default File build() {
-        return write("message.txt", concatenatedMessage());
+        return write("message.txt", messages());
     }
 
     static void main(String[] args) {
-        Builder.make(TestProject.class, TestProject::build, args);
+        Project.make(TestProject.class, TestProject::build, args);
     }
 }

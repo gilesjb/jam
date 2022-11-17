@@ -1,6 +1,6 @@
 package org.copalis.builder;
 
-public interface Timestamped {
+public interface Checked {
 
     boolean isCurrent();
 }
