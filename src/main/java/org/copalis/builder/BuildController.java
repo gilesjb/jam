@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Controller<T> implements Memorizer.Listener {
+public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".build-cache.ser";
 
     private final Memorizer memo;
@@ -15,7 +15,7 @@ public class Controller<T> implements Memorizer.Listener {
 
     int indent = 0;
 
-    public Controller(Memorizer memo, Class<T> type) {
+    public BuildController(Memorizer memo, Class<T> type) {
         this.memo = memo;
         this.type = type;
     }
@@ -42,7 +42,7 @@ public class Controller<T> implements Memorizer.Listener {
         String cache = cacheDir.apply(obj) + '/' + CACHE_FILE;
 
         LinkedList<String> params = new LinkedList<>(Arrays.asList(args));
-        if ("--all".equals(params.peekFirst())) {
+        if ("-new".equals(params.peekFirst())) {
             params.removeFirst();
         } else {
             memo.loadCache(cache);

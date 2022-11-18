@@ -69,6 +69,6 @@ public class File implements Checked, Externalizable {
     }
 
     @Override public boolean equals(Object obj) {
-        return obj instanceof File && path.equals(((File) obj).path) && modified == ((File) obj).modified;
+        return !(obj instanceof File file) || modified == file.modified && Objects.equals(path, file.path);
     }
 }

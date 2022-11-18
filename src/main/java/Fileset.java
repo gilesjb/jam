@@ -90,10 +90,8 @@ public class Fileset implements Checked, Serializable {
     }
 
     @Override public boolean equals(Object obj) {
-        if (!(obj instanceof Fileset)) return false;
-
-        Fileset other = (Fileset) obj;
-        return Objects.equals(files, other.files) && Objects.equals(base, other.base)
+        return !(obj instanceof Fileset other) || Objects.equals(files, other.files)
+                && Objects.equals(base, other.base)
                 && Objects.equals(pattern, other.pattern);
     }
 }

@@ -53,12 +53,12 @@ public class Memorizer {
         Map<Signature, Result> copy = new HashMap<>();
         cache.forEach((signature, result) -> {
             for (Object param : signature.params) {
-                if (param instanceof Checked && !((Checked) param).isCurrent()) {
+                if (param instanceof Checked checked && !checked.isCurrent()) {
                     return;
                 }
             }
 
-            if (result.value() instanceof Checked && !((Checked) result.value()).isCurrent()) {
+            if (result.value() instanceof Checked checked && !checked.isCurrent()) {
                 return;
             }
 

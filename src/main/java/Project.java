@@ -3,7 +3,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
 
-import org.copalis.builder.Controller;
+import org.copalis.builder.BuildController;
 import org.copalis.builder.Memorizer;
 
 public interface Project {
@@ -61,6 +61,6 @@ public interface Project {
     }
 
     static <T extends Project> void make(Class<T> t, Function<T, ?> fn, String[] args) {
-        new Controller<>(memo, t).execute(fn, Project::buildDir, args);
+        new BuildController<>(memo, t).execute(fn, Project::buildDir, args);
     }
 }
