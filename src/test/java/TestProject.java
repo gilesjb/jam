@@ -3,7 +3,6 @@
 /*
  */
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 public interface TestProject extends Project {
@@ -12,18 +11,21 @@ public interface TestProject extends Project {
         return "target/test-output";
     }
 
-    default File fileCopy(File file) {
-        return write("copy/" + file.name(), "I say " + file.read().trim());
+    default Fileset inputs() {
+        return sourceFiles("test/resources/*.txt");
     }
 
-    default List<File> fileCopies() {
-        return sourceFiles("test/resources/*.txt").stream()
-                .map(this::fileCopy).toList();
+    default File fileCopy(File file) {
+        return write("copy/" + file.getName(), "I say " + file.readString().trim());
+    }
+
+    default Fileset fileCopies() {
+        return inputs().stream().map(this::fileCopy).collect(Fileset.COLLECT);
     }
 
     default String messages() {
         return fileCopies().stream()
-                .map(File::read)
+                .map(File::readString)
                 .collect(Collectors.joining(", "));
     }
 

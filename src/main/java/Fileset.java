@@ -7,9 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedHashSet;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -17,7 +18,7 @@ import java.util.stream.Stream;
 
 import org.copalis.builder.Checked;
 
-public class Fileset implements Checked, Serializable {
+public class Fileset implements Checked, Serializable, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
@@ -40,7 +41,7 @@ public class Fileset implements Checked, Serializable {
     static Fileset find(String base, String pattern) {
         Path path = Path.of(base);
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-        Set<File> matches = new LinkedHashSet<>();
+        Set<File> matches = new TreeSet<>();
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -57,13 +58,13 @@ public class Fileset implements Checked, Serializable {
     }
 
     public Fileset add(File file) {
-        LinkedHashSet<File> set = new LinkedHashSet<>(files);
+        TreeSet<File> set = new TreeSet<>(files);
         set.add(file);
         return new Fileset(set);
     }
 
     public Fileset union(Fileset fs) {
-        LinkedHashSet<File> set = new LinkedHashSet<>(files);
+        TreeSet<File> set = new TreeSet<>(files);
         set.addAll(fs.files);
         return new Fileset(set);
     }
@@ -79,6 +80,10 @@ public class Fileset implements Checked, Serializable {
     public boolean isCurrent() {
         return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
                 && files.stream().map(File::isCurrent).allMatch(Boolean.TRUE::equals);
+    }
+
+    @Override public Iterator<File> iterator() {
+        return files.iterator();
     }
 
     @Override public String toString() {

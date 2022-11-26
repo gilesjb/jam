@@ -2,10 +2,13 @@ package org.copalis.builder;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".build-cache.ser";
@@ -13,28 +16,40 @@ public class BuildController<T> implements Memorizer.Listener {
     private final Memorizer memo;
     private final Class<T> type;
 
-    int indent = 0;
+    private final LinkedList<Set<String>> stack = new LinkedList<>();
 
     public BuildController(Memorizer memo, Class<T> type) {
         this.memo = memo;
         this.type = type;
+        stack.push(new LinkedHashSet<>());
     }
 
     public void starting(boolean cached, Method method, List<Object> params) {
-        indent++;
+        if (type.isAssignableFrom(method.getDeclaringClass())) {
+            stack.peek().add(method.getName() + (cached ? "*" : ""));
+        }
+        stack.push(new LinkedHashSet<>());
     }
 
     public void completed(boolean cached, Method method, List<Object> params, Object result) {
-        if (cached) {
-        } else if (!type.isAssignableFrom(method.getDeclaringClass())) {
-        } else if (!params.isEmpty()) {
-            System.out.println(" ".repeat(indent) + method.getName()
-            + params.stream().map(Object::toString).collect(Collectors.joining(",", "(", ")")) + " => "
-            + result);
-        } else {
-            System.out.println(" ".repeat(indent) + method.getName() + " => " + result);
+        Set<String> called = stack.pop();
+
+        if (stack.size() == 1 || !cached && type.isAssignableFrom(method.getDeclaringClass())) {
+            System.out.println(method.getName() + ':');
+            for (Object param : params) {
+                System.out.println("    < " + param);
+            }
+            for (Object other : called) {
+                System.out.println("    [" + other + "]");
+            }
+            if (result instanceof Iterable<?> iter) {
+                for (Iterator<?> i = iter.iterator(); i.hasNext(); ) {
+                    System.out.println("    » " + i.next());
+                }
+            } else if (Objects.nonNull(result)) {
+                System.out.println("    > " + result);
+            }
         }
-        indent--;
     }
 
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
@@ -51,18 +66,16 @@ public class BuildController<T> implements Memorizer.Listener {
 
         memo.setListener(this);
 
-        final Object result;
         if (!params.isEmpty()) {
             try {
                 Method m = type.getMethod(params.removeFirst());
-                result = m.invoke(obj);
+                m.invoke(obj);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         } else {
-            result = buildFn.apply(obj);
+            buildFn.apply(obj);
         }
-        System.out.println("-> " + result);
         memo.saveCache(cache);
     }
 }
