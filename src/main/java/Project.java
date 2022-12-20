@@ -60,7 +60,7 @@ public interface Project {
         }
     }
 
-    static <T extends Project> void make(Class<T> t, Function<T, ?> fn, String[] args) {
+    public static <T extends Project> void make(Class<T> t, Function<T, ?> fn, String[] args) {
         new BuildController<>(memo, t).execute(fn, Project::buildDir, args);
     }
 }

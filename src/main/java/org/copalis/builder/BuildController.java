@@ -2,6 +2,7 @@ package org.copalis.builder;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -32,23 +33,26 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     public void completed(boolean cached, Method method, List<Object> params, Object result) {
-        Set<String> called = stack.pop();
-
-        if (stack.size() == 1 || !cached && type.isAssignableFrom(method.getDeclaringClass())) {
+        if (!cached && type.isAssignableFrom(method.getDeclaringClass())) {
             System.out.println(method.getName() + ':');
-            for (Object param : params) {
-                System.out.println("    < " + param);
+            printExecution(params, result);
+        }
+        stack.pop();
+    }
+
+    private void printExecution(List<Object> params, Object result) {
+        for (Object param : params) {
+            System.out.println("    < " + param);
+        }
+        for (Object other : stack.peek()) {
+            System.out.println("    [" + other + "]");
+        }
+        if (result instanceof Iterable<?> iter) {
+            for (Iterator<?> i = iter.iterator(); i.hasNext(); ) {
+                System.out.println("    > " + i.next());
             }
-            for (Object other : called) {
-                System.out.println("    [" + other + "]");
-            }
-            if (result instanceof Iterable<?> iter) {
-                for (Iterator<?> i = iter.iterator(); i.hasNext(); ) {
-                    System.out.println("    » " + i.next());
-                }
-            } else if (Objects.nonNull(result)) {
-                System.out.println("    > " + result);
-            }
+        } else if (Objects.nonNull(result)) {
+            System.out.println("    > " + result);
         }
     }
 
@@ -74,7 +78,9 @@ public class BuildController<T> implements Memorizer.Listener {
                 throw new RuntimeException(e);
             }
         } else {
-            buildFn.apply(obj);
+            Object result = buildFn.apply(obj);
+            System.out.println("default-build:");
+            printExecution(Collections.emptyList(), result);
         }
         memo.saveCache(cache);
     }

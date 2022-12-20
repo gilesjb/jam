@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +10,11 @@ public class File extends java.io.File implements Checked {
     private static final long serialVersionUID = 1L;
 
     private final long modified;
+
+    public File(URI uri) {
+        super(uri);
+        this.modified = lastModified();
+    }
 
     public File(String pathname) {
         super(pathname);

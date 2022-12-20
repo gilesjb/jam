@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Instantiates an interface using a dynamic proxy and memoizes the method calls.
@@ -88,9 +89,13 @@ public class Memorizer {
     }
 
     public void saveCache(String path) {
+        Map<Signature, Result> save = cache.entrySet().stream()
+                .filter(e -> e.getValue().value() instanceof Serializable)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         try (FileOutputStream file = new FileOutputStream(path)) {
             try (ObjectOutputStream out = new ObjectOutputStream(file)) {
-                out.writeObject(cache);
+                out.writeObject(save);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

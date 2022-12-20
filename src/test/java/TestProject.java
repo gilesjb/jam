@@ -5,7 +5,7 @@
 
 import java.util.stream.Collectors;
 
-public interface TestProject extends Project {
+public interface TestProject extends JavaProject {
 
     @Override default String buildDir() {
         return "target/test-output";
@@ -31,6 +31,10 @@ public interface TestProject extends Project {
 
     default File build() {
         return write("message.txt", messages());
+    }
+
+    default Fileset compile() {
+        return javac("main/java/**.java", "-d", "target/tmp-classes");
     }
 
     static void main(String[] args) {
