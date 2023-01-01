@@ -18,18 +18,18 @@ import java.util.stream.Stream;
 
 import org.copalis.builder.Checked;
 
-public class Fileset implements Checked, Serializable, Iterable<File> {
+public final class Fileset implements Checked, Serializable, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
     public static final Collector<File, Object, Fileset> COLLECT =
-            Collectors.collectingAndThen(Collectors.toSet(), Fileset::new);
+            Collectors.collectingAndThen(Collectors.toSet(), Fileset::of);
 
     private final Set<File> files;
     private final String base, pattern;
 
-    public Fileset(Set<File> files) {
-        this(files, null, null);
+    public static Fileset of(Set<File> files) {
+        return new Fileset(files, null, null);
     }
 
     private Fileset(Set<File> files, String base, String pattern) {
@@ -60,17 +60,17 @@ public class Fileset implements Checked, Serializable, Iterable<File> {
     public Fileset add(File file) {
         TreeSet<File> set = new TreeSet<>(files);
         set.add(file);
-        return new Fileset(set);
+        return of(set);
     }
 
     public Fileset union(Fileset fs) {
         TreeSet<File> set = new TreeSet<>(files);
         set.addAll(fs.files);
-        return new Fileset(set);
+        return of(set);
     }
 
     public Fileset map(Function<File, File> fn) {
-        return new Fileset(files.stream().map(fn).collect(Collectors.toSet()));
+        return of(files.stream().map(fn).collect(Collectors.toSet()));
     }
 
     public Stream<File> stream() {
@@ -87,7 +87,7 @@ public class Fileset implements Checked, Serializable, Iterable<File> {
     }
 
     @Override public String toString() {
-        return Objects.toString(files);
+        return files.stream().map(File::toString).collect(Collectors.joining(";"));
     }
 
     @Override public int hashCode() {

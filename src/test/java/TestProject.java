@@ -5,7 +5,7 @@
 
 import java.util.stream.Collectors;
 
-public interface TestProject extends JavaProject {
+public interface TestProject extends Project, JavaProject {
 
     @Override default String buildDir() {
         return "target/test-output";

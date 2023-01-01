@@ -6,7 +6,7 @@ import java.nio.file.Path;
 
 import org.copalis.builder.Checked;
 
-public class File extends java.io.File implements Checked {
+public final class File extends java.io.File implements Checked {
     private static final long serialVersionUID = 1L;
 
     private final long modified;
@@ -34,7 +34,7 @@ public class File extends java.io.File implements Checked {
     }
 
     public boolean isCurrent() {
-        return modified != 0L && modified == new File(getPath()).lastModified();
+        return modified != 0L && modified == lastModified();
     }
 
     @Override public boolean equals(Object other) {

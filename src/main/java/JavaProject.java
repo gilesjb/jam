@@ -1,8 +1,12 @@
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
+import org.copalis.builder.ClassFileManager;
 
 public interface JavaProject extends Project {
 
@@ -14,7 +18,7 @@ public interface JavaProject extends Project {
         JavaCompiler compiler = javaCompiler();
         StandardJavaFileManager javaFileManager = compiler.getStandardFileManager(null, null, null);
 
-        FileManager fileManager = new FileManager(javaFileManager);
+        ClassFileManager fileManager = new ClassFileManager(javaFileManager);
 
         compiler
             .getTask(
@@ -22,7 +26,10 @@ public interface JavaProject extends Project {
                     javaFileManager.getJavaFileObjectsFromFiles(sourceFiles))
             .call();
 
-        return fileManager.classFiles();
+        return Fileset.of(fileManager.classFiles()
+                .map(JavaFileObject::toUri)
+                .map(File::new)
+                .collect(Collectors.toSet()));
     }
 
     default Fileset javac(String sourceFiles, String... options) {
