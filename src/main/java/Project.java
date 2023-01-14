@@ -11,7 +11,7 @@ public interface Project {
     final Memorizer memo = new Memorizer();
 
     /**
-     * Returns the root source directory
+     * The default source file root directory. Override if the desired directory is not <tt>src</tt>.
      * @return the path of the source directory
      */
     default String srcDir() {
@@ -19,7 +19,7 @@ public interface Project {
     }
 
     /**
-     * Returns the root build directory
+     * The default root build directory. Override if the desired build directory is not <tt>build</tt>.
      * @return the path of the build directory
      */
     default String buildDir() {
@@ -28,7 +28,7 @@ public interface Project {
 
     /**
      * Gets files matching a pattern
-     * @param pattern
+     * @param pattern a glob pattern to search files within {@link #srcDir()}
      * @return a fileset of the matching files
      */
     default Fileset sourceFiles(String pattern) {
@@ -36,8 +36,8 @@ public interface Project {
     }
 
     /**
-     * Gets the file with a specific path
-     * @param name
+     * Gets a file with a specific path
+     * @param name a file path within {@link #srcDir()}
      * @return a File object referencing the specified path
      */
     default File srcFile(String name) {
@@ -46,7 +46,7 @@ public interface Project {
 
     /**
      * Creates a file and writes content to it
-     * @param name
+     * @param name a file path within {@link #buildDir()}
      * @param content
      * @return a File object referencing the created file
      */

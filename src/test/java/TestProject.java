@@ -34,10 +34,12 @@ public interface TestProject extends Project, JavaProject {
     }
 
     default Fileset compile() {
-        return javac("main/java/**.java", "-d", "target/tmp-classes");
+        return javac(sourceFiles("test/java/**.java"), "-verbose",
+                "-cp", "target/classes",
+                "-d", "target/tmp-classes");
     }
 
     static void main(String[] args) {
-        Project.make(TestProject.class, TestProject::build, args);
+        Project.make(TestProject.class, TestProject::compile, args);
     }
 }
