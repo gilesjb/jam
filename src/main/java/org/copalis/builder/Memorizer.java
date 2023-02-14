@@ -115,32 +115,33 @@ public class Memorizer {
 
     public <T, R> T instantiate(Class<T> t) {
         dependencies.push(new HashSet<>());
+        return t.cast(Proxy.newProxyInstance(t.getClassLoader(), new Class[]{t}, this::invokeMethod));
+    }
 
-        T maker = t.cast(Proxy.newProxyInstance(t.getClassLoader(), new Class[]{t}, (proxy, method, args) -> {
-            Signature signature = new Signature(method, args);
+    private Object invokeMethod(Object proxy, Method method, Object[] args)
+            throws Throwable {
+        Signature signature = new Signature(method, args);
 
-            if (cache.containsKey(signature)) {
-                listener.starting(true, method, signature.params());
-                Result result = cache.get(signature);
-                dependencies.peek().addAll(result.sources());
-                listener.completed(true, method, signature.params(), result.value());
-                return result.value();
-            } else {
-                dependencies.push(new HashSet<>());
-                listener.starting(false, method, signature.params());
+        if (cache.containsKey(signature)) {
+            listener.starting(true, method, signature.params());
+            Result result = cache.get(signature);
+            dependencies.peek().addAll(result.sources());
+            listener.completed(true, method, signature.params(), result.value());
+            return result.value();
+        } else {
+            dependencies.push(new HashSet<>());
+            listener.starting(false, method, signature.params());
 
-                try {
-                    Object value = InvocationHandler.invokeDefault(proxy, method, args);
-                    Result result = new Result(value, dependencies.peek());
-                    cache.put(signature, result);
-                    listener.completed(false, method, signature.params(), result.value());
-                    return value;
-                } finally {
-                    Set<Checked> used = dependencies.pop();
-                    dependencies.peek().addAll(used);
-                }
+            try {
+                Object value = InvocationHandler.invokeDefault(proxy, method, args);
+                Result result = new Result(value, dependencies.peek());
+                cache.put(signature, result);
+                listener.completed(false, method, signature.params(), result.value());
+                return value;
+            } finally {
+                Set<Checked> used = dependencies.pop();
+                dependencies.peek().addAll(used);
             }
-        }));
-        return maker;
+        }
     }
 }

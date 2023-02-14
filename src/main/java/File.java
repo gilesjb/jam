@@ -6,6 +6,11 @@ import java.nio.file.Path;
 
 import org.copalis.builder.Checked;
 
+/**
+ * A reference to an existing file
+ *
+ * @author giles
+ */
 public final class File extends java.io.File implements Checked {
     private static final long serialVersionUID = 1L;
 

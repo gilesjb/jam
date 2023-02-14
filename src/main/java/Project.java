@@ -1,4 +1,10 @@
+
+
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
@@ -40,8 +46,22 @@ public interface Project {
      * @param name a file path within {@link #srcDir()}
      * @return a File object referencing the specified path
      */
-    default File srcFile(String name) {
+    default File sourceFile(String name) {
         return new File(Path.of(srcDir()).resolve(name));
+    }
+
+    default File download(String name, String url) {
+        try {
+            Path path = Path.of(name);
+            Files.createDirectories(path.getParent());
+            try (ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
+                    FileOutputStream out = new FileOutputStream(path.toFile())) {
+                out.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                return new File(path);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

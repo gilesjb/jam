@@ -1,6 +1,5 @@
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -14,6 +13,14 @@ public interface JavaProject extends Project {
         return ToolProvider.getSystemJavaCompiler();
     }
 
+    default Fileset jarfiles(String dir) {
+        return memo.dependsOn(Fileset.find(dir, "*.jar"));
+    }
+
+    default Fileset javac(Fileset sourceFiles, Fileset classpath, String directory) {
+        return javac(sourceFiles, "-cp", classpath.base, "-d", directory);
+    }
+
     default Fileset javac(Fileset sourceFiles, String... options) {
         JavaCompiler compiler = javaCompiler();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
@@ -21,17 +28,13 @@ public interface JavaProject extends Project {
         HashSet<JavaFileObject> outputClasses = new HashSet<>();
         compiler
             .getTask(
-                    null, ClassFileManager.wrap(fileManager, outputClasses), null, Arrays.asList(options), null,
+                    null, ClassFileManager.wrap(fileManager, outputClasses), d -> { }, Arrays.asList(options), null,
                     fileManager.getJavaFileObjectsFromFiles(sourceFiles))
             .call();
 
-        return Fileset.of(outputClasses.stream()
+        return outputClasses.stream()
                 .map(JavaFileObject::toUri)
                 .map(File::new)
-                .collect(Collectors.toSet()));
-    }
-
-    default Fileset javac(String sourceFiles, String... options) {
-        return javac(sourceFiles(sourceFiles), options);
+                .collect(Fileset.COLLECT);
     }
 }

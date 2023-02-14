@@ -1,6 +1,8 @@
 package org.copalis.builder;
 
-public interface Checked {
+import java.io.Serializable;
+
+public interface Checked extends Serializable {
 
     boolean isCurrent();
 }

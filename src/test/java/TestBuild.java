@@ -5,7 +5,7 @@
 
 import java.util.stream.Collectors;
 
-public interface TestProject extends Project, JavaProject {
+public interface TestBuild extends Project {
 
     @Override default String buildDir() {
         return "target/test-output";
@@ -29,17 +29,15 @@ public interface TestProject extends Project, JavaProject {
                 .collect(Collectors.joining(", "));
     }
 
+    default File downloadAnt() {
+        return download("./ant-bin.jar", "http://archive.apache.org/dist/ant/binaries/apache-ant-1.10.12-bin.zip");
+    }
+
     default File build() {
         return write("message.txt", messages());
     }
 
-    default Fileset compile() {
-        return javac(sourceFiles("test/java/**.java"), "-verbose",
-                "-cp", "target/classes",
-                "-d", "target/tmp-classes");
-    }
-
     static void main(String[] args) {
-        Project.make(TestProject.class, TestProject::compile, args);
+        Project.make(TestBuild.class, TestBuild::build, args);
     }
 }

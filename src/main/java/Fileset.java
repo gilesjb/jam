@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -18,15 +17,20 @@ import java.util.stream.Stream;
 
 import org.copalis.builder.Checked;
 
-public final class Fileset implements Checked, Serializable, Iterable<File> {
+/**
+ * A reference to a set of existing files
+ *
+ * @author giles
+ */
+public final class Fileset implements Checked, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
     public static final Collector<File, Object, Fileset> COLLECT =
             Collectors.collectingAndThen(Collectors.toSet(), Fileset::of);
 
-    private final Set<File> files;
-    private final String base, pattern;
+    final Set<File> files;
+    final String base, pattern;
 
     public static Fileset of(Set<File> files) {
         return new Fileset(files, null, null);

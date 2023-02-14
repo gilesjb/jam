@@ -22,22 +22,12 @@ public class ClassFileManager {
                 }
                 return file;
             }
+
+            @Override public JavaFileObject getJavaFileForInput(Location location, String className, Kind kind)
+                    throws IOException {
+                JavaFileObject result = super.getJavaFileForInput(location, className, kind);
+                return result;
+            }
         };
     }
-
-//    public static <X> X instrument(X core, Class<X> type) {
-//        return type.cast(
-//                Proxy.newProxyInstance(
-//                        type.getClassLoader(),
-//                        new Class<?>[] {type},
-//                        (proxy, method, args) -> {
-//                            System.err.println(method.getName() + (Objects.nonNull(args) ? Arrays.asList(args) : ""));
-//                            if (method.isDefault()) {
-//                                return InvocationHandler.invokeDefault(proxy, method, args);
-//                            } else {
-//                                return method.invoke(core, args);
-//                            }
-//                        }
-//        ));
-//    }
 }
