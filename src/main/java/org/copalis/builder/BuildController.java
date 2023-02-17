@@ -2,13 +2,8 @@ package org.copalis.builder;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 public class BuildController<T> implements Memorizer.Listener {
@@ -17,43 +12,42 @@ public class BuildController<T> implements Memorizer.Listener {
     private final Memorizer memo;
     private final Class<T> type;
 
-    private final LinkedList<Set<String>> stack = new LinkedList<>();
+    private int calls = 0;
 
     public BuildController(Memorizer memo, Class<T> type) {
         this.memo = memo;
         this.type = type;
-        stack.push(new LinkedHashSet<>());
     }
 
     public void starting(boolean cached, Method method, List<Object> params) {
-        if (type.isAssignableFrom(method.getDeclaringClass())) {
-            stack.peek().add(method.getName() + (cached ? "*" : ""));
+        if (!cached) {
+            printMethodCall(false, method, params);
         }
-        stack.push(new LinkedHashSet<>());
+        calls++;
     }
 
     public void completed(boolean cached, Method method, List<Object> params, Object result) {
-        if (!cached && type.isAssignableFrom(method.getDeclaringClass())) {
-            System.out.println(method.getName() + ':');
-            printExecution(params, result);
+        calls--;
+        if (cached) {
+            printMethodCall(true, method, params);
         }
-        stack.pop();
     }
 
-    private void printExecution(List<Object> params, Object result) {
+    private void printMethodCall(boolean cached, Method method, List<Object> params) {
+        print(cached ? "cached:" : "call:  ");
+        print("  ".repeat(calls));
+        print(method.getName());
         for (Object param : params) {
-            System.out.println("    < " + param);
+            print(" ");
+            if (param instanceof String) print("'");
+            System.out.print(param);
+            if (param instanceof String) print("'");
         }
-        for (Object other : stack.peek()) {
-            System.out.println("    [" + other + "]");
-        }
-        if (result instanceof Iterable<?> iter) {
-            for (Iterator<?> i = iter.iterator(); i.hasNext(); ) {
-                System.out.println("    > " + i.next());
-            }
-        } else if (Objects.nonNull(result)) {
-            System.out.println("    > " + result);
-        }
+        System.out.println();
+    }
+
+    private void print(String str) {
+        System.out.print(str);
     }
 
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
@@ -78,9 +72,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 throw new RuntimeException(e);
             }
         } else {
-            Object result = buildFn.apply(obj);
-            System.out.println("default-build:");
-            printExecution(Collections.emptyList(), result);
+            buildFn.apply(obj);
         }
         memo.saveCache(cache);
     }
