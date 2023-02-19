@@ -43,6 +43,6 @@ public final class File extends java.io.File implements Checked {
     }
 
     @Override public boolean equals(Object other) {
-        return !(other instanceof File file) || super.equals(other) && modified == file.modified;
+        return !(other instanceof File file) || super.equals(other);
     }
 }

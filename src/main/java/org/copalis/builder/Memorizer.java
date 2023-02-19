@@ -30,9 +30,13 @@ import java.util.stream.Collectors;
  */
 public class Memorizer {
 
+    public enum Status {
+        CREATE, UPDATE, CURRENT
+    }
+
     public interface Listener {
-        default void starting(boolean cached, Method method, List<Object> params) { }
-        default void completed(boolean cached, Method method, List<Object> params, Object result) { }
+        default void startMethod(Status status, Method method, List<Object> params) { }
+        default void endMethod(Status status, Method method, List<Object> params, Object result) { }
     }
 
     record Signature(String name, List<Object> params) implements Serializable {
@@ -42,6 +46,8 @@ public class Memorizer {
     }
 
     record Result(Object value, Set<Checked> sources) implements Serializable { }
+
+    static final Result STALE = new Result(null, Collections.emptySet());
 
     private final LinkedList<Set<Checked>> dependencies = new LinkedList<>();
     private Map<Signature, Result> cache = new HashMap<>();
@@ -54,6 +60,8 @@ public class Memorizer {
     public void validateCache() {
         Map<Signature, Result> copy = new HashMap<>();
         cache.forEach((signature, result) -> {
+            copy.put(signature, STALE);
+
             for (Object param : signature.params) {
                 if (param instanceof Checked checked && !checked.isCurrent()) {
                     return;
@@ -122,26 +130,31 @@ public class Memorizer {
             throws Throwable {
         Signature signature = new Signature(method, args);
 
+        Status status = Status.CREATE;
         if (cache.containsKey(signature)) {
-            listener.starting(true, method, signature.params());
             Result result = cache.get(signature);
-            dependencies.peek().addAll(result.sources());
-            listener.completed(true, method, signature.params(), result.value());
-            return result.value();
-        } else {
-            dependencies.push(new HashSet<>());
-            listener.starting(false, method, signature.params());
 
-            try {
-                Object value = InvocationHandler.invokeDefault(proxy, method, args);
-                Result result = new Result(value, dependencies.peek());
-                cache.put(signature, result);
-                listener.completed(false, method, signature.params(), result.value());
-                return value;
-            } finally {
-                Set<Checked> used = dependencies.pop();
-                dependencies.peek().addAll(used);
+            if (result == STALE) {
+                status = Status.UPDATE;
+            } else {
+                listener.startMethod(Status.CURRENT, method, signature.params());
+                dependencies.peek().addAll(result.sources());
+                listener.endMethod(Status.CURRENT, method, signature.params(), result.value());
+                return result.value();
             }
+        }
+        dependencies.push(new HashSet<>());
+        listener.startMethod(status, method, signature.params());
+
+        Object value = null;
+        try {
+            value = InvocationHandler.invokeDefault(proxy, method, args);
+            cache.put(signature, new Result(value, dependencies.peek()));
+            return value;
+        } finally {
+            listener.endMethod(status, method, signature.params(), value);
+            Set<Checked> used = dependencies.pop();
+            dependencies.peek().addAll(used);
         }
     }
 }

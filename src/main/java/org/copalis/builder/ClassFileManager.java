@@ -22,12 +22,6 @@ public class ClassFileManager {
                 }
                 return file;
             }
-
-            @Override public JavaFileObject getJavaFileForInput(Location location, String className, Kind kind)
-                    throws IOException {
-                JavaFileObject result = super.getJavaFileForInput(location, className, kind);
-                return result;
-            }
         };
     }
 }

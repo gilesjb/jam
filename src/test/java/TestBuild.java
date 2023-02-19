@@ -29,10 +29,6 @@ public interface TestBuild extends Project {
                 .collect(Collectors.joining(", "));
     }
 
-    default File antJar() {
-        return download("./ant-bin.jar", "http://archive.apache.org/dist/ant/binaries/apache-ant-1.10.12-bin.zip");
-    }
-
     default File build() {
         return write("message.txt", messages());
     }

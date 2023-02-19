@@ -5,6 +5,10 @@
 
 public interface TestCompile extends JavaProject {
 
+    default File antJar() {
+        return download("./ant-bin.jar", "http://archive.apache.org/dist/ant/binaries/apache-ant-1.10.12-bin.zip");
+    }
+
     default Fileset compile() {
         return javac(sourceFiles("test/java/**.java"), "-verbose",
                 "-cp", "target/classes",

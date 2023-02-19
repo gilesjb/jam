@@ -19,23 +19,10 @@ public class BuildController<T> implements Memorizer.Listener {
         this.type = type;
     }
 
-    public void starting(boolean cached, Method method, List<Object> params) {
-        if (!cached) {
-            printMethodCall(false, method, params);
-        }
-        calls++;
-    }
-
-    public void completed(boolean cached, Method method, List<Object> params, Object result) {
-        calls--;
-        if (cached) {
-            printMethodCall(true, method, params);
-        }
-    }
-
-    private void printMethodCall(boolean cached, Method method, List<Object> params) {
-        print(cached ? "cached:" : "call:  ");
-        print("  ".repeat(calls));
+    public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
+        print(status.toString().toLowerCase());
+        print(":");
+        print(" ".repeat(calls * 2 + 8 - status.toString().length()));
         print(method.getName());
         for (Object param : params) {
             print(" ");
@@ -44,6 +31,12 @@ public class BuildController<T> implements Memorizer.Listener {
             if (param instanceof String) print("'");
         }
         System.out.println();
+
+        calls++;
+    }
+
+    public void endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
+        calls--;
     }
 
     private void print(String str) {
