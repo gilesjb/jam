@@ -26,7 +26,7 @@ public final class Fileset implements Checked, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
-    public static final Collector<File, Object, Fileset> COLLECT =
+    public static final Collector<File, Object, Fileset> FILES =
             Collectors.collectingAndThen(Collectors.toSet(), Fileset::of);
 
     final Set<File> files;
@@ -42,7 +42,7 @@ public final class Fileset implements Checked, Iterable<File> {
         this.pattern = pattern;
     }
 
-    static Fileset find(String base, String pattern) {
+    public static Fileset find(String base, String pattern) {
         Path path = Path.of(base);
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
         Set<File> matches = new TreeSet<>();
@@ -74,7 +74,7 @@ public final class Fileset implements Checked, Iterable<File> {
     }
 
     public Fileset map(Function<File, File> fn) {
-        return of(files.stream().map(fn).collect(Collectors.toSet()));
+        return files.stream().map(fn).collect(FILES);
     }
 
     public Stream<File> stream() {

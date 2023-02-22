@@ -45,7 +45,9 @@ public class BuildController<T> implements Memorizer.Listener {
 
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         T obj = memo.instantiate(type);
+
         String cache = cacheDir.apply(obj) + '/' + CACHE_FILE;
+        memo.setListener(this);
 
         LinkedList<String> params = new LinkedList<>(Arrays.asList(args));
         if ("-new".equals(params.peekFirst())) {
@@ -55,7 +57,6 @@ public class BuildController<T> implements Memorizer.Listener {
             memo.validateCache();
         }
 
-        memo.setListener(this);
 
         if (!params.isEmpty()) {
             try {

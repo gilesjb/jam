@@ -5,14 +5,21 @@
 
 public interface TestCompile extends JavaProject {
 
+    @Override default String srcDir() {
+        return "src";
+    }
+
+    @Override default String buildDir() {
+        return "target";
+    }
+
     default File antJar() {
-        return download("./ant-bin.jar", "http://archive.apache.org/dist/ant/binaries/apache-ant-1.10.12-bin.zip");
+        return download("target/jars/ant-bin.jar", "http://archive.apache.org/dist/ant/binaries/apache-ant-1.10.12-bin.zip");
     }
 
     default Fileset compile() {
-        return javac(sourceFiles("test/java/**.java"), "-verbose",
-                "-cp", "target/classes",
-                "-d", "target/tmp-classes");
+        return javac("test/java", Fileset.find("target/classes", "*.class"),
+                "tmp-classes");
     }
 
     static void main(String[] args) {

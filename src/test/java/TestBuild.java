@@ -20,7 +20,7 @@ public interface TestBuild extends Project {
     }
 
     default Fileset fileCopies() {
-        return inputs().stream().map(this::fileCopy).collect(Fileset.COLLECT);
+        return inputs().stream().map(this::fileCopy).collect(Fileset.FILES);
     }
 
     default String messages() {
