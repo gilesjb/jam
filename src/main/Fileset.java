@@ -1,11 +1,9 @@
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
@@ -32,6 +30,10 @@ public final class Fileset implements Checked, Iterable<File> {
     final Set<File> files;
     final String base, pattern;
 
+    public static Fileset of(File... files) {
+        return new Fileset(new TreeSet<>(Arrays.asList(files)), null, null);
+    }
+
     public static Fileset of(Set<File> files) {
         return new Fileset(files, null, null);
     }
@@ -42,43 +44,35 @@ public final class Fileset implements Checked, Iterable<File> {
         this.pattern = pattern;
     }
 
+    public static Fileset find(String selector) {
+        int split = selector.lastIndexOf('/');
+        return find(selector.substring(0, split), selector.substring(split + 1));
+    }
+
     public static Fileset find(String base, String pattern) {
         Path path = Path.of(base);
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-        Set<File> matches = new TreeSet<>();
         try {
-            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (matcher.matches(path.relativize(file))) {
-                        matches.add(new File(file));
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+            TreeSet<File> matches = Files.walk(path)
+                .filter(p -> matcher.matches(path.relativize(p)))
+                .map(File::new)
+                .collect(Collectors.toCollection(TreeSet::new));
+            return new Fileset(matches, base, pattern);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new Fileset(matches, base, pattern);
-    }
-
-    public Fileset add(File file) {
-        TreeSet<File> set = new TreeSet<>(files);
-        set.add(file);
-        return of(set);
-    }
-
-    public Fileset union(Fileset fs) {
-        TreeSet<File> set = new TreeSet<>(files);
-        set.addAll(fs.files);
-        return of(set);
     }
 
     public Fileset map(Function<File, File> fn) {
-        return files.stream().map(fn).collect(FILES);
+        return stream().map(fn).collect(FILES);
     }
 
     public Stream<File> stream() {
         return files.stream();
+    }
+
+    public String base() {
+        return base;
     }
 
     public boolean isCurrent() {
@@ -91,7 +85,10 @@ public final class Fileset implements Checked, Iterable<File> {
     }
 
     @Override public String toString() {
-        return files.stream().map(File::toString).collect(Collectors.joining(";"));
+        if (Objects.nonNull(pattern)) {
+            return base + '/' + pattern;
+        }
+        return files.stream().map(File::toString).collect(Collectors.joining(":"));
     }
 
     @Override public int hashCode() {

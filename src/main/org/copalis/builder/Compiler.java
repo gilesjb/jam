@@ -3,7 +3,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Stream;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -19,10 +21,11 @@ public class Compiler {
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-    public Boolean compile(Iterable<? extends File> sourceFiles, Set<URI> outputClasses, String... options) {
+    public Stream<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
+
+        List<URI> outputClasses = new LinkedList<>();
 
         JavaFileManager outputs = new ForwardingJavaFileManager<JavaFileManager>(fileManager) {
-
             @Override public JavaFileObject getJavaFileForOutput(
                     Location location, String className, Kind kind, FileObject sibling) throws IOException {
 
@@ -34,10 +37,12 @@ public class Compiler {
             }
         };
 
-        return compiler
+        compiler
             .getTask(
-                    null, outputs, d -> { }, Arrays.asList(options), null,
+                    null, outputs, null, Arrays.asList(options), null,
                     fileManager.getJavaFileObjectsFromFiles(sourceFiles))
             .call();
+
+        return outputClasses.stream();
     }
 }

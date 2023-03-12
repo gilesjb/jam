@@ -1,3 +1,4 @@
+/*
 #!/usr/bin/java -classpath classes --source 19
 /*
  */
