@@ -2,7 +2,7 @@ package org.copalis.builder;
 
 import java.io.Serializable;
 
-public interface Checked extends Serializable {
+public interface Memorizable extends Serializable {
 
     boolean isCurrent();
 }

@@ -4,14 +4,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.builder.Checked;
+import org.copalis.builder.Memorizable;
 
 /**
  * A reference to an existing file
  *
  * @author giles
  */
-public final class File extends java.io.File implements Checked {
+public final class File extends java.io.File implements Memorizable {
     private static final long serialVersionUID = 1L;
 
     private final long modified;

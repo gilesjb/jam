@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 public class Memorizer {
 
     public enum Status {
-        CREATE, UPDATE, CURRENT
+        EXECUTE, UPDATE, CURRENT
     }
 
     public interface Listener {
@@ -45,11 +47,11 @@ public class Memorizer {
         }
     }
 
-    record Result(Object value, Set<Checked> sources) implements Serializable { }
+    record Result(Object value, Set<Memorizable> sources) implements Serializable { }
 
     static final Result STALE = new Result(null, Collections.emptySet());
 
-    private final LinkedList<Set<Checked>> dependencies = new LinkedList<>();
+    private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
     private Map<Signature, Result> cache = new HashMap<>();
     private Listener listener = new Listener() { };
 
@@ -63,16 +65,16 @@ public class Memorizer {
             copy.put(signature, STALE);
 
             for (Object param : signature.params) {
-                if (param instanceof Checked checked && !checked.isCurrent()) {
+                if (param instanceof Memorizable checked && !checked.isCurrent()) {
                     return;
                 }
             }
 
-            if (result.value() instanceof Checked checked && !checked.isCurrent()) {
+            if (result.value() instanceof Memorizable checked && !checked.isCurrent()) {
                 return;
             }
 
-            for (Checked depended : result.sources) {
+            for (Memorizable depended : result.sources) {
                 if (!depended.isCurrent()) {
                     return;
                 }
@@ -101,12 +103,14 @@ public class Memorizer {
                 .filter(e -> e.getValue().value() instanceof Serializable)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        try (FileOutputStream file = new FileOutputStream(path)) {
-            try (ObjectOutputStream out = new ObjectOutputStream(file)) {
-                out.writeObject(save);
+        if (Files.exists(Path.of(path).getParent())) {
+            try (FileOutputStream file = new FileOutputStream(path)) {
+                try (ObjectOutputStream out = new ObjectOutputStream(file)) {
+                    out.writeObject(save);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -116,7 +120,7 @@ public class Memorizer {
      * @param files
      * @return the supplied files
      */
-    public <T extends Checked> T dependsOn(T files) {
+    public <T extends Memorizable> T dependsOn(T files) {
         dependencies.peek().add(files);
         return files;
     }
@@ -130,7 +134,7 @@ public class Memorizer {
             throws Throwable {
         Signature signature = new Signature(method, args);
 
-        Status status = Status.CREATE;
+        Status status = Status.EXECUTE;
         if (cache.containsKey(signature)) {
             Result result = cache.get(signature);
 
@@ -153,7 +157,7 @@ public class Memorizer {
             return value;
         } finally {
             listener.endMethod(status, method, signature.params(), value);
-            Set<Checked> used = dependencies.pop();
+            Set<Memorizable> used = dependencies.pop();
             dependencies.peek().addAll(used);
         }
     }

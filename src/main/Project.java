@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.copalis.builder.BuildController;
@@ -32,6 +36,31 @@ public interface Project {
         return "build";
     }
 
+    default void clean() {
+        deleteDir(buildPath());
+    }
+
+    default void deleteDir(String path) {
+        Path root = Path.of(path);
+        if (Files.exists(root)) {
+            try {
+                Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+                    @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     /**
      * Gets files matching a pattern
      * @param pattern a glob pattern to search files within {@link #sourcePath()}
@@ -52,7 +81,7 @@ public interface Project {
 
     default File download(String name, String url) {
         try {
-            Path path = Path.of(name);
+            Path path = Path.of(buildPath()).resolve(name);
             Files.createDirectories(path.getParent());
             try (ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
                     FileOutputStream out = new FileOutputStream(path.toFile())) {
@@ -78,6 +107,13 @@ public interface Project {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <T extends Project> void make(Class<T> t, Consumer<T> fn, String[] args) {
+        make(t, o -> {
+            fn.accept(o);
+            return null;
+        }, args);
     }
 
     public static <T extends Project> void make(Class<T> t, Function<T, ?> fn, String[] args) {

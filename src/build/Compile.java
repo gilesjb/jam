@@ -13,24 +13,35 @@ public interface Compile extends JavaProject {
         return "built";
     }
 
-    default Fileset jars() {
-        return Fileset.of(download("jars/junit.jar",
-                "https://repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"));
+    default File mavenJar(String org, String name, String version) {
+        return download(
+                String.format("jars/%s.jar", name),
+                String.format("https://repo1.maven.org/maven2/%s/%s/%s/%2$s-%3$s.jar", org, name, version));
+    }
+
+    default Fileset testJars() {
+        return Fileset.of(
+                mavenJar("junit", "junit", "4.13.2"),
+                mavenJar("org/hamcrest", "hamcrest-core", "1.3"));
     }
 
     default Fileset mainClasses() {
-        return javaCompile("classes", sourceFiles("main/**.java"));
+        return javaCompile("main-classes", sourceFiles("main/**.java"));
     }
 
     default Fileset testClasses() {
-        return javaCompile("test-classes", sourceFiles("test/**.java"), mainClasses(), jars());
+        return javaCompile("test-classes", sourceFiles("test/**.java"), mainClasses(), testJars());
     }
 
     default Fileset build() {
         return testClasses();
     }
 
+    default void testBuild() {
+        junit(testClasses(), sourceFiles("test/**.txt"), mainClasses(), testJars());
+    }
+
     static void main(String[] args) {
-        Project.make(Compile.class, Compile::build, args);
+        Project.make(Compile.class, Compile::testBuild, args);
     }
 }

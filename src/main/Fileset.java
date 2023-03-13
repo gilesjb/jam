@@ -13,14 +13,14 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.builder.Checked;
+import org.copalis.builder.Memorizable;
 
 /**
  * A reference to a set of existing files
  *
  * @author giles
  */
-public final class Fileset implements Checked, Iterable<File> {
+public final class Fileset implements Memorizable, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
@@ -38,7 +38,7 @@ public final class Fileset implements Checked, Iterable<File> {
         return new Fileset(files, null, null);
     }
 
-    private Fileset(Set<File> files, String base, String pattern) {
+    public Fileset(Set<File> files, String base, String pattern) {
         this.files = files;
         this.base = base;
         this.pattern = pattern;

@@ -62,6 +62,7 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
+        long start = System.currentTimeMillis();
         T obj = memo.instantiate(type);
 
         String cache = cacheDir.apply(obj) + '/' + CACHE_FILE;
@@ -75,7 +76,6 @@ public class BuildController<T> implements Memorizer.Listener {
             memo.validateCache();
         }
 
-
         if (!params.isEmpty()) {
             try {
                 Method m = type.getMethod(params.removeFirst());
@@ -87,5 +87,6 @@ public class BuildController<T> implements Memorizer.Listener {
             buildFn.apply(obj);
         }
         memo.saveCache(cache);
+        System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);
     }
 }
