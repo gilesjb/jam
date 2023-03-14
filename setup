@@ -1,1 +1,2 @@
-javac -sourcepath src/main -d classes src/main/**.java
+javac -sourcepath src/main -d classes src/main/**.java && echo Compiled builder
+./bld

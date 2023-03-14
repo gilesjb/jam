@@ -2,17 +2,23 @@ package org.copalis.builder;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".build-cache.ser";
 
+    record Call(Method method, List<Object> params) { }
+
     private final Memorizer memo;
     private final Class<T> type;
+    private final Set<Call> cached = new HashSet<>();
 
     private int calls = 0;
+
 
     public BuildController(Memorizer memo, Class<T> type) {
         this.memo = memo;
@@ -20,23 +26,21 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
-        print(status.toString().toLowerCase());
-        print(":");
-        print(" ".repeat(calls * 2 + 8 - status.toString().length()));
-        print(method.getName());
-        for (Object param : params) {
-            printParam(param);
+        if (cached.add(new Call(method, params))) {
+            print(status.toString().toLowerCase());
+            print(":");
+            print(" ".repeat(calls * 2 + 8 - status.toString().length()));
+            print(method.getName());
+            for (Object param : params) {
+                print(" ");
+                if (param instanceof String) print("'");
+                System.out.print(param);
+                if (param instanceof String) print("'");
+            }
+            System.out.println();
         }
-        System.out.println();
 
         calls++;
-    }
-
-    private void printParam(Object param) {
-        print(" ");
-        if (param instanceof String) print("'");
-        System.out.print(param);
-        if (param instanceof String) print("'");
     }
 
     public void endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
@@ -59,7 +63,6 @@ public class BuildController<T> implements Memorizer.Listener {
             params.removeFirst();
         } else {
             memo.loadCache(cache);
-            memo.validateCache();
         }
 
         if (!params.isEmpty()) {

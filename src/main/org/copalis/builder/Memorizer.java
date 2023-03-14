@@ -65,13 +65,12 @@ public class Memorizer {
         }
     }
 
-    record Result(Object value, Set<Memorizable> sources) implements Serializable {
+    record Result(Signature signature, Object value, Set<Memorizable> sources) implements Serializable {
         boolean isCurrent() {
-            return Memorizable.isCurrent(value) && sources.stream().allMatch(Memorizable::current);
+            return signature.isCurrent() && Memorizable.isCurrent(value)
+                    && sources.stream().allMatch(Memorizable::current);
         }
     }
-
-    static final Result STALE = new Result(null, Collections.emptySet());
 
     private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
     private Map<Signature, Result> cache = new HashMap<>();
@@ -79,19 +78,6 @@ public class Memorizer {
 
     public void setListener(Listener listener) {
         this.listener = listener;
-    }
-
-    public void validateCache() {
-        Map<Signature, Result> copy = new HashMap<>();
-        cache.forEach((signature, result) -> {
-            if (signature.isCurrent() && result.isCurrent()) {
-                copy.put(signature, result);
-            } else {
-                copy.put(signature, STALE);
-            }
-        });
-
-        cache = copy;
     }
 
     @SuppressWarnings("unchecked")
@@ -146,7 +132,7 @@ public class Memorizer {
         if (cache.containsKey(signature)) {
             Result result = cache.get(signature);
 
-            if (result == STALE || !signature.isCurrent()) {
+            if (!result.isCurrent()) {
                 status = Status.UPDATE;
                 cache.remove(signature);
             } else {
@@ -162,7 +148,7 @@ public class Memorizer {
         Object value = null;
         try {
             value = InvocationHandler.invokeDefault(proxy, method, args);
-            cache.put(signature, new Result(value, dependencies.peek()));
+            cache.put(signature, new Result(signature, value, dependencies.peek()));
             return value;
         } finally {
             listener.endMethod(status, method, signature.params(), value);
