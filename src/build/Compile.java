@@ -26,11 +26,11 @@ public interface Compile extends JavaProject {
     }
 
     default Fileset mainClasses() {
-        return javaCompile("main-classes", sourceFiles("main/**.java"));
+        return javaCompile("classes/main", sourceFiles("main/**.java"));
     }
 
     default Fileset testClasses() {
-        return javaCompile("test-classes", sourceFiles("test/**.java"), mainClasses(), testJars());
+        return javaCompile("classes/test", sourceFiles("test/**.java"), mainClasses(), testJars());
     }
 
     default Fileset build() {

@@ -8,6 +8,7 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -43,11 +44,32 @@ public class Memorizer {
 
     record Signature(String name, List<Object> params) implements Serializable {
         public Signature(Method method, Object[] params) {
-            this(method.getName(), Objects.isNull(params) ? Collections.emptyList() : Arrays.asList(params));
+            this(method.getName(), Objects.isNull(params) ? Collections.emptyList()
+                    : method.isVarArgs() ? expandVarArgs(params) : Arrays.asList(params));
+        }
+
+        private static List<Object> expandVarArgs(Object[] params) {
+            List<Object> result = new LinkedList<>();
+            for (int i = 0; i < params.length - 1; i++) {
+                result.add(params[i]);
+            }
+            Object var = params[params.length - 1];
+            for (int i = 0; i < Array.getLength(var); i++) {
+                result.add(Array.get(var, i));
+            }
+            return result;
+        }
+
+        boolean isCurrent() {
+            return params.stream().allMatch(Memorizable::isCurrent);
         }
     }
 
-    record Result(Object value, Set<Memorizable> sources) implements Serializable { }
+    record Result(Object value, Set<Memorizable> sources) implements Serializable {
+        boolean isCurrent() {
+            return Memorizable.isCurrent(value) && sources.stream().allMatch(Memorizable::current);
+        }
+    }
 
     static final Result STALE = new Result(null, Collections.emptySet());
 
@@ -62,25 +84,11 @@ public class Memorizer {
     public void validateCache() {
         Map<Signature, Result> copy = new HashMap<>();
         cache.forEach((signature, result) -> {
-            copy.put(signature, STALE);
-
-            for (Object param : signature.params) {
-                if (param instanceof Memorizable checked && !checked.isCurrent()) {
-                    return;
-                }
+            if (signature.isCurrent() && result.isCurrent()) {
+                copy.put(signature, result);
+            } else {
+                copy.put(signature, STALE);
             }
-
-            if (result.value() instanceof Memorizable checked && !checked.isCurrent()) {
-                return;
-            }
-
-            for (Memorizable depended : result.sources) {
-                if (!depended.isCurrent()) {
-                    return;
-                }
-            }
-
-            copy.put(signature, result);
         });
 
         cache = copy;
@@ -138,8 +146,9 @@ public class Memorizer {
         if (cache.containsKey(signature)) {
             Result result = cache.get(signature);
 
-            if (result == STALE) {
+            if (result == STALE || !signature.isCurrent()) {
                 status = Status.UPDATE;
+                cache.remove(signature);
             } else {
                 listener.startMethod(Status.CURRENT, method, signature.params());
                 dependencies.peek().addAll(result.sources());

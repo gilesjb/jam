@@ -19,7 +19,7 @@ public class FileTest {
 
     @Test
     public void testCurrent() {
-        assertTrue(file.isCurrent());
+        assertTrue(file.current());
     }
 
     @Test

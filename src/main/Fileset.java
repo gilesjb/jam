@@ -75,9 +75,9 @@ public final class Fileset implements Memorizable, Iterable<File> {
         return base;
     }
 
-    public boolean isCurrent() {
+    public boolean current() {
         return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
-                && files.stream().map(File::isCurrent).allMatch(Boolean.TRUE::equals);
+                && files.stream().map(File::current).allMatch(Boolean.TRUE::equals);
     }
 
     @Override public Iterator<File> iterator() {

@@ -38,7 +38,7 @@ public final class File extends java.io.File implements Memorizable {
         }
     }
 
-    public boolean isCurrent() {
+    public boolean current() {
         return modified != 0L && modified == lastModified();
     }
 

@@ -37,7 +37,7 @@ public interface JavaProject extends Project {
                 .map(File::new);
     }
 
-    default void junit(Fileset testClasses, Fileset... classpath) {
+    default Fileset junit(Fileset testClasses, Fileset... classpath) {
         List<String> args = new LinkedList<>();
         args.add("java");
         args.add("-cp");
@@ -51,15 +51,16 @@ public interface JavaProject extends Project {
             }
         });
         exec(args.toArray(new String[0]));
+        return testClasses;
     }
 
-    default int exec(String... command) {
+    default void exec(String... command) {
         ProcessBuilder proc = new ProcessBuilder();
         proc.command(command);
         proc.redirectError(Redirect.INHERIT);
         proc.redirectOutput(Redirect.INHERIT);
         try {
-            return proc.start().waitFor();
+            proc.start().waitFor();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
