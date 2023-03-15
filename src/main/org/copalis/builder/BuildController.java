@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".build-cache.ser";
@@ -61,6 +62,13 @@ public class BuildController<T> implements Memorizer.Listener {
         LinkedList<String> params = new LinkedList<>(Arrays.asList(args));
         if ("-new".equals(params.peekFirst())) {
             params.removeFirst();
+        } else if ("-help".equals(params.peekFirst())) {
+            System.out.println("Targets:");
+            Stream.of(type.getMethods())
+                .filter(m -> m.getParameterCount() == 0)
+                .map(Method::getName)
+                .forEach(System.out::println);
+            return;
         } else {
             memo.loadCache(cache);
         }
