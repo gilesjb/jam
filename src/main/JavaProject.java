@@ -1,3 +1,4 @@
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
@@ -6,6 +7,9 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,20 +54,43 @@ public interface JavaProject extends Project {
                 args.add(name.replace('/', '.').substring(0, name.length() - ".class".length()));
             }
         });
-        exec(args.toArray(new String[0]));
+        if (exec(args.toArray(new String[0])) != 0) {
+            throw new RuntimeException("Unit tests failed");
+        }
         return testClasses;
     }
 
-    default void exec(String... command) {
+    default int exec(String... command) {
         ProcessBuilder proc = new ProcessBuilder();
         proc.command(command);
         proc.redirectError(Redirect.INHERIT);
         proc.redirectOutput(Redirect.INHERIT);
         try {
-            proc.start().waitFor();
+            return proc.start().waitFor();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    default File jar(String jarPath, Fileset... contents) {
+        String path = buildPath() + '/' + jarPath;
+        try (FileOutputStream stream = new FileOutputStream(path)) {
+            try (JarOutputStream out = new JarOutputStream(stream, new Manifest())) {
+                for (Fileset fs : contents) {
+                    Path base = Path.of(fs.base);
+                    for (File file : fs) {
+                        JarEntry entry = new JarEntry(base.relativize(file.toPath()).toString());
+                        entry.setTime(file.lastModified());
+                        out.putNextEntry(entry);
+                        Files.copy(file.toPath(), out);
+                        out.closeEntry();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return new File(path);
     }
 
     static String classpath(Fileset... classpath) {

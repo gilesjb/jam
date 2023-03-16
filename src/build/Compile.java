@@ -25,23 +25,28 @@ public interface Compile extends JavaProject {
                 mavenJar("org/hamcrest", "hamcrest-core", "1.3"));
     }
 
+    default Fileset mainSources() {
+        return sourceFiles("main/**.java");
+    }
+
     default Fileset mainClasses() {
-        return javaCompile("classes/main", sourceFiles("main/**.java"));
+        return javaCompile("classes/main", mainSources());
     }
 
     default Fileset testClasses() {
         return javaCompile("classes/test", sourceFiles("test/**.java"), mainClasses(), testJars());
     }
 
-    default Fileset build() {
-        return testClasses();
-    }
-
     default void testBuild() {
         junit(testClasses(), sourceFiles("test/**.txt"), mainClasses(), testJars());
     }
 
+    default File release() {
+        testBuild();
+        return jar(".jam.jar", mainSources(), mainClasses());
+    }
+
     static void main(String[] args) {
-        Project.make(Compile.class, Compile::testBuild, args);
+        Project.make(Compile.class, Compile::release, args);
     }
 }
