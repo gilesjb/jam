@@ -4,8 +4,6 @@ import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -58,19 +56,17 @@ public interface JavaProject extends Project {
     }
 
     default Fileset junit(Fileset testClasses, Fileset... classpath) {
-        List<String> args = new LinkedList<>();
-        args.add("java");
-        args.add("-cp");
-        args.add(classpath(classpath) + ':' + classpath(testClasses));
-        args.add("org.junit.runner.JUnitCore");
         Path base = Path.of(testClasses.base());
-        testClasses.forEach(file -> {
-            if (file.getName().endsWith(".class")) {
-                String name = base.relativize(file.toPath()).toString();
-                args.add(name.replace('/', '.').substring(0, name.length() - ".class".length()));
-            }
-        });
-        if (exec(args.toArray(new String[0])) != 0) {
+        String[] args = Stream.concat(
+                Stream.of("java", "-cp", classpath(classpath) + ':' + classpath(testClasses),
+                        "org.junit.runner.JUnitCore"),
+                testClasses.stream()
+                    .filter(file -> file.getName().endsWith(".class"))
+                    .map(file -> base.relativize(file.toPath()).toString())
+                    .map(name -> name.replace('/', '.')
+                            .substring(0, name.length() - ".class".length()))).toArray(String[]::new);
+
+        if (exec(args) != 0) {
             throw new RuntimeException("Unit tests failed");
         }
         return testClasses;

@@ -1,5 +1,6 @@
 package org.copalis.builder;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,9 +55,12 @@ public class BuildController<T> implements Memorizer.Listener {
 
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         long start = System.currentTimeMillis();
-        T obj = memo.instantiate(type);
 
-        String cache = cacheDir.apply(obj) + '/' + CACHE_FILE;
+        File buildFile = new File(type.getProtectionDomain().getCodeSource().getLocation().getPath());
+
+        T obj = memo.instantiate(type);
+        File cache = new File(cacheDir.apply(obj) + '/' + CACHE_FILE);
+
         memo.setListener(this);
 
         LinkedList<String> params = new LinkedList<>(Arrays.asList(args));
@@ -69,8 +73,10 @@ public class BuildController<T> implements Memorizer.Listener {
                 .map(Method::getName)
                 .forEach(System.out::println);
             return;
-        } else {
-            memo.loadCache(cache);
+        } else if (buildFile.lastModified() < cache.lastModified()) {
+            memo.loadCache(cache.toString());
+        } else if (cache.exists()) {
+            System.out.println("Build script has changed, rebuilding all");
         }
 
         if (!params.isEmpty()) {
@@ -83,7 +89,7 @@ public class BuildController<T> implements Memorizer.Listener {
         } else {
             buildFn.apply(obj);
         }
-        memo.saveCache(cache);
+        memo.saveCache(cache.toString());
         System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);
     }
 }

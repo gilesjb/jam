@@ -1,6 +1,4 @@
 #!/usr/bin/java -classpath classes --source 19
-/*
- */
 
 /**
  * The build project for Jam

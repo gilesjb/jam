@@ -50,14 +50,14 @@ public interface JamProject extends JavaProject {
         junit(testClasses(), testSources(), mainClasses(), testJars());
     }
 
-    default void docs() {
-        javadoc("docs", mainSources(), "org.copalis.builder");
+    default Fileset docs() {
+        return javadoc("docs", mainSources(), "org.copalis.builder");
     }
 
-    default File release() {
+    default void release() {
         testBuild();
         docs();
-        return jar(".jam.jar", mainSources(), mainClasses());
+        jar(".jam.jar", mainSources(), mainClasses());
     }
 
     static void main(String[] args) {
