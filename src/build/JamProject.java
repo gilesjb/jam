@@ -3,7 +3,12 @@
 /*
  */
 
-public interface Compile extends JavaProject {
+/**
+ * The build project for Jam
+ *
+ * @author giles
+ */
+public interface JamProject extends JavaProject {
 
     @Override default String sourcePath() {
         return "src";
@@ -33,20 +38,29 @@ public interface Compile extends JavaProject {
         return javaCompile("classes/main", mainSources());
     }
 
+    default Fileset testSources() {
+        return sourceFiles("test/**.java");
+    }
+
     default Fileset testClasses() {
-        return javaCompile("classes/test", sourceFiles("test/**.java"), mainClasses(), testJars());
+        return javaCompile("classes/test", testSources(), mainClasses(), testJars());
     }
 
     default void testBuild() {
-        junit(testClasses(), sourceFiles("test/**.txt"), mainClasses(), testJars());
+        junit(testClasses(), testSources(), mainClasses(), testJars());
+    }
+
+    default void docs() {
+        javadoc("docs", mainSources(), "org.copalis.builder");
     }
 
     default File release() {
         testBuild();
+        docs();
         return jar(".jam.jar", mainSources(), mainClasses());
     }
 
     static void main(String[] args) {
-        Project.make(Compile.class, Compile::release, args);
+        Project.make(JamProject.class, JamProject::release, args);
     }
 }

@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.tools.DocumentationTool;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -19,6 +20,8 @@ import javax.tools.ToolProvider;
 public class Compiler {
 
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    private final DocumentationTool documenter = ToolProvider.getSystemDocumentationTool();
+
     StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
     public Stream<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
@@ -44,5 +47,9 @@ public class Compiler {
             .call();
 
         return outputClasses.stream();
+    }
+
+    public void javadoc(Iterable<? extends File> sourceFiles, String... options) {
+        documenter.run(null, null, null, options);
     }
 }

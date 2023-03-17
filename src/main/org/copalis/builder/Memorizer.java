@@ -110,7 +110,6 @@ public class Memorizer {
 
     /**
      * Records files as being a dependency of the current method that is executing
-     * @param pattern
      * @param files
      * @return the supplied files
      */

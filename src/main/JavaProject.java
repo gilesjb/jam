@@ -41,6 +41,22 @@ public interface JavaProject extends Project {
                 .map(File::new);
     }
 
+    default Fileset javadoc(String outputPath, Fileset sources, String... packages) {
+        Path destination = Path.of(buildPath()).resolve(outputPath);
+        try {
+            Files.createDirectories(destination);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String[] args = Stream.concat(
+                Stream.of("-d", destination.toString(), "-sourcepath", sources.base()),
+                Stream.of(packages)).toArray(String[]::new);
+
+        compiler.javadoc(sources, args);
+        return Fileset.find(destination.toString(), "**");
+    }
+
     default Fileset junit(Fileset testClasses, Fileset... classpath) {
         List<String> args = new LinkedList<>();
         args.add("java");
