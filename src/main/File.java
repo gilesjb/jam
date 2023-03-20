@@ -30,6 +30,10 @@ public final class File extends java.io.File implements Memorizable {
         this(path.toString());
     }
 
+    /**
+     * Reads all characters from the file into a String
+     * @return the result string
+     */
     public String readString() {
         try {
             return Files.readString(Path.of(this.toURI()), StandardCharsets.UTF_8);

@@ -1,6 +1,5 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -14,8 +13,6 @@ import java.util.stream.Stream;
 import org.copalis.builder.Compiler;
 
 public interface JavaProject extends Project {
-
-    final Compiler compiler = new Compiler();
 
     default Fileset javaCompile(String outputPath, Fileset sources, Fileset... classpath) {
         Path destination = Path.of(buildPath()).resolve(outputPath);
@@ -35,7 +32,7 @@ public interface JavaProject extends Project {
     }
 
     default Stream<File> javac(Fileset sourceFiles, String... options) {
-        return compiler.compile(sourceFiles, options)
+        return Compiler.compile(sourceFiles, options)
                 .map(File::new);
     }
 
@@ -51,7 +48,7 @@ public interface JavaProject extends Project {
                 Stream.of("-d", destination.toString(), "-sourcepath", sources.base()),
                 Stream.of(packages)).toArray(String[]::new);
 
-        compiler.javadoc(sources, args);
+        Compiler.javadoc(args);
         return Fileset.find(destination.toString(), "**");
     }
 
@@ -70,18 +67,6 @@ public interface JavaProject extends Project {
             throw new RuntimeException("Unit tests failed");
         }
         return testClasses;
-    }
-
-    default int exec(String... command) {
-        ProcessBuilder proc = new ProcessBuilder();
-        proc.command(command);
-        proc.redirectError(Redirect.INHERIT);
-        proc.redirectOutput(Redirect.INHERIT);
-        try {
-            return proc.start().waitFor();
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     default File jar(String jarPath, Fileset... contents) {

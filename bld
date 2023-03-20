@@ -1,10 +1,5 @@
-#!/usr/bin/java -classpath classes --source 19
+#!/usr/bin/java -classpath classes --source 11
 
-/**
- * The build project for Jam
- *
- * @author giles
- */
 public interface JamProject extends JavaProject {
 
     @Override default String sourcePath() {

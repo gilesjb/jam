@@ -17,14 +17,26 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+/**
+ * Java build utilities
+ *
+ * @author giles
+ */
 public class Compiler {
+    private Compiler() { }
 
-    private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-    private final DocumentationTool documenter = ToolProvider.getSystemDocumentationTool();
+    private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    private static final DocumentationTool documenter = ToolProvider.getSystemDocumentationTool();
 
-    StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
+    private static final StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-    public Stream<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
+    /**
+     * Compiles Java source files
+     * @param sourceFiles the Java files to compile
+     * @param options options to be passed to java
+     * @return a stream of URIs of the output class files
+     */
+    public static Stream<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
 
         List<URI> outputClasses = new LinkedList<>();
 
@@ -49,7 +61,11 @@ public class Compiler {
         return outputClasses.stream();
     }
 
-    public void javadoc(Iterable<? extends File> sourceFiles, String... options) {
+    /**
+     * Generates JavaDoc
+     * @param options options to be passed to javadoc
+     */
+    public static void javadoc(String... options) {
         documenter.run(null, null, null, options);
     }
 }

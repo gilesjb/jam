@@ -32,12 +32,16 @@ import java.util.stream.Collectors;
  * @author gilesjb
  */
 public class Memorizer {
+    /**
+     * Creates an instance
+     */
+    public Memorizer() { }
 
-    public enum Status {
+    enum Status {
         EXECUTE, UPDATE, CURRENT
     }
 
-    public interface Listener {
+    interface Listener {
         default void startMethod(Status status, Method method, List<Object> params) { }
         default void endMethod(Status status, Method method, List<Object> params, Object result) { }
     }
@@ -76,12 +80,12 @@ public class Memorizer {
     private Map<Signature, Result> cache = new HashMap<>();
     private Listener listener = new Listener() { };
 
-    public void setListener(Listener listener) {
+    void setListener(Listener listener) {
         this.listener = listener;
     }
 
     @SuppressWarnings("unchecked")
-    public void loadCache(String path) {
+    void loadCache(String path) {
         try (FileInputStream file = new FileInputStream(path)) {
             try (ObjectInputStream obj = new ObjectInputStream(file)) {
                 cache = (HashMap<Signature, Result>) obj.readObject();
@@ -92,7 +96,7 @@ public class Memorizer {
         }
     }
 
-    public void saveCache(String path) {
+    void saveCache(String path) {
         Map<Signature, Result> save = cache.entrySet().stream()
                 .filter(e -> e.getValue().value() instanceof Serializable)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -109,16 +113,23 @@ public class Memorizer {
     }
 
     /**
-     * Records files as being a dependency of the current method that is executing
-     * @param files
-     * @return the supplied files
+     * Records a resource as being a dependency of the current method that is executing
+     * @param resource the resource
+     * @return the supplied resource
+     * @param <T> the type of resource(s)
      */
-    public <T extends Memorizable> T dependsOn(T files) {
-        dependencies.peek().add(files);
-        return files;
+    public <T extends Memorizable> T dependsOn(T resource) {
+        dependencies.peek().add(resource);
+        return resource;
     }
 
-    public <T, R> T instantiate(Class<T> t) {
+    /**
+     * Creates a memoized instance of a build interface
+     * @param <T> the build type
+     * @param t the Java class of the build interface
+     * @return the created build object
+     */
+    public <T> T instantiate(Class<T> t) {
         dependencies.push(new HashSet<>());
         return t.cast(Proxy.newProxyInstance(t.getClassLoader(), new Class[]{t}, this::invokeMethod));
     }

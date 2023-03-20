@@ -1,2 +1,5 @@
-javac -sourcepath src/main -d classes src/main/**.java && echo Compiled builder
-./bld
+CLASSES=classes
+javac -sourcepath src/main -d $CLASSES src/main/**.java || exit 1
+echo Compiled build tool classes are in directory \'$CLASSES\'
+echo Start build scripts with: 
+echo "#!/usr/bin/java -classpath $CLASSES --source 11"

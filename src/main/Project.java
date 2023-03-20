@@ -2,6 +2,7 @@
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -36,12 +37,19 @@ public interface Project {
         return "build";
     }
 
+    /**
+     * Deletes the build directory
+     */
     default void clean() {
-        deleteDir(buildPath());
+        deleteDir("");
     }
 
+    /**
+     * Deletes the specified directory path beneath the build directory
+     * @param path
+     */
     default void deleteDir(String path) {
-        Path root = Path.of(path);
+        Path root = Path.of(buildPath()).resolve(path);
         if (Files.exists(root)) {
             try {
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
@@ -79,6 +87,12 @@ public interface Project {
         return new File(Path.of(sourcePath()).resolve(name));
     }
 
+    /**
+     * Downloads a web resource
+     * @param name the path and filename within the build directory of the dowloaded file
+     * @param url the URL of the resource
+     * @return a File object referencing the downloaded file
+     */
     default File download(String name, String url) {
         try {
             Path path = Path.of(buildPath()).resolve(name);
@@ -89,6 +103,24 @@ public interface Project {
                 return new File(path);
             }
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Executes an external process
+     * @param command the command and arguments
+     * @return the final status code of the process
+     */
+    default int exec(String... command) {
+        ProcessBuilder pb = new ProcessBuilder();
+        pb.command(command);
+        pb.redirectError(Redirect.INHERIT);
+        pb.redirectOutput(Redirect.INHERIT);
+        try {
+            Process proc = pb.start();
+            return proc.waitFor();
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -109,6 +141,13 @@ public interface Project {
         }
     }
 
+    /**
+     * Executes a project
+     * @param <T> the project type
+     * @param t the project class reference
+     * @param fn a consumer that calls the default build method
+     * @param args command line arguments
+     */
     public static <T extends Project> void make(Class<T> t, Consumer<T> fn, String[] args) {
         make(t, o -> {
             fn.accept(o);
@@ -116,6 +155,13 @@ public interface Project {
         }, args);
     }
 
+    /**
+     * Executes a project
+     * @param <T> The project type
+     * @param t the project class reference
+     * @param fn a function that calls the default build method
+     * @param args command line arguments
+     */
     public static <T extends Project> void make(Class<T> t, Function<T, ?> fn, String[] args) {
         new BuildController<>(memo, t).execute(fn, Project::buildPath, args);
     }
