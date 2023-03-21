@@ -1,5 +1,12 @@
-#!/usr/bin/java -classpath classes --source 11
+#!/usr/bin/java -classpath classes --source 19
+/*
+ */
 
+/**
+ * The build project for Jam
+ *
+ * @author giles
+ */
 public interface JamProject extends JavaProject {
 
     @Override default String sourcePath() {
@@ -42,14 +49,18 @@ public interface JamProject extends JavaProject {
         junit(testClasses(), testSources(), mainClasses(), testJars());
     }
 
-    default void docs() {
-        javadoc("docs", mainSources(), "org.copalis.builder");
+    default Fileset docs() {
+        return javadoc("docs", mainSources(), "org.copalis.builder");
     }
 
-    default File release() {
+    default File jarfile() {
+        return jar(".jam.jar", mainSources(), mainClasses());
+    }
+
+    default void release() {
         testBuild();
         docs();
-        return jar(".jam.jar", mainSources(), mainClasses());
+        jarfile();
     }
 
     static void main(String[] args) {

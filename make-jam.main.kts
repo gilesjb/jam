@@ -25,10 +25,12 @@ interface Maker : JavaProject {
 
     fun docs() = javadoc("docs", mainSources(), "org.copalis.builder")
 
+    fun jarfile() = jar("jam.jar", mainSources(), mainClasses())
+
     fun release() {
         testBuild()
         docs()
-        jar(".jam.jar", mainSources(), mainClasses())
+        jarfile()
     }
 }
 

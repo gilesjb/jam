@@ -54,10 +54,14 @@ public interface JamProject extends JavaProject {
         return javadoc("docs", mainSources(), "org.copalis.builder");
     }
 
+    default File jarfile() {
+        return jar(".jam.jar", mainSources(), mainClasses());
+    }
+
     default void release() {
         testBuild();
         docs();
-        jar(".jam.jar", mainSources(), mainClasses());
+        jarfile();
     }
 
     static void main(String[] args) {
