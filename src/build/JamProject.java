@@ -1,4 +1,4 @@
-/*
+/* Delete this line when using as command line script
 #!/usr/bin/java -classpath classes --source 19
 /*
  */
@@ -15,7 +15,7 @@ public interface JamProject extends JavaProject {
     }
 
     @Override default String buildPath() {
-        return "built";
+        return "build-java";
     }
 
     default File mavenJar(String org, String name, String version) {
