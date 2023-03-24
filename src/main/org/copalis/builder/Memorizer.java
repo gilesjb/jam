@@ -1,10 +1,8 @@
 package org.copalis.builder;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -90,7 +88,6 @@ public class Memorizer {
             try (ObjectInputStream obj = new ObjectInputStream(file)) {
                 cache = (HashMap<Signature, Result>) obj.readObject();
             }
-        } catch (FileNotFoundException | InvalidClassException e) {
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }

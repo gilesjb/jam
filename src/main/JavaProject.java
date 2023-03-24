@@ -26,7 +26,7 @@ public interface JavaProject extends Project {
         if (cp.isEmpty()) {
             javac(sources, "-d", destination.toString());
         } else {
-            javac(sources, "-cp", cp, "-d", destination.toString());
+            javac(sources, "-d", destination.toString(), "-cp", cp);
         }
         return Fileset.find(destination.toString(), "**.class");
     }

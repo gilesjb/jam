@@ -4,14 +4,11 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * Controller for the build process
@@ -87,33 +84,22 @@ public class BuildController<T> implements Memorizer.Listener {
 
         memo.setListener(this);
 
-        LinkedList<String> params = new LinkedList<>(Arrays.asList(args));
-        if ("-new".equals(params.peekFirst())) {
-            params.removeFirst();
-        } else if ("-help".equals(params.peekFirst())) {
-            System.out.println("Targets:");
-            Stream.of(type.getMethods())
-                .filter(m -> m.getParameterCount() == 0)
-                .map(Method::getName)
-                .forEach(System.out::println);
-            return;
-        } else {
-            if (lastModified < cache.lastModified()) {
-                memo.loadCache(cache.toString());
-            } else if (cache.exists()) {
-                System.out.println("Build script has changed, rebuilding all");
-            }
+        if (lastModified < cache.lastModified()) {
+            memo.loadCache(cache.toString());
+        } else if (cache.exists()) {
+            System.out.println("Build script has changed, rebuilding all");
         }
 
-        if (!params.isEmpty()) {
+        if (args.length == 0) {
+            buildFn.apply(obj);
+        } else {
             try {
-                Method m = type.getMethod(params.removeFirst());
-                m.invoke(obj);
+                for (String arg : args) {
+                    type.getMethod(arg).invoke(obj);
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        } else {
-            buildFn.apply(obj);
         }
         memo.saveCache(cache.toString());
         System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);

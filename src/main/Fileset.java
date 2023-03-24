@@ -51,6 +51,9 @@ public final class Fileset implements Memorizable, Iterable<File> {
 
     public static Fileset find(String base, String pattern) {
         Path path = Path.of(base);
+        if (!new File(path).exists()) {
+            return null;
+        }
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
         try {
             TreeSet<File> matches = Files.walk(path)
