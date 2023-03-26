@@ -19,6 +19,16 @@ import java.util.function.Function;
  */
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".build-cache.ser";
+    private static final boolean colors = Objects.nonNull(System.console());
+
+    private static final String
+    	RESET = 		"\033[0m",
+    	RED_BRIGHT = 	"\033[0;91m",
+		GREEN = 		"\033[0;32m",
+    	GREEN_BRIGHT = 	"\033[0;92m",
+		YELLOW = 		"\033[0;33m",
+		CYAN = 			"\033[0;36m",
+		WHITE_BOLD = 	"\033[1;37m";
 
     record Call(Method method, List<Object> params) { }
 
@@ -41,18 +51,23 @@ public class BuildController<T> implements Memorizer.Listener {
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
         if (cached.add(new Call(method, params))) {
-            print("[");
-            print(status.toString().toLowerCase());
+        	switch (status) {
+        	case CURRENT: color(GREEN); break;
+        	case EXECUTE: color(YELLOW); break;
+        	case UPDATE: color(CYAN); break;
+        	}
+            print("[").print(status.toString().toLowerCase());
             print(" ".repeat(7 - status.name().length()));
             print("] ");
-            print(" ".repeat(calls * 2));
-            print(method.getName());
+            color(RESET);
+            print(" ".repeat(calls * 2)).print(method.getName());
             for (Object param : params) {
                 print(" ");
                 if (param instanceof String) print("'");
                 out.print(param);
                 if (param instanceof String) print("'");
             }
+            color(WHITE_BOLD);
             out.println();
         }
 
@@ -63,8 +78,16 @@ public class BuildController<T> implements Memorizer.Listener {
         calls--;
     }
 
-    private void print(String str) {
+    private BuildController<T> color(String str) {
+    	if (colors) {
+    		out.print(str);
+    	}
+    	return this;
+    }
+
+    private BuildController<T> print(String str) {
         out.print(str);
+        return this;
     }
 
     /**
@@ -103,12 +126,15 @@ public class BuildController<T> implements Memorizer.Listener {
         	} finally {
         		memo.saveCache(cache.toString());
         	}
+        	color(GREEN_BRIGHT);
         	System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);
         } catch (InvocationTargetException e) {
         	e.getCause().printStackTrace();
+        	color(RED_BRIGHT);
         	System.out.format("FAILED in %dms\n", System.currentTimeMillis() - start);
         } catch (Exception e) {
         	e.printStackTrace();
+        	color(RED_BRIGHT);
         	System.out.format("FAILED in %dms\n", System.currentTimeMillis() - start);
         }
     }
