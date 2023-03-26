@@ -1,5 +1,5 @@
 /* Delete this line when using as command line script
-#!/usr/bin/java -classpath classes --source 19
+#!/usr/bin/java -classpath jam-classes --source 19
 /*
  */
 
@@ -46,8 +46,8 @@ public interface JamProject extends JavaProject {
         return javaCompile("classes/test", testSources(), mainClasses(), testJars());
     }
 
-    default void testBuild() {
-        junit(testClasses(), testSources(), mainClasses(), testJars());
+    default Fileset testBuild() {
+        return junit(testClasses(), testSources(), mainClasses(), testJars());
     }
 
     default Fileset docs() {

@@ -58,14 +58,12 @@ public interface JavaProject extends Project {
                 Stream.of("java", "-cp", classpath(classpath) + ':' + classpath(testClasses),
                         "org.junit.runner.JUnitCore"),
                 testClasses.stream()
-                    .filter(file -> file.getName().endsWith(".class"))
+                    .filter(file -> file.getName().endsWith("Test.class"))
                     .map(file -> base.relativize(file.toPath()).toString())
                     .map(name -> name.replace('/', '.')
                             .substring(0, name.length() - ".class".length()))).toArray(String[]::new);
 
-        if (exec(args) != 0) {
-            throw new RuntimeException("Unit tests failed");
-        }
+        exec(args);
         return testClasses;
     }
 

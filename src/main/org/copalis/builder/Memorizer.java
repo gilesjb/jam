@@ -110,6 +110,13 @@ public class Memorizer {
     }
 
     /**
+     * Erases all method calls from the cache
+     */
+    public void resetCache() {
+    	cache = new HashMap<>();
+    }
+
+    /**
      * Records a resource as being a dependency of the current method that is executing
      * @param resource the resource
      * @return the supplied resource

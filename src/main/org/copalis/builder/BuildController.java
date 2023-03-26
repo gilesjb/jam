@@ -2,6 +2,7 @@ package org.copalis.builder;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashSet;
@@ -90,18 +91,25 @@ public class BuildController<T> implements Memorizer.Listener {
             System.out.println("Build script has changed, rebuilding all");
         }
 
-        if (args.length == 0) {
-            buildFn.apply(obj);
-        } else {
-            try {
-                for (String arg : args) {
-                    type.getMethod(arg).invoke(obj);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        try {
+        	try {
+        		if (args.length == 0) {
+        			buildFn.apply(obj);
+        		} else {
+        			for (String arg : args) {
+        				type.getMethod(arg).invoke(obj);
+        			}
+        		}
+        	} finally {
+        		memo.saveCache(cache.toString());
+        	}
+        	System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);
+        } catch (InvocationTargetException e) {
+        	e.getCause().printStackTrace();
+        	System.out.format("FAILED in %dms\n", System.currentTimeMillis() - start);
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	System.out.format("FAILED in %dms\n", System.currentTimeMillis() - start);
         }
-        memo.saveCache(cache.toString());
-        System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);
     }
 }

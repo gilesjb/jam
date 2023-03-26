@@ -61,14 +61,15 @@ public interface Project {
      * Deletes the build directory
      */
     default void clean() {
-        deleteDir("");
+        deleteBuildDir("");
+        memo.resetCache();
     }
 
     /**
      * Deletes the specified directory path beneath the build directory
      * @param path
      */
-    default void deleteDir(String path) {
+    default void deleteBuildDir(String path) {
         Path root = Path.of(buildPath()).resolve(path);
         if (Files.exists(root)) {
             try {
@@ -130,16 +131,18 @@ public interface Project {
     /**
      * Executes an external process
      * @param command the command and arguments
-     * @return the final status code of the process
      */
-    default int exec(String... command) {
+    default void exec(String... command) {
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(command);
         pb.redirectError(Redirect.INHERIT);
         pb.redirectOutput(Redirect.INHERIT);
         try {
             Process proc = pb.start();
-            return proc.waitFor();
+            int status = proc.waitFor();
+			if (status != 0) {
+            	throw new RuntimeException("Process exited with status code: " + status);
+            }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
