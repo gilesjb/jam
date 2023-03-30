@@ -1,6 +1,8 @@
 package org.copalis.builder;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,8 +12,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,28 +83,20 @@ public class Memorizer {
     }
 
     @SuppressWarnings("unchecked")
-    void loadCache(String path) {
-        try (FileInputStream file = new FileInputStream(path)) {
-            try (ObjectInputStream obj = new ObjectInputStream(file)) {
+    void loadCache(File file) throws IOException, ClassNotFoundException {
+        try (FileInputStream in = new FileInputStream(file)) {
+            try (ObjectInputStream obj = new ObjectInputStream(in)) {
                 cache = (HashMap<Signature, Result>) obj.readObject();
             }
-        } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    void saveCache(String path) {
-        Map<Signature, Result> save = cache.entrySet().stream()
-                .filter(e -> e.getValue().value() instanceof Serializable)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        if (Files.exists(Path.of(path).getParent())) {
-            try (FileOutputStream file = new FileOutputStream(path)) {
-                try (ObjectOutputStream out = new ObjectOutputStream(file)) {
-                    out.writeObject(save);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+    void saveCache(File file) throws FileNotFoundException, IOException {
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
+                obj.writeObject(cache.entrySet().stream()
+                        .filter(e -> e.getValue().value() instanceof Serializable)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             }
         }
     }
@@ -113,7 +105,7 @@ public class Memorizer {
      * Erases all method calls from the cache
      */
     public void resetCache() {
-    	cache = new HashMap<>();
+        cache = new HashMap<>();
     }
 
     /**

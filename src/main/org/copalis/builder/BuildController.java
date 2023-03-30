@@ -18,17 +18,17 @@ import java.util.function.Function;
  * @author giles
  */
 public class BuildController<T> implements Memorizer.Listener {
-    private static final String CACHE_FILE = ".build-cache.ser";
+    private static final String CACHE_FILE = ".jam-cache";
     private static final boolean colors = Objects.nonNull(System.console());
 
     private static final String
-    	RESET = 		"\033[0m",
-    	RED_BRIGHT = 	"\033[0;91m",
-		GREEN = 		"\033[0;32m",
-    	GREEN_BRIGHT = 	"\033[0;92m",
-		YELLOW = 		"\033[0;33m",
-		CYAN = 			"\033[0;36m",
-		WHITE_BOLD = 	"\033[1;37m";
+        RESET =         "\033[0m",
+        RED_BRIGHT =    "\033[0;91m",
+        GREEN =         "\033[0;32m",
+        GREEN_BRIGHT =  "\033[0;92m",
+        YELLOW =        "\033[0;33m",
+        CYAN =          "\033[0;36m",
+        WHITE_BOLD =    "\033[1;37m";
 
     record Call(Method method, List<Object> params) { }
 
@@ -50,13 +50,13 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
-        if (cached.add(new Call(method, params))) {
-        	switch (status) {
-        	case CURRENT: color(GREEN); break;
-        	case EXECUTE: color(YELLOW); break;
-        	case UPDATE: color(CYAN); break;
-        	}
-            print("[").print(status.toString().toLowerCase());
+        if (status != Memorizer.Status.CURRENT || cached.add(new Call(method, params))) {
+            switch (status) {
+            case CURRENT: color(GREEN); break;
+            case EXECUTE: color(YELLOW); break;
+            case UPDATE: color(CYAN); break;
+            }
+            print("[").print(status.name().toLowerCase());
             print(" ".repeat(7 - status.name().length()));
             print("] ");
             color(RESET);
@@ -67,8 +67,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 out.print(param);
                 if (param instanceof String) print("'");
             }
-            color(WHITE_BOLD);
-            out.println();
+            color(WHITE_BOLD).line();;
         }
 
         calls++;
@@ -79,15 +78,19 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     private BuildController<T> color(String str) {
-    	if (colors) {
-    		out.print(str);
-    	}
-    	return this;
+        if (colors) {
+            out.print(str);
+        }
+        return this;
     }
 
-    private BuildController<T> print(String str) {
-        out.print(str);
+    private BuildController<T> print(Object obj) {
+        out.print(obj.toString());
         return this;
+    }
+
+    private void line() {
+        out.println();
     }
 
     /**
@@ -99,43 +102,45 @@ public class BuildController<T> implements Memorizer.Listener {
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         long start = System.currentTimeMillis();
 
-        URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
-        long lastModified = Objects.isNull(scriptLocation) ? Long.MIN_VALUE
-                : new File(scriptLocation.getPath()).lastModified();
-
-        T obj = memo.instantiate(type);
-        File cache = new File(cacheDir.apply(obj) + '/' + CACHE_FILE);
-
-        memo.setListener(this);
-
-        if (lastModified < cache.lastModified()) {
-            memo.loadCache(cache.toString());
-        } else if (cache.exists()) {
-            System.out.println("Build script has changed, rebuilding all");
-        }
-
         try {
-        	try {
-        		if (args.length == 0) {
-        			buildFn.apply(obj);
-        		} else {
-        			for (String arg : args) {
-        				type.getMethod(arg).invoke(obj);
-        			}
-        		}
-        	} finally {
-        		memo.saveCache(cache.toString());
-        	}
-        	color(GREEN_BRIGHT);
-        	System.out.format("COMPLETED in %dms\n", System.currentTimeMillis() - start);
+            URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
+            long scriptModified = Objects.nonNull(scriptLocation)
+                    ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
+
+            T obj = memo.instantiate(type);
+            File cache = new File(cacheDir.apply(obj) + '/' + CACHE_FILE);
+
+            memo.resetCache();
+            memo.setListener(this);
+
+            if (cache.exists() && cache.lastModified() < scriptModified) {
+                print("Build script has changed, rebuilding all").line();
+            } else if (cache.exists()) {
+                memo.loadCache(cache);
+            }
+
+            try {
+                if (args.length == 0) {
+                    buildFn.apply(obj);
+                } else {
+                    for (String arg : args) {
+                        type.getMethod(arg).invoke(obj);
+                    }
+                }
+            } finally {
+                if (cache.getParentFile().exists()) {
+                    memo.saveCache(cache);
+                }
+            }
+            color(GREEN_BRIGHT).print("COMPLETED");
         } catch (InvocationTargetException e) {
-        	e.getCause().printStackTrace();
-        	color(RED_BRIGHT);
-        	System.out.format("FAILED in %dms\n", System.currentTimeMillis() - start);
+            e.getCause().printStackTrace();
+            color(RED_BRIGHT).print("FAILED");
         } catch (Exception e) {
-        	e.printStackTrace();
-        	color(RED_BRIGHT);
-        	System.out.format("FAILED in %dms\n", System.currentTimeMillis() - start);
+            e.printStackTrace();
+            color(RED_BRIGHT).print("FAILED");
+        } finally {
+            print(String.format(" in %dms", System.currentTimeMillis() - start)).line();
         }
     }
 }

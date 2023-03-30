@@ -55,7 +55,7 @@ public interface JamProject extends JavaProject {
     }
 
     default File jarfile() {
-        return jar(".jam.jar", mainSources(), mainClasses());
+        return jar("jam.jar", mainSources(), mainClasses());
     }
 
     default void release() {
