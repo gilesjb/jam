@@ -1,82 +1,108 @@
 # Jam - a build tool
 
-## How is Jam different?
+## Basic usage
 
-Most build tools expect you to write a build file that is executed by the tool.
-For example, when you run `ant` it reads a file called `build.xml` and executes the tasks defined inside.
-
-Jam inverts this process.
-A Jam build file is an executable Java or Kotlin script.
-The script defines the build process in code, as a set of methods,
-and calls the Jam library to manage the execution.
-
-Jam is also different in how it expresses dependencies. 
-Rather than specifying that a target `dependsOn` files produced by another target,
-in Jam every target is a method that returns its output files,
-so a target "depends on" another by calling it.
-Jam ensures that these method calls are deduplicated by using a result cache and method interceptors.
-
-## How it works
-
-1. You run your build script from the command line
-2. A shebang (#!) in the script instructs Java or Kotlin to execute the script, with `jam.jar` on the classpath
-3. Your script defines an interface containing build logic methods
-4. Your script's `main` method calls Jam's `Project.make(...)`, passing in the interface
-5. Jam uses a Dynamic Proxy to instantiate the interface with method interceptors
-6. Jam calls the target method, caching and deduplicating all method calls
-
-## Using Jam from Java
-
-To use Jam you need an installed JDK and a copy of `jam.jar`.
-
-Create a file called `build-hello` with the following contents
+Let's say we create a Java script called `make-simple`:
 
 ```java
-#!/usr/bin/java -classpath jam.jar --source 17
+#!/usr/bin/java -classpath jam.jar --source 14
 
-public interface FriendlyScript extends Project {
-    default String helloText() {
-        return "Hello, world!";
+public interface SimpleProject extends JavaProject {
+    default Fileset sources() {
+        return sourceFiles("main/**.java");
     }
 
-    default void build() {
-        System.out.println(helloText());
+    default Fileset classes() {
+        return javaCompile("classes", sources());
     }
 
-    public static void main(String[] args) {
-        Project.make(FriendlyScript.class, FriendlyScript::build, args);
+    default File jarfile() {
+        return jar("jam.jar", classes());
+    }
+
+    static void main(String[] args) {
+        Project.make(SimpleProject.class, SimpleProject::jarfile, args);
     }
 }
 ```
 
-If you run `./build-hello targets` the console will show
+Note the first line of the script specifies that `jam.jar` is on the classpath.
+The `main()` method in this script calls the Jam library specifying `jarfile()` method as the default target method.
 
-```
-[execute] targets
+If we run the script with no parameters, Jam executes the default target,
+displaying the call graph of the methods that are executed:
+
+<pre>
+% ./make-simple
+<span style="color:#aa0">[execute]</span> jarfile
+<span style="color:#aa0">[execute]</span>   classes
+<span style="color:#aa0">[execute]</span>     sources
+<span style="color:#aa0">[execute]</span>       sourceFiles 'main/**.java'
+<span style="color:#aa0">[execute]</span>         sourcePath
+<span style="color:#aa0">[execute]</span>     javaCompile 'classes' src/main/**.java
+<span style="color:#aa0">[execute]</span>       buildPath
+<span style="color:#aa0">[execute]</span>       javac src/main/**.java '-d' 'build/classes'
+<span style="color:#aa0">[execute]</span>   jar 'jam.jar' build/classes/**.class
+<span style="color:#0a0">[current]</span>     buildPath
+<span style="color:#0d0">COMPLETED in 365ms</span>
+</pre>
+
+Jam intercepts method calls and *memoizes* their return values.
+Notice that the second call to `buildPath()` is marked as `[current]`.
+This means Jam found a return value for the method in its cache and returned that to the calling method, short-circuiting the call. 
+
+Jam's cache is saved to disk,
+as we can see if we run the script again.
+
+<pre>
+% ./make-simple
+<span style="color:green">[current]</span> jarfile
+<span style="color:#0d0">COMPLETED in 50ms</span>
+</pre>
+
+If source files are modified Jam will invalidate the cache entries for those files or anything derived from them.
+
+<pre>
+% touch src/main/*.java
+% ./make-simple
+<span style="color:#0aa">[update ]</span> jarfile
+<span style="color:#0aa">[update ]</span>   classes
+<span style="color:#0aa">[update ]</span>     sources
+<span style="color:#0aa">[update ]</span>       sourceFiles 'main/**.java'
+<span style="color:#0a0">[current]</span>         sourcePath
+<span style="color:#0aa">[update ]</span>     javaCompile 'classes' src/main/**.java
+<span style="color:#0b0">[current]</span>       buildPath
+<span style="color:#aa0">[execute]</span>       javac src/main/**.java '-d' 'build/classes'
+<span style="color:#0aa">[update ]</span>   jar 'jam.jar' build/classes/**.class
+<span style="color:#0d0">COMPLETED in 332ms</span>
+</pre>
+
+Because the build script interface extends `JavaProject` it inherits a `clean()` method which can be specified as a target:
+
+<pre>
+% ./make-simple clean
+<span style="color:#aa0">[execute]</span> clean
+<span style="color:#aa0">[execute]</span>   deleteBuildDir ''
+<span style="color:#0a0">[current]</span>     buildPath
+<span style="color:#0d0">COMPLETED in 36ms</span>
+</pre>
+
+There is also a `targets()` method which prints all the targets and their return types:
+
+<pre>
+% ./make-simple targets
+<span style="color:#aa0">[execute]</span> targets<b>
 Project targets
-  build : void
-  helloText : String
+  classes : Fileset
+  sources : Fileset
+  jarfile : File
   clean : void
   targets : void
   help : void
   buildPath : String
-  sourcePath : String
-COMPLETED in 9ms  
-```
-
-A target is just a 0-parameter method. The targets `helloText` and `build` are defined in `FriendlyScript` interface while the other targets are inherited from `Project`.
-
-If you run `./build-hello` without a target parameter it will execute the default target specified by the script,
-which was `FriendlyScript::build`.
-
-```
-[execute] build
-[execute]   helloText
-Hello, world!
-COMPLETED in 8ms
-```
-
-This console output shows that `build()` was called, and that in turn called `helloText()`.
+  sourcePath : String</b>
+<span style="color:#0d0">COMPLETED in 15ms</span>
+</pre>
 
 ## Building the Jam library
 
@@ -85,7 +111,7 @@ In fact, it builds itself.
 To build this library and produce `jam.jar` requires two steps
 
 1. Bootstrap the main classes by running `./setup`
-2. Run either `./make-jam` (Java) or `./make-jam.main.kts` (Kotlin) build script to compile Jam, run unit tests, and package everything in `jam.jar`
+2. Run either the `./make-jam` (Java) or `./make-jam.main.kts` (Kotlin) build script to compile Jam, run unit tests, and package everything in `jam.jar`
 
 
 
