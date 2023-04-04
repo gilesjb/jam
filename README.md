@@ -1,13 +1,13 @@
 # Jam - a build tool
 
-## Basic usage
+## An example build script
 
-Let's say we create a Java script called `make-simple`:
+Let's say we create a Java [script](https://openjdk.org/jeps/330) called `jam-build`:
 
 ```java
 #!/usr/bin/java -classpath jam.jar --source 14
 
-public interface SimpleProject extends JavaProject {
+public interface ExampleProject extends JavaProject {
     default Fileset sources() {
         return sourceFiles("main/**.java");
     }
@@ -21,19 +21,20 @@ public interface SimpleProject extends JavaProject {
     }
 
     static void main(String[] args) {
-        Project.make(SimpleProject.class, SimpleProject::jarfile, args);
+        Project.make(ExampleProject.class, ExampleProject::jarfile, args);
     }
 }
 ```
 
-Note the first line of the script specifies that `jam.jar` is on the classpath.
-The `main()` method in this script calls the Jam library specifying `jarfile()` method as the default target method.
+The first line of the script specifies that `jam.jar` is on the classpath.
 
-If we run the script with no parameters, Jam executes the default target,
+The `main()` method tells Jam to execute `ExampleProject` with `ExampleProject::jarfile` as the default target method.
+
+When we run the script with no arguments Jam executes the default target,
 displaying the call graph of the methods that are executed:
 
 ```console
-% ./make-simple
+% ./jam-build
 [execute] jarfile
 [execute]   classes
 [execute]     sources
@@ -47,24 +48,29 @@ displaying the call graph of the methods that are executed:
 COMPLETED in 365ms
 ```
 
-Jam intercepts method calls and *memoizes* their return values.
-Notice that the second call to `buildPath()` is marked as `[current]`.
-This means Jam found a return value for the method in its cache and returned that to the calling method, short-circuiting the call. 
+Jam *memoizes* method calls and caches their return values.
+Notice that the second call to `buildPath()` is labeled as `[current]`.
+This means the method had already been executed, 
+so Jam used the cached value rather than executing a second time. 
 
-Jam's cache is saved to disk,
-as we can see if we run the script again.
+When execution completes, Jam's saves the cache to disk,
+as we can see if we run the script again:
 
 ```console
-% ./make-simple
+% ./jam-build
 >[current] jarfile
 COMPLETED in 50ms
 ```
 
-If source files are modified Jam will invalidate the cache entries for those files or anything derived from them.
+The `Fileset` returned by `jarfile()` was already in the cache,
+so Jam skipped its execution.
+
+If source files are modified Jam will invalidate the cache entries for those files
+and also the cached return values of any methods that *depended on them.*
 
 ```console
 % touch src/main/*.java
-% ./make-simple
+% ./jam-build
 [update ] jarfile
 [update ]   classes
 [update ]     sources
@@ -77,21 +83,12 @@ If source files are modified Jam will invalidate the cache entries for those fil
 COMPLETED in 332ms
 ```
 
-Because the build script interface extends `JavaProject` it inherits a `clean()` method which can be specified as a target:
+Any method with 0 parameters is a *target* that can be specified on the command line.
+The full set of targets can be displayed by running the `targets()` method which is inherited from the parent interface:
 
 ```console
-% ./make-simple clean
-[execute] clean
-[execute]   deleteBuildDir ''
-[current]     buildPath
-COMPLETED in 36ms
-```
-
-There is also a `targets()` method which prints all the targets and their return types:
-
-```console
-% ./make-simple targets
-[execute] targets<b>
+% ./jam-build targets
+[execute] targets
 Project targets
   classes : Fileset
   sources : Fileset
@@ -100,15 +97,66 @@ Project targets
   targets : void
   help : void
   buildPath : String
-  sourcePath : String</b>
+  sourcePath : String
 COMPLETED in 15ms
+```
+
+Among the inherited targets is a `clean()` method that deletes the build directory and the cache:
+
+```console
+% ./jam-build clean
+[execute] clean
+[execute]   deleteBuildDir ''
+[current]     buildPath
+COMPLETED in 36ms
+```
+
+## Things to know
+
+The types provided by Jam are declared in the default package so that scripts do not need to `import` them.
+
+Source file paths are relative to the base directory `src`,
+and the build artifact base directory is `build`.
+To change these override the `sourcePath()` and `buildPath()` methods.
+The Jam cache file is stored in the build directory.
+
+Jam follows these conventions:
+* `void` methods are not memoized by Jam
+* Non-void methods with 1 or more parameters are memoized, but cannot be specified as targets
+
+For implementation reasons, a Jam project must follow these rules:
+* The project class must be an interface containing `default` methods
+* All parameter and return types must be serializable
+
+## Kotlin scripts
+
+Jam scripts can be written in Kotlin too.
+In fact Jam should work with any JVM language that supports default methods.
+
+Written in Kotlin, the previous script looks like this:
+
+```kotlin
+#!/usr/bin/env kotlin -Xjvm-default=all -cp jam.jar
+
+interface ExampleProject : JavaProject {
+
+    def sources() = sourceFiles("main/**.java")
+
+    def classes() = javaCompile("classes", sources())
+
+    def jarfile() = jar("jam.jar", classes())
+}
+
+Project.make(ExampleProject::class.java, SimpleProject::jarfile, args)
 ```
 
 ## Building the Jam library
 
-This repo does not use any standard build tools like Ant or Maven.
-In fact, it builds itself.
-To build this library and produce `jam.jar` requires two steps
+Building `jam.jar` requires JDK 14 or higher.
 
-1. Bootstrap the main classes by running `./setup`
-2. Run either the `./make-jam` (Java) or `./make-jam.main.kts` (Kotlin) build script to compile Jam, run unit tests, and package everything in `jam.jar`
+1. Compile the main classes by running `./setup`
+2. Run either `./make-jam` (Java) or `./make-jam.main.kts` (Kotlin) to compile Jam, run unit tests, and create `jam.jar`
+
+## Status
+
+Jam is currently in Alpha and everything about it is subject to the whims of the author.
