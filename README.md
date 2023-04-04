@@ -47,14 +47,14 @@ displaying the call graph of the methods that it calls:
 [current]     buildPath
 COMPLETED in 365ms
 ```
-Which builds the file `build/example.jar`.
+This builds the file `build/example.jar`.
 
 Jam *memoizes* method calls and caches their return values.
 Notice that the second call to `buildPath()` is labeled as `[current]`.
 This means the method had already been executed, 
 so Jam used the cached value rather than executing it again. 
 
-When execution completes, Jam's saves the cache to disk,
+Jam persists its cache between runs,
 as we can see if we run the build again:
 
 ```console
@@ -66,7 +66,7 @@ COMPLETED in 50ms
 The result of `jarfile()` was already in the cache,
 so Jam skipped its execution.
 
-If source files are modified Jam will invalidate the cache entries for those files
+If the timestamps of source files have changed Jam will invalidate the cache entries for those files
 and also the cached results of any methods that *depended on them*,
 triggering a rebuild of affected build artifacts.
 
@@ -115,7 +115,8 @@ COMPLETED in 36ms
 
 ## Things to know
 
-The types provided by Jam are declared in the default package so that scripts do not need to `import` them.
+You may have noticed that the scripts has no `import` statements.
+This is because types provided by Jam are declared in the default package so they don't need to be imported.
 
 Source file paths are relative to the base directory `src`,
 and the base directory for build artifacts is `build`.
