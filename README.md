@@ -17,7 +17,7 @@ public interface ExampleProject extends JavaProject {
     }
 
     default File jarfile() {
-        return jar("jam.jar", classes());
+        return jar("example.jar", classes());
     }
 
     static void main(String[] args) {
@@ -26,12 +26,12 @@ public interface ExampleProject extends JavaProject {
 }
 ```
 
-The first line of the script specifies that `jam.jar` is on the classpath.
+The first line of the script tells Java that `jam.jar` is on the classpath.
 
 The `main()` method tells Jam to execute `ExampleProject` with `ExampleProject::jarfile` as the default target method.
 
 When we run the script with no arguments Jam executes the default target,
-displaying the call graph of the methods that are executed:
+displaying the call graph of the methods that it calls:
 
 ```console
 % ./jam-build
@@ -43,18 +43,19 @@ displaying the call graph of the methods that are executed:
 [execute]     javaCompile 'classes' src/main/**.java
 [execute]       buildPath
 [execute]       javac src/main/**.java '-d' 'build/classes'
-[execute]   jar 'jam.jar' build/classes/**.class
+[execute]   jar 'example.jar' build/classes/**.class
 [current]     buildPath
 COMPLETED in 365ms
 ```
+Which builds the file `build/example.jar`.
 
 Jam *memoizes* method calls and caches their return values.
 Notice that the second call to `buildPath()` is labeled as `[current]`.
 This means the method had already been executed, 
-so Jam used the cached value rather than executing a second time. 
+so Jam used the cached value rather than executing it again. 
 
 When execution completes, Jam's saves the cache to disk,
-as we can see if we run the script again:
+as we can see if we run the build again:
 
 ```console
 % ./jam-build
@@ -62,11 +63,12 @@ as we can see if we run the script again:
 COMPLETED in 50ms
 ```
 
-The `Fileset` returned by `jarfile()` was already in the cache,
+The result of `jarfile()` was already in the cache,
 so Jam skipped its execution.
 
 If source files are modified Jam will invalidate the cache entries for those files
-and also the cached return values of any methods that *depended on them.*
+and also the cached results of any methods that *depended on them*,
+triggering a rebuild of affected build artifacts.
 
 ```console
 % touch src/main/*.java
@@ -79,7 +81,7 @@ and also the cached return values of any methods that *depended on them.*
 [update ]     javaCompile 'classes' src/main/**.java
 [current]       buildPath
 [execute]       javac src/main/**.java '-d' 'build/classes'
-[update ]   jar 'jam.jar' build/classes/**.class
+[update ]   jar 'example.jar' build/classes/**.class
 COMPLETED in 332ms
 ```
 
@@ -116,17 +118,17 @@ COMPLETED in 36ms
 The types provided by Jam are declared in the default package so that scripts do not need to `import` them.
 
 Source file paths are relative to the base directory `src`,
-and the build artifact base directory is `build`.
+and the base directory for build artifacts is `build`.
 To change these override the `sourcePath()` and `buildPath()` methods.
 The Jam cache file is stored in the build directory.
 
 Jam follows these conventions:
-* `void` methods are not memoized by Jam
+* `void` methods are not memoized, and should be used for logic that has side effects
 * Non-void methods with 1 or more parameters are memoized, but cannot be specified as targets
 
-For implementation reasons, a Jam project must follow these rules:
+Due to how Jam's memoizer is implemented, a project must follow these rules:
 * The project class must be an interface containing `default` methods
-* All parameter and return types must be serializable
+* All parameters and return types must be primitive or serializable
 
 ## Kotlin scripts
 
@@ -144,7 +146,7 @@ interface ExampleProject : JavaProject {
 
     def classes() = javaCompile("classes", sources())
 
-    def jarfile() = jar("jam.jar", classes())
+    def jarfile() = jar("example.jar", classes())
 }
 
 Project.make(ExampleProject::class.java, SimpleProject::jarfile, args)
