@@ -32,20 +32,20 @@ The `main()` method in this script calls the Jam library specifying `jarfile()` 
 If we run the script with no parameters, Jam executes the default target,
 displaying the call graph of the methods that are executed:
 
-<pre>
+```console
 % ./make-simple
-<span style="color:#aa0">[execute]</span> jarfile
-<span style="color:#aa0">[execute]</span>   classes
-<span style="color:#aa0">[execute]</span>     sources
-<span style="color:#aa0">[execute]</span>       sourceFiles 'main/**.java'
-<span style="color:#aa0">[execute]</span>         sourcePath
-<span style="color:#aa0">[execute]</span>     javaCompile 'classes' src/main/**.java
-<span style="color:#aa0">[execute]</span>       buildPath
-<span style="color:#aa0">[execute]</span>       javac src/main/**.java '-d' 'build/classes'
-<span style="color:#aa0">[execute]</span>   jar 'jam.jar' build/classes/**.class
-<span style="color:#0a0">[current]</span>     buildPath
-<span style="color:#0d0">COMPLETED in 365ms</span>
-</pre>
+[execute] jarfile
+[execute]   classes
+[execute]     sources
+[execute]       sourceFiles 'main/**.java'
+[execute]         sourcePath
+[execute]     javaCompile 'classes' src/main/**.java
+[execute]       buildPath
+[execute]       javac src/main/**.java '-d' 'build/classes'
+[execute]   jar 'jam.jar' build/classes/**.class
+[current]     buildPath
+COMPLETED in 365ms
+```
 
 Jam intercepts method calls and *memoizes* their return values.
 Notice that the second call to `buildPath()` is marked as `[current]`.
@@ -54,44 +54,44 @@ This means Jam found a return value for the method in its cache and returned tha
 Jam's cache is saved to disk,
 as we can see if we run the script again.
 
-<pre>
+```console
 % ./make-simple
-<span style="color:green">[current]</span> jarfile
-<span style="color:#0d0">COMPLETED in 50ms</span>
-</pre>
+>[current] jarfile
+COMPLETED in 50ms
+```
 
 If source files are modified Jam will invalidate the cache entries for those files or anything derived from them.
 
-<pre>
+```console
 % touch src/main/*.java
 % ./make-simple
-<span style="color:#0aa">[update ]</span> jarfile
-<span style="color:#0aa">[update ]</span>   classes
-<span style="color:#0aa">[update ]</span>     sources
-<span style="color:#0aa">[update ]</span>       sourceFiles 'main/**.java'
-<span style="color:#0a0">[current]</span>         sourcePath
-<span style="color:#0aa">[update ]</span>     javaCompile 'classes' src/main/**.java
-<span style="color:#0b0">[current]</span>       buildPath
-<span style="color:#aa0">[execute]</span>       javac src/main/**.java '-d' 'build/classes'
-<span style="color:#0aa">[update ]</span>   jar 'jam.jar' build/classes/**.class
-<span style="color:#0d0">COMPLETED in 332ms</span>
-</pre>
+[update ] jarfile
+[update ]   classes
+[update ]     sources
+[update ]       sourceFiles 'main/**.java'
+[current]         sourcePath
+[update ]     javaCompile 'classes' src/main/**.java
+[current]       buildPath
+[execute]       javac src/main/**.java '-d' 'build/classes'
+[update ]   jar 'jam.jar' build/classes/**.class
+COMPLETED in 332ms
+```
 
 Because the build script interface extends `JavaProject` it inherits a `clean()` method which can be specified as a target:
 
-<pre>
+```console
 % ./make-simple clean
-<span style="color:#aa0">[execute]</span> clean
-<span style="color:#aa0">[execute]</span>   deleteBuildDir ''
-<span style="color:#0a0">[current]</span>     buildPath
-<span style="color:#0d0">COMPLETED in 36ms</span>
-</pre>
+[execute] clean
+[execute]   deleteBuildDir ''
+[current]     buildPath
+COMPLETED in 36ms
+```
 
 There is also a `targets()` method which prints all the targets and their return types:
 
-<pre>
+```console
 % ./make-simple targets
-<span style="color:#aa0">[execute]</span> targets<b>
+[execute] targets<b>
 Project targets
   classes : Fileset
   sources : Fileset
@@ -101,8 +101,8 @@ Project targets
   help : void
   buildPath : String
   sourcePath : String</b>
-<span style="color:#0d0">COMPLETED in 15ms</span>
-</pre>
+COMPLETED in 15ms
+```
 
 ## Building the Jam library
 
@@ -112,8 +112,3 @@ To build this library and produce `jam.jar` requires two steps
 
 1. Bootstrap the main classes by running `./setup`
 2. Run either the `./make-jam` (Java) or `./make-jam.main.kts` (Kotlin) build script to compile Jam, run unit tests, and package everything in `jam.jar`
-
-
-
-
-
