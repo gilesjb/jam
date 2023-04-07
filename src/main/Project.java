@@ -16,8 +16,16 @@ import java.util.stream.Stream;
 import org.copalis.builder.BuildController;
 import org.copalis.builder.Memorizer;
 
+/**
+ * A build project that provides common file manipulation methods
+ *
+ * @author giles
+ */
 public interface Project {
 
+    /**
+     * The memorizer that memoizes method calls on interfaces derived from this
+     */
     final Memorizer memo = new Memorizer();
 
     /**
@@ -42,7 +50,7 @@ public interface Project {
     }
 
     /**
-     * The default source file root directory. Override if the desired directory is not <tt>src</tt>.
+     * The default source file root directory. Override if the desired directory is not {@code src}
      * @return the path of the source directory
      */
     default String sourcePath() {
@@ -50,7 +58,7 @@ public interface Project {
     }
 
     /**
-     * The default root build directory. Override if the desired build directory is not <tt>build</tt>.
+     * The default root build directory. Override if the desired build directory is not {@code build}
      * @return the path of the build directory
      */
     default String buildPath() {
@@ -67,7 +75,7 @@ public interface Project {
 
     /**
      * Deletes the specified directory path beneath the build directory
-     * @param path
+     * @param path location of the directory to delete, relative to the build directory
      */
     default void deleteBuildDir(String path) {
         Path root = Path.of(buildPath()).resolve(path);
@@ -151,7 +159,7 @@ public interface Project {
     /**
      * Creates a file and writes content to it
      * @param name a file path within {@link #buildPath()}
-     * @param content
+     * @param content the content to write into the file
      * @return a File object referencing the created file
      */
     default File write(String name, String content) {

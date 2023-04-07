@@ -115,7 +115,7 @@ COMPLETED in 36ms
 
 ## Things to know
 
-You may have noticed that the scripts has no `import` statements.
+You may have noticed that the script has no `import` statements.
 This is because types provided by Jam are declared in the default package so they don't need to be imported.
 
 Source file paths are relative to the base directory `src`,

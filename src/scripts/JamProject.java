@@ -51,7 +51,7 @@ public interface JamProject extends JavaProject {
     }
 
     default Fileset docs() {
-        return javadoc("docs", mainSources(), "org.copalis.builder");
+        return javadoc("docs", mainSources());
     }
 
     default File jarfile() {

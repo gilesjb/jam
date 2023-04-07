@@ -21,7 +21,7 @@ interface Maker : JavaProject {
 
     fun testBuild() = junit(testClasses(), testSources(), mainClasses(), testJars())
 
-    fun docs() = javadoc("docs", mainSources(), "org.copalis.builder")
+    fun docs() = javadoc("docs", mainSources())
 
     fun jarfile() = jar("jam.jar", mainSources(), mainClasses())
 
