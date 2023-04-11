@@ -131,6 +131,14 @@ public final class Fileset implements Memorizable, Iterable<File> {
         return base;
     }
 
+    /**
+     * Gets the number of files in this set
+     * @return the number of files
+     */
+    public int size() {
+        return files.size();
+    }
+
     public boolean current() {
         return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
                 && files.stream().map(File::current).allMatch(Boolean.TRUE::equals);

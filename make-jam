@@ -1,4 +1,4 @@
-#!/usr/bin/java -classpath jam-classes --source 19
+#!/usr/bin/java -classpath jam-classes --source 17
 /*
  */
 

@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import org.copalis.builder.BuildController;
 import org.copalis.builder.Memorizer;
+import org.copalis.builder.Paths;
 
 /**
  * A build project that provides common file manipulation methods
@@ -78,7 +79,7 @@ public interface Project {
      * @param path location of the directory to delete, relative to the build directory
      */
     default void deleteBuildDir(String path) {
-        Path root = Path.of(buildPath()).resolve(path);
+        Path root = Paths.join(buildPath(), path);
         if (Files.exists(root)) {
             try {
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
@@ -124,7 +125,7 @@ public interface Project {
      */
     default File download(String name, String url) {
         try {
-            Path path = Path.of(buildPath()).resolve(name);
+            Path path = Paths.join(buildPath(), name);
             Files.createDirectories(path.getParent());
             try (ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
                     FileOutputStream out = new FileOutputStream(path.toFile())) {
@@ -163,7 +164,7 @@ public interface Project {
      * @return a File object referencing the created file
      */
     default File write(String name, String content) {
-        Path path = Path.of(buildPath()).resolve(name);
+        Path path = Paths.join(buildPath(), name);
         try {
             Files.createDirectories(path.getParent());
             return new File(Files.writeString(path, content));
