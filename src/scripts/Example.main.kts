@@ -1,6 +1,6 @@
 #!/usr/bin/env kotlin -Xjvm-default=all -cp jam.jar
 
-interface SimpleProject : JavaProject {
+interface ExampleProject : JavaProject {
 
     def sources() = sourceFiles("main/**.java")
 
@@ -9,4 +9,4 @@ interface SimpleProject : JavaProject {
     def jarfile() = jar("jam.jar", classes())
 }
 
-Project.make(SimpleProject::class.java, SimpleProject::jarfile, args)
+Project.make(ExampleProject::class.java, ExampleProject::jarfile, args)

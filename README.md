@@ -150,7 +150,7 @@ interface ExampleProject : JavaProject {
     def jarfile() = jar("example.jar", classes())
 }
 
-Project.make(ExampleProject::class.java, SimpleProject::jarfile, args)
+Project.make(ExampleProject::class.java, ExampleProject::jarfile, args)
 ```
 
 ## Building the Jam library
