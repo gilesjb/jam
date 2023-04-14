@@ -37,16 +37,15 @@ public interface IvyProject extends Project {
 
     /**
      * Downloads a library and its dependencies
-     * @param org organization
-     * @param name library name
-     * @param version library revision
+     * @param library a library identifier in the format org:name:version
      * @return a reference to the jar files
      */
-    default Fileset dependsOn(String org, String name, String version) {
+    default Fileset dependsOn(String library) {
+        String[] lib = library.split(":");
         try {
             java.io.File pathFile = File.createTempFile("tmp-", ".path");
             String ivyCachePath = ivyCachePath();
-            exec("java", "-jar", ivyJar(ivyCachePath), "-error", "-dependency", org, name, version,
+            exec("java", "-jar", ivyJar(ivyCachePath), "-error", "-dependency", lib[0], lib[1], lib[2],
                     "-cache", ivyCachePath,
                     "-cachepath", pathFile.toString());
             File[] jars = Stream.of(Files.readString(pathFile.toPath()).trim().split(":")).map(File::new).toArray(File[]::new);
@@ -60,20 +59,20 @@ public interface IvyProject extends Project {
     /**
      * Downloads a library and its dependencies,
      * and executes a specified class
-     * @param mainClass the main class to executes
-     * @param org organization
-     * @param name library name
-     * @param version library revision
+     * @param library a library identifier in the format org:name:version:main-class
      * @param classpath additional jar files to use on the classpath
      * @param args the main class arguments
      */
-    default void execDependency(String mainClass, String org, String name, String version, Collection<File> classpath, String... args) {
+    default void execDependency(String library, Collection<File> classpath, String... args) {
         String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
+        String[] lib = library.split(":");
 
         exec(Stream.concat(Stream.of(
-                        "java", "-jar", ivyJar(ivyCachePath()), "-error", "-dependency", org, name, version,
+                        "java", "-jar", ivyJar(ivyCachePath()),
+                        "-error",
+                        "-dependency", lib[0], lib[1], lib[2],
                         "-cache", ivyCachePath(),
-                        "-cp", cp, "-main", mainClass, "-args"),
+                        "-cp", cp, "-main", lib[3], "-args"),
                 Stream.of(args)).toArray(String[]::new));
     }
 }

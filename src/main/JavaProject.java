@@ -48,6 +48,15 @@ public interface JavaProject extends IvyProject {
     }
 
     /**
+     * Gets the unit test library identifier.
+     * By default this is JUnit 4.13.2.
+     * @return a library identifier of the form org:name:version:main-class
+     */
+    default String unitTestLibrary() {
+        return "junit:junit:4.13.2:org.junit.runner.JUnitCore";
+    }
+
+    /**
      * Compiles Java unit tests
      * @param outputPath the build path of the generated {@code .class} files
      * @param sources the source files to compile
@@ -56,7 +65,7 @@ public interface JavaProject extends IvyProject {
      */
     default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
         return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
-                Stream.of(dependsOn("junit", "junit", "4.13.2"))).toArray(Fileset[]::new));
+                Stream.of(dependsOn(unitTestLibrary()))).toArray(Fileset[]::new));
     }
 
     /**
@@ -113,7 +122,7 @@ public interface JavaProject extends IvyProject {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        execDependency("org.junit.runner.JUnitCore", "junit", "junit", "4.13.2", files, args);
+        execDependency(unitTestLibrary(), files, args);
         return testClasses;
     }
 
