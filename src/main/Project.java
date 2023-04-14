@@ -1,9 +1,5 @@
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -119,22 +115,14 @@ public interface Project {
 
     /**
      * Downloads a web resource
-     * @param name the path and filename within the build directory of the dowloaded file
+     * @param name the path and filename within the build directory of the downloaded file
      * @param url the URL of the resource
      * @return a File object referencing the downloaded file
      */
     default File download(String name, String url) {
-        try {
-            Path path = Paths.join(buildPath(), name);
-            Files.createDirectories(path.getParent());
-            try (ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
-                    FileOutputStream out = new FileOutputStream(path.toFile())) {
-                out.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-                return new File(path);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Path path = Paths.join(buildPath(), name);
+        Paths.download(path, url);
+        return new File(path);
     }
 
     /**

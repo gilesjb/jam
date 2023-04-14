@@ -21,7 +21,7 @@ import org.copalis.builder.Paths;
  *
  * @author giles
  */
-public interface JavaProject extends Project {
+public interface JavaProject extends IvyProject {
 
     /**
      * Compiles Java code
@@ -45,6 +45,18 @@ public interface JavaProject extends Project {
             javac(sources, "-d", destination.toString(), "-cp", cp);
         }
         return Fileset.find(destination.toString(), "**.class");
+    }
+
+    /**
+     * Compiles Java unit tests
+     * @param outputPath the build path of the generated {@code .class} files
+     * @param sources the source files to compile
+     * @param classpath references to {@code .jar} or {@code .class} files
+     * @return a reference to the compiled {@code .class} files
+     */
+    default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
+        return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
+                Stream.of(dependsOn("junit", "junit", "4.13.2"))).toArray(Fileset[]::new));
     }
 
     /**
@@ -88,7 +100,7 @@ public interface JavaProject extends Project {
      * @param classpath references to {@code .jar} or {@code .class} files
      * @return the test class files
      */
-    default Fileset junit(Fileset testClasses, Fileset... classpath) {
+    default Fileset jUnit(Fileset testClasses, Fileset... classpath) {
         Path base = Path.of(testClasses.base());
 
         String[] args = testClasses.stream()
@@ -101,7 +113,7 @@ public interface JavaProject extends Project {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        execMain("org.junit.runner.JUnitCore", files, args);
+        execDependency("org.junit.runner.JUnitCore", "junit", "junit", "4.13.2", files, args);
         return testClasses;
     }
 

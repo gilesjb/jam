@@ -1,5 +1,5 @@
 /* Delete this line when using as command line script
-#!/usr/bin/java -classpath jam-classes --source 19
+#!/usr/bin/java -classpath jam-classes --source 17
 /*
  */
 
@@ -9,26 +9,6 @@
  * @author giles
  */
 public interface JamProject extends JavaProject {
-
-    @Override default String sourcePath() {
-        return "src";
-    }
-
-    @Override default String buildPath() {
-        return "build-java";
-    }
-
-    default File mavenJar(String org, String name, String version) {
-        return download(
-                String.format("jars/%s.jar", name),
-                String.format("https://repo1.maven.org/maven2/%s/%s/%s/%2$s-%3$s.jar", org, name, version));
-    }
-
-    default Fileset testJars() {
-        return Fileset.of(
-                mavenJar("junit", "junit", "4.13.2"),
-                mavenJar("org/hamcrest", "hamcrest-core", "1.3"));
-    }
 
     default Fileset mainSources() {
         return sourceFiles("main/**.java");
@@ -43,11 +23,11 @@ public interface JamProject extends JavaProject {
     }
 
     default Fileset testClasses() {
-        return javaCompile("classes/test", testSources(), mainClasses(), testJars());
+        return javaTestCompile("classes/test", testSources(), mainClasses());
     }
 
     default Fileset testBuild() {
-        return junit(testClasses(), testSources(), mainClasses(), testJars());
+        return jUnit(testClasses(), testSources(), mainClasses());
     }
 
     default Fileset docs() {
