@@ -13,7 +13,7 @@ public interface ExampleProject extends JavaProject {
     }
 
     default File jarfile() {
-        return jar("jam.jar", classes());
+        return jar("example.jar", classes());
     }
 
     static void main(String[] args) {

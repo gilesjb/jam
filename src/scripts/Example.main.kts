@@ -6,7 +6,7 @@ interface ExampleProject : JavaProject {
 
     def classes() = javaCompile("classes", sources())
 
-    def jarfile() = jar("jam.jar", classes())
+    def jarfile() = jar("example.jar", classes())
 }
 
 Project.make(ExampleProject::class.java, ExampleProject::jarfile, args)

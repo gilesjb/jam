@@ -45,6 +45,7 @@ displaying the call graph of the methods that it calls:
 [execute]       javac src/main/**.java '-d' 'build/classes'
 [execute]   jar 'example.jar' build/classes/**.class
 [current]     buildPath
+Result: build/example.jar
 COMPLETED in 365ms
 ```
 This builds the file `build/example.jar`.
@@ -60,6 +61,7 @@ as we can see if we run the build again:
 ```console
 % ./jam-build
 >[current] jarfile
+Result: build/example.jar
 COMPLETED in 50ms
 ```
 

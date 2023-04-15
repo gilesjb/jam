@@ -45,7 +45,9 @@ public interface IvyProject extends Project {
         try {
             java.io.File pathFile = File.createTempFile("tmp-", ".path");
             String ivyCachePath = ivyCachePath();
-            exec("java", "-jar", ivyJar(ivyCachePath), "-error", "-dependency", lib[0], lib[1], lib[2],
+            exec("java", "-jar", ivyJar(ivyCachePath),
+                    "-warn",
+                    "-dependency", lib[0], lib[1], lib[2],
                     "-cache", ivyCachePath,
                     "-cachepath", pathFile.toString());
             File[] jars = Stream.of(Files.readString(pathFile.toPath()).trim().split(":")).map(File::new).toArray(File[]::new);
@@ -69,7 +71,7 @@ public interface IvyProject extends Project {
 
         exec(Stream.concat(Stream.of(
                         "java", "-jar", ivyJar(ivyCachePath()),
-                        "-error",
+                        "-warn",
                         "-dependency", lib[0], lib[1], lib[2],
                         "-cache", ivyCachePath(),
                         "-cp", cp, "-main", lib[3], "-args"),

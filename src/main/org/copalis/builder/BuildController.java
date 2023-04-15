@@ -63,14 +63,19 @@ public class BuildController<T> implements Memorizer.Listener {
             print(" ".repeat(calls * 2)).print(method.getName());
             for (Object param : params) {
                 print(" ");
-                if (param instanceof String) print("'");
-                out.print(param);
-                if (param instanceof String) print("'");
+                printValue(param);
             }
             color(WHITE_BOLD).line();;
         }
 
         calls++;
+    }
+
+    private BuildController<T>  printValue(Object val) {
+        if (val instanceof String) print("'");
+        out.print(val);
+        if (val instanceof String) print("'");
+        return this;
     }
 
     public void endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
@@ -119,18 +124,23 @@ public class BuildController<T> implements Memorizer.Listener {
                 memo.loadCache(cache);
             }
 
+            Object result = null;
             try {
                 if (args.length == 0) {
-                    buildFn.apply(obj);
+                    result = buildFn.apply(obj);
                 } else {
                     for (String arg : args) {
-                        type.getMethod(arg).invoke(obj);
+                        result = type.getMethod(arg).invoke(obj);
                     }
                 }
             } finally {
                 if (cache.getParentFile().exists()) {
                     memo.saveCache(cache);
                 }
+            }
+            if (Objects.nonNull(result)) {
+                print("Result: ").printValue(result).line();
+
             }
             color(GREEN_BRIGHT).print("COMPLETED");
         } catch (InvocationTargetException e) {
