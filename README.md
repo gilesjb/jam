@@ -84,6 +84,7 @@ triggering a rebuild of affected build artifacts.
 [current]       buildPath
 [execute]       javac src/main/**.java '-d' 'build/classes'
 [update ]   jar 'example.jar' build/classes/**.class
+Result: build/example.jar
 COMPLETED in 332ms
 ```
 
