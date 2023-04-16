@@ -23,6 +23,7 @@ public interface IvyProject extends Project {
         Path path = Paths.join(cachePath, "ivy.jar");
         if (!path.toFile().exists()) {
             Paths.download(path, "https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.5.1/ivy-2.5.1.jar");
+            System.out.println("Downloaded " + path);
         }
         return path.toString();
     }
@@ -40,7 +41,7 @@ public interface IvyProject extends Project {
      * @param library a library identifier in the format org:name:version
      * @return a reference to the jar files
      */
-    default Fileset dependsOn(String library) {
+    default Fileset requires(String library) {
         String[] lib = library.split(":");
         try {
             java.io.File pathFile = File.createTempFile("tmp-", ".path");

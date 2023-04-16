@@ -65,7 +65,7 @@ public interface JavaProject extends IvyProject {
      */
     default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
         return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
-                Stream.of(dependsOn(unitTestLibrary()))).toArray(Fileset[]::new));
+                Stream.of(requires(unitTestLibrary()))).toArray(Fileset[]::new));
     }
 
     /**
