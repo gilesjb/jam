@@ -5,8 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
@@ -21,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Instantiates an interface using a dynamic proxy and memoizes the method calls.
@@ -82,21 +83,20 @@ public class Memorizer {
         this.listener = listener;
     }
 
-    @SuppressWarnings("unchecked")
     void loadCache(File file) throws IOException, ClassNotFoundException {
-        try (FileInputStream in = new FileInputStream(file)) {
+        try (InputStream in = new FileInputStream(file)) {
             try (ObjectInputStream obj = new ObjectInputStream(in)) {
-                cache = (HashMap<Signature, Result>) obj.readObject();
+                @SuppressWarnings("unchecked")
+                HashMap<Signature, Result> map = (HashMap<Signature, Result>) obj.readObject();
+                cache = map;
             }
         }
     }
 
     void saveCache(File file) throws FileNotFoundException, IOException {
-        try (FileOutputStream out = new FileOutputStream(file)) {
+        try (OutputStream out = new FileOutputStream(file)) {
             try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
-                obj.writeObject(cache.entrySet().stream()
-                        .filter(e -> e.getValue().value() instanceof Serializable)
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                obj.writeObject(cache);
             }
         }
     }
@@ -154,7 +154,9 @@ public class Memorizer {
         Object value = null;
         try {
             value = InvocationHandler.invokeDefault(proxy, method, args);
-            cache.put(signature, new Result(signature, value, dependencies.peek()));
+            if (value instanceof Serializable) {
+                cache.put(signature, new Result(signature, value, dependencies.peek()));
+            }
             return value;
         } finally {
             listener.endMethod(status, method, signature.params(), value);

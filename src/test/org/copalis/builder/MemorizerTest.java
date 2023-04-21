@@ -15,6 +15,8 @@ public class MemorizerTest {
         default long fib(long x) {
             return x <= 1 ? x : fib(x - 1) + fib(x - 2);
         }
+
+        void foo();
     }
 
     @Test public void testMemoization() {
@@ -35,5 +37,12 @@ public class MemorizerTest {
         calls.clear();
         assertEquals(3736710778780434371L, fib.fib(100));
         assertEquals(1, calls.size());
+    }
+
+    @Test(expected = RuntimeException.class) public void testAbstractMethod() {
+        Memorizer memo = new Memorizer();
+        Fibonacci fib = memo.instantiate(Fibonacci.class);
+
+        fib.foo();
     }
 }

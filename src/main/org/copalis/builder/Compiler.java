@@ -5,7 +5,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import javax.tools.DocumentationTool;
 import javax.tools.FileObject;
@@ -34,9 +33,9 @@ public class Compiler {
      * Compiles Java source files
      * @param sourceFiles the Java files to compile
      * @param options options to be passed to java
-     * @return a stream of URIs of the output class files
+     * @return a List of URIs of the output class files
      */
-    public static Stream<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
+    public static List<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
 
         List<URI> outputClasses = new LinkedList<>();
 
@@ -58,7 +57,7 @@ public class Compiler {
                     fileManager.getJavaFileObjectsFromFiles(sourceFiles))
             .call();
 
-        return outputClasses.stream();
+        return outputClasses;
     }
 
     /**

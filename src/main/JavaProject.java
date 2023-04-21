@@ -1,5 +1,6 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -72,11 +73,10 @@ public interface JavaProject extends IvyProject {
      * Compiles Java code
      * @param sourceFiles the source files to compile
      * @param options to pass to the javac compiler
-     * @return a stream of the generated {@code .class} files
+     * @return a list of URIs of the generated {@code .class} files
      */
-    default Stream<File> javac(Fileset sourceFiles, String... options) {
-        return Compiler.compile(sourceFiles, options)
-                .map(File::new);
+    default List<URI> javac(Fileset sourceFiles, String... options) {
+        return Compiler.compile(sourceFiles, options);
     }
 
     /**
