@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -39,13 +40,17 @@ public interface JavaProject extends IvyProject {
             throw new RuntimeException(e);
         }
         String cp = classpath(classpath);
+        final List<URI> uris;
 
         if (cp.isEmpty()) {
-            javac(sources, "-d", destination.toString());
+            uris = javac(sources, "-d", destination.toString());
         } else {
-            javac(sources, "-d", destination.toString(), "-cp", cp);
+            uris = javac(sources, "-d", destination.toString(), "-cp", cp);
         }
-        return Fileset.find(destination.toString(), "**.class");
+        Set<File> classFiles = uris.stream()
+                .map(Paths::fromURI).map(File::new)
+                .collect(Collectors.toSet());
+        return new Fileset(classFiles, destination.toString(), "**.class");
     }
 
     /**

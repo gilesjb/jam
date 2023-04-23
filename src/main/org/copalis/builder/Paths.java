@@ -2,6 +2,7 @@ package org.copalis.builder;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -16,6 +17,8 @@ import java.nio.file.Path;
 public class Paths {
     private Paths() { }
 
+    private static final Path workDir = Path.of(System.getProperty("user.dir")).toAbsolutePath();
+
     /**
      * Creates a Path object from the concatenation of two string paths
      * @param base the base path
@@ -24,6 +27,16 @@ public class Paths {
      */
     public static Path join(String base, String path) {
         return Path.of(base).resolve(path);
+    }
+
+    /**
+     * Converts a URI to a Path relative to the working directory
+     * @param uri the input URI
+     * @return the corresponding Path
+     */
+    public static Path fromURI(URI uri) {
+        Path path = Path.of(uri);
+        return path.startsWith(workDir) ? workDir.relativize(path) : path;
     }
 
     /**

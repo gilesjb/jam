@@ -22,8 +22,11 @@ public interface IvyProject extends Project {
     public static String ivyJar(String cachePath) {
         Path path = Paths.join(cachePath, "ivy.jar");
         if (!path.toFile().exists()) {
+            System.out.print("Downloading ");
+            System.out.print(path);
+            System.out.print("... ");
             Paths.download(path, "https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.5.1/ivy-2.5.1.jar");
-            System.out.println("Downloaded " + path);
+            System.out.println("Done");
         }
         return path.toString();
     }
