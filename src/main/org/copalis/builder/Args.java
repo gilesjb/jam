@@ -1,5 +1,7 @@
 package org.copalis.builder;
 
+import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,5 +42,24 @@ public class Args {
      */
     public String[] array() {
         return list.toArray(String[]::new);
+    }
+
+    /**
+     * Executes an external process using these arguments
+     */
+    public void exec() {
+        ProcessBuilder pb = new ProcessBuilder();
+        pb.command(array());
+        pb.redirectError(Redirect.INHERIT);
+        pb.redirectOutput(Redirect.INHERIT);
+        try {
+            Process proc = pb.start();
+            int status = proc.waitFor();
+            if (status != 0) {
+                throw new RuntimeException("Process exited with status code: " + status);
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

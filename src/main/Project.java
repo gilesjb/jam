@@ -1,11 +1,11 @@
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.copalis.builder.Args;
 import org.copalis.builder.BuildController;
 import org.copalis.builder.Memorizer;
 import org.copalis.builder.Paths;
@@ -98,19 +98,7 @@ public interface Project {
      * @param command the command and arguments
      */
     default void exec(String... command) {
-        ProcessBuilder pb = new ProcessBuilder();
-        pb.command(command);
-        pb.redirectError(Redirect.INHERIT);
-        pb.redirectOutput(Redirect.INHERIT);
-        try {
-            Process proc = pb.start();
-            int status = proc.waitFor();
-			if (status != 0) {
-            	throw new RuntimeException("Process exited with status code: " + status);
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        Args.of(command).exec();
     }
 
     /**

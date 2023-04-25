@@ -31,6 +31,9 @@ public interface IvyProject extends Project {
         return Path.of(System.getProperty("user.home"), ".jam").toString();
     }
 
+    /**
+     * Deletes the Ivy cache directory given by {@link #ivyCachePath()}
+     */
     default void cleanIvyCache() {
         Paths.rmDir(Path.of(ivyCachePath()));
     }
@@ -58,18 +61,7 @@ public interface IvyProject extends Project {
      */
     default Fileset requires(String library) {
         String[] lib = library.split(":");
-        try {
-            java.io.File pathFile = File.createTempFile("tmp-", ".path");
-            File ivyJar = ivyJar();
-            String ivyCachePath = ivyJar.getParent();
-            exec("java", "-jar", ivyJar.toString(),
-                    "-dependency", lib[0], lib[1], lib[2],
-                    "-cache", ivyCachePath,
-                    "-cachepath", pathFile.toString());
-            return dependencies(pathFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return execIvy("-dependency", lib[0], lib[1], lib[2]);
     }
 
     /**
@@ -79,37 +71,33 @@ public interface IvyProject extends Project {
      * @return a reference to the jar files
      */
     default Fileset requiresIvy(String ivyFile, String... configs) {
-        try {
-            java.io.File pathFile = File.createTempFile("tmp-", ".path");
-
-            File ivyJar = ivyJar();
-            Args args = Args.of(
-                    "java", "-jar", ivyJar.toString(),
-                    "-ivy", ivyFile,
-                    "-cache", ivyJar.getParent(),
-                    "-cachepath", pathFile.toString());
-            if (configs.length > 0) {
-                args.add("-confs").add(configs);
-            }
-
-            exec(args.array());
-            return dependencies(pathFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        Args args = Args.of("-ivy", ivyFile);
+        if (configs.length > 0) {
+            args.add("-confs").add(configs);
         }
+        return execIvy(args.array());
     }
 
     /**
-     * Extracts a classpath from a file and schedules it for deletion
-     * @param pathFile a reference to a file containing a colon-delimited classpath
-     * @return a Fileset refencing the jar files in the classpath
-     * @throws IOException if the file cannot be scheduled for deletion
+     * Executes the Ivy library to retrieve jar files
+     * @param args arguments to provide to Ivy about the dependencies
+     * @return a reference to the jar files
      */
-    static Fileset dependencies(java.io.File pathFile) throws IOException {
-        pathFile.deleteOnExit();
-        return Fileset.of(Stream.of(Files.readString(pathFile.toPath()).trim().split(":"))
-                .map(File::new)
-                .toArray(File[]::new));
+    default Fileset execIvy(String... args) {
+        File ivyJar = ivyJar();
+        try {
+            java.io.File pathFile = File.createTempFile("tmp-", ".path");
+            Args.of("java", "-jar", ivyJar.toString(),
+                    "-cache", ivyJar.getParent(),
+                    "-cachepath", pathFile.toString()).add(args).exec();
+
+            pathFile.deleteOnExit();
+            return Fileset.of(Stream.of(Files.readString(pathFile.toPath()).trim().split(":"))
+                    .map(File::new)
+                    .toArray(File[]::new));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -124,10 +112,9 @@ public interface IvyProject extends Project {
         String[] lib = library.split(":");
         File ivyJar = ivyJar();
 
-        exec(Args.of(
-                "java", "-jar", ivyJar.toString(),
+        Args.of("java", "-jar", ivyJar.toString(),
                 "-dependency", lib[0], lib[1], lib[2],
                 "-cache", ivyJar.getParent(),
-                "-cp", cp, "-main", lib[3], "-args").add(args).array());
+                "-cp", cp, "-main", lib[3], "-args").add(args).exec();
     }
 }
