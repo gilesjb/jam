@@ -15,6 +15,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.copalis.builder.Args;
 import org.copalis.builder.Compiler;
 import org.copalis.builder.Paths;
 
@@ -141,7 +142,7 @@ public interface JavaProject extends IvyProject {
      */
     default void execMain(String className, Collection<File> classpath, String... args) {
         String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-        exec(Stream.concat(Stream.of("java", "-cp", cp, className), Stream.of(args)).toArray(String[]::new));
+        exec(Args.of("java", "-cp", cp, className).add(args).array());
     }
 
     /**
