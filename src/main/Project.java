@@ -1,10 +1,7 @@
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -75,24 +72,7 @@ public interface Project {
      * @param path location of the directory to delete, relative to the build directory
      */
     default void deleteBuildDir(String path) {
-        Path root = Paths.join(buildPath(), path);
-        if (Files.exists(root)) {
-            try {
-                Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
-                    @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        Paths.rmDir(Path.of(buildPath(), path));
     }
 
     /**
@@ -111,18 +91,6 @@ public interface Project {
      */
     default File sourceFile(String name) {
         return new File(Path.of(sourcePath()).resolve(name));
-    }
-
-    /**
-     * Downloads a web resource
-     * @param name the path and filename within the build directory of the downloaded file
-     * @param url the URL of the resource
-     * @return a File object referencing the downloaded file
-     */
-    default File download(String name, String url) {
-        Path path = Paths.join(buildPath(), name);
-        Paths.download(path, url);
-        return new File(path);
     }
 
     /**
@@ -152,7 +120,7 @@ public interface Project {
      * @return a File object referencing the created file
      */
     default File write(String name, String content) {
-        Path path = Paths.join(buildPath(), name);
+        Path path = Path.of(buildPath(), name);
         try {
             Files.createDirectories(path.getParent());
             return new File(Files.writeString(path, content));

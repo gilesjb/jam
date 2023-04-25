@@ -34,7 +34,7 @@ public interface JavaProject extends IvyProject {
      * @return a reference to the compiled {@code .class} files
      */
     default Fileset javaCompile(String outputPath, Fileset sources, Fileset... classpath) {
-        Path destination = Paths.join(buildPath(), outputPath);
+        Path destination = Path.of(buildPath(), outputPath);
         try {
             Files.createDirectories(destination);
         } catch (IOException e) {
@@ -93,7 +93,7 @@ public interface JavaProject extends IvyProject {
      * @return a reference to the generated documentation
      */
     default Fileset javadoc(String outputPath, Fileset sources, String... packages) {
-        Path destination = Paths.join(buildPath(), outputPath);
+        Path destination = Path.of(buildPath(), outputPath);
         try {
             Files.createDirectories(destination);
         } catch (IOException e) {
@@ -128,7 +128,7 @@ public interface JavaProject extends IvyProject {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        execDependency(unitTestLibrary(), files, args);
+        execLibrary(unitTestLibrary(), files, args);
         return testClasses;
     }
 

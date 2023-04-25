@@ -6,8 +6,11 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Utility methods for paths
@@ -18,16 +21,6 @@ public class Paths {
     private Paths() { }
 
     private static final Path workDir = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-
-    /**
-     * Creates a Path object from the concatenation of two string paths
-     * @param base the base path
-     * @param path a path relative to the base
-     * @return a new Path
-     */
-    public static Path join(String base, String path) {
-        return Path.of(base).resolve(path);
-    }
 
     /**
      * Converts a URI to a Path relative to the working directory
@@ -55,4 +48,29 @@ public class Paths {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Deletes a directory
+     * @param path the location of the directory to delete
+     */
+    public static void rmDir(Path path) {
+        if (Files.exists(path)) {
+            try {
+                Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                    @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 }
