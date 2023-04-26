@@ -44,9 +44,9 @@ public interface JavaProject extends IvyProject {
         final List<URI> uris;
 
         if (cp.isEmpty()) {
-            uris = javac(sources, "-d", destination.toString());
+            uris = Compiler.compile(sources, "-d", destination.toString());
         } else {
-            uris = javac(sources, "-d", destination.toString(), "-cp", cp);
+            uris = Compiler.compile(sources, "-d", destination.toString(), "-cp", cp);
         }
         Set<File> classFiles = uris.stream()
                 .map(Paths::fromURI).map(File::new)
@@ -128,7 +128,7 @@ public interface JavaProject extends IvyProject {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        execLibrary(unitTestLibrary(), files, args);
+        execJar(unitTestLibrary(), files, args);
         return testClasses;
     }
 

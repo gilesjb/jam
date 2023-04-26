@@ -63,16 +63,16 @@ public interface Project {
      * Deletes the build directory
      */
     default void clean() {
-        deleteBuildDir("");
+        deleteDir(buildPath());
         memo.resetCache();
     }
 
     /**
-     * Deletes the specified directory path beneath the build directory
-     * @param path location of the directory to delete, relative to the build directory
+     * Recursively deletes the specified directory and its contents
+     * @param path location of the directory to delete
      */
-    default void deleteBuildDir(String path) {
-        Paths.rmDir(Path.of(buildPath(), path));
+    default void deleteDir(String path) {
+        Paths.rmDir(Path.of(path));
     }
 
     /**

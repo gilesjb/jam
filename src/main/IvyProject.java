@@ -27,24 +27,24 @@ public interface IvyProject extends Project {
      * Gets the local Ivy cache location
      * @return the path of the Ivy cache
      */
-    default String ivyCachePath() {
+    default String jarCachePath() {
         return Path.of(System.getProperty("user.home"), ".jam").toString();
     }
 
     /**
-     * Deletes the Ivy cache directory given by {@link #ivyCachePath()}
+     * Deletes the Ivy cache directory given by {@link #jarCachePath()}
      */
-    default void cleanIvyCache() {
-        Paths.rmDir(Path.of(ivyCachePath()));
+    default void cleanJarCache() {
+        deleteDir(jarCachePath());
     }
 
     /**
      * Gets a reference to the Ivy jarfile, downloading it if necessary.
-     * Calling {@link File#getParent()} on this reference returns the same value as {@link #ivyCachePath()}.
+     * Calling {@link File#getParent()} on this reference returns the same value as {@link #jarCachePath()}.
      * @return a reference to the Ivy jar.
      */
     default File ivyJar() {
-        Path path = Path.of(ivyCachePath(), "ivy.jar");
+        Path path = Path.of(jarCachePath(), "ivy.jar");
         if (!path.toFile().exists()) {
             String ivyJarURL = ivyJarURL();
             System.out.print("Downloading " + ivyJarURL + "... ");
@@ -61,7 +61,7 @@ public interface IvyProject extends Project {
      */
     default Fileset requires(String library) {
         String[] lib = library.split(":");
-        return execIvy("-dependency", lib[0], lib[1], lib[2]);
+        return getRequired("-dependency", lib[0], lib[1], lib[2]);
     }
 
     /**
@@ -75,15 +75,15 @@ public interface IvyProject extends Project {
         if (configs.length > 0) {
             args.add("-confs").add(configs);
         }
-        return execIvy(args.array());
+        return getRequired(args.array());
     }
 
     /**
-     * Executes the Ivy library to retrieve jar files
+     * Uses the Ivy library to retrieve jar files
      * @param args arguments to provide to Ivy about the dependencies
      * @return a reference to the jar files
      */
-    default Fileset execIvy(String... args) {
+    default Fileset getRequired(String... args) {
         File ivyJar = ivyJar();
         try {
             java.io.File pathFile = File.createTempFile("tmp-", ".path");
@@ -107,7 +107,7 @@ public interface IvyProject extends Project {
      * @param classpath additional jar files to use on the classpath
      * @param args the main class arguments
      */
-    default void execLibrary(String library, Collection<File> classpath, String... args) {
+    default void execJar(String library, Collection<File> classpath, String... args) {
         String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
         String[] lib = library.split(":");
         File ivyJar = ivyJar();
@@ -115,6 +115,8 @@ public interface IvyProject extends Project {
         Args.of("java", "-jar", ivyJar.toString(),
                 "-dependency", lib[0], lib[1], lib[2],
                 "-cache", ivyJar.getParent(),
-                "-cp", cp, "-main", lib[3], "-args").add(args).exec();
+                "-cp", cp,
+                "-main", lib[3],
+                "-args").add(args).exec();
     }
 }
