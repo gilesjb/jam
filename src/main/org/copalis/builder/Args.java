@@ -37,6 +37,16 @@ public class Args {
     }
 
     /**
+     * Adds another args list to this
+     * @param other another args
+     * @return the current list
+     */
+    public Args add(Args other) {
+        list.addAll(other.list);
+        return this;
+    }
+
+    /**
      * Returns the arguments as an array
      * @return an array containing the vararg list
      */

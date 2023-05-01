@@ -1,11 +1,6 @@
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.copalis.builder.Args;
 import org.copalis.builder.Paths;
 
 /**
@@ -43,7 +38,7 @@ public interface IvyProject extends Project {
      * Calling {@link File#getParent()} on this reference returns the same value as {@link #jarCachePath()}.
      * @return a reference to the Ivy jar.
      */
-    default File ivyJar() {
+    default Ivy.Jar ivyJar() {
         Path path = Path.of(jarCachePath(), "ivy.jar");
         if (!path.toFile().exists()) {
             String ivyJarURL = ivyJarURL();
@@ -51,72 +46,25 @@ public interface IvyProject extends Project {
             Paths.download(path, ivyJarURL);
             System.out.println("Done");
         }
-        return new File(path);
+        return new Ivy.Jar(new File(path));
     }
 
     /**
-     * Downloads a library and its dependencies
-     * @param library a library identifier in the format org:name:version
-     * @return a reference to the jar files
+     * Requires a library and its dependencies
+     * @param depends the required library
+     * @return a fileset containing the library and its dependencies
      */
-    default Fileset requires(String library) {
-        String[] lib = library.split(":");
-        return getRequired("-dependency", lib[0], lib[1], lib[2]);
+    default Fileset requires(Ivy.Dependency depends) {
+        return ivyJar().requires(depends);
     }
 
     /**
-     * Downloads dependencies specified in an Ivy XML file
-     * @param ivyFile the Ivy XML file
-     * @param configs names of configurations
-     * @return a reference to the jar files
+     * Executes a library with a main class
+     * @param main an executable dependency
+     * @param classpath additional classpath elements
+     * @param args command line arguments
      */
-    default Fileset requiresIvy(String ivyFile, String... configs) {
-        Args args = Args.of("-ivy", ivyFile);
-        if (configs.length > 0) {
-            args.add("-confs").add(configs);
-        }
-        return getRequired(args.array());
-    }
-
-    /**
-     * Uses the Ivy library to retrieve jar files
-     * @param args arguments to provide to Ivy about the dependencies
-     * @return a reference to the jar files
-     */
-    default Fileset getRequired(String... args) {
-        File ivyJar = ivyJar();
-        try {
-            java.io.File pathFile = File.createTempFile("tmp-", ".path");
-            Args.of("java", "-jar", ivyJar.toString(),
-                    "-cache", ivyJar.getParent(),
-                    "-cachepath", pathFile.toString()).add(args).exec();
-
-            pathFile.deleteOnExit();
-            return Fileset.of(Stream.of(Files.readString(pathFile.toPath()).trim().split(":"))
-                    .map(File::new)
-                    .toArray(File[]::new));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Downloads a library and its dependencies,
-     * and executes a specified class
-     * @param library a library identifier in the format org:name:version:main-class
-     * @param classpath additional jar files to use on the classpath
-     * @param args the main class arguments
-     */
-    default void execJar(String library, Collection<File> classpath, String... args) {
-        String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-        String[] lib = library.split(":");
-        File ivyJar = ivyJar();
-
-        Args.of("java", "-jar", ivyJar.toString(),
-                "-dependency", lib[0], lib[1], lib[2],
-                "-cache", ivyJar.getParent(),
-                "-cp", cp,
-                "-main", lib[3],
-                "-args").add(args).exec();
+    default void exec(Ivy.Executable main, Collection<File> classpath, String... args) {
+        ivyJar().execute(main, classpath, args);
     }
 }

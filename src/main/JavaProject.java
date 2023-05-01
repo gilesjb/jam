@@ -59,8 +59,9 @@ public interface JavaProject extends IvyProject {
      * By default this is JUnit 4.13.2.
      * @return a library identifier of the form org:name:version:main-class
      */
-    default String unitTestLibrary() {
-        return "junit:junit:4.13.2:org.junit.runner.JUnitCore";
+    default Ivy.Executable unitTestLibrary() {
+        return new Ivy.NamedDependency("junit", "junit", "4.13.2")
+                .mainClass("org.junit.runner.JUnitCore");
     }
 
     /**
@@ -128,7 +129,7 @@ public interface JavaProject extends IvyProject {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        execJar(unitTestLibrary(), files, args);
+        exec(unitTestLibrary(), files, args);
         return testClasses;
     }
 
@@ -142,7 +143,7 @@ public interface JavaProject extends IvyProject {
      */
     default void execMain(String className, Collection<File> classpath, String... args) {
         String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-        exec(Args.of("java", "-cp", cp, className).add(args).array());
+        Args.of("java", "-cp", cp, className).add(args).exec();
     }
 
     /**
