@@ -57,10 +57,10 @@ public interface JavaProject extends IvyProject {
     /**
      * Gets the unit test library identifier.
      * By default this is JUnit 4.13.2.
-     * @return a library identifier of the form org:name:version:main-class
+     * @return a library identifier
      */
     default Ivy.Executable unitTestLibrary() {
-        return new Ivy.NamedDependency("junit", "junit", "4.13.2")
+        return Ivy.namedDependency("junit", "junit", "4.13.2")
                 .mainClass("org.junit.runner.JUnitCore");
     }
 

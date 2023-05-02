@@ -1,8 +1,6 @@
 import java.nio.file.Path;
 import java.util.Collection;
 
-import org.copalis.builder.Paths;
-
 /**
  * Dependency management using Apache Ivy
  *
@@ -34,19 +32,11 @@ public interface IvyProject extends Project {
     }
 
     /**
-     * Gets a reference to the Ivy jarfile, downloading it if necessary.
-     * Calling {@link File#getParent()} on this reference returns the same value as {@link #jarCachePath()}.
-     * @return a reference to the Ivy jar.
+     * Gets a reference to the Ivy library
+     * @return a reference to the Ivy library
      */
-    default Ivy.Jar ivyJar() {
-        Path path = Path.of(jarCachePath(), "ivy.jar");
-        if (!path.toFile().exists()) {
-            String ivyJarURL = ivyJarURL();
-            System.out.print("Downloading " + ivyJarURL + "... ");
-            Paths.download(path, ivyJarURL);
-            System.out.println("Done");
-        }
-        return new Ivy.Jar(new File(path));
+    default Ivy.Runtime ivyLib() {
+        return new Ivy.Runtime(jarCachePath(), ivyJarURL());
     }
 
     /**
@@ -55,7 +45,7 @@ public interface IvyProject extends Project {
      * @return a fileset containing the library and its dependencies
      */
     default Fileset requires(Ivy.Dependency depends) {
-        return ivyJar().requires(depends);
+        return ivyLib().requires(depends);
     }
 
     /**
@@ -65,6 +55,6 @@ public interface IvyProject extends Project {
      * @param args command line arguments
      */
     default void exec(Ivy.Executable main, Collection<File> classpath, String... args) {
-        ivyJar().execute(main, classpath, args);
+        ivyLib().execute(main, classpath, args);
     }
 }

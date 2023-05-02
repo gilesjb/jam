@@ -1,11 +1,14 @@
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.copalis.builder.Args;
+import org.copalis.builder.Paths;
 
 /**
  * Logic for using Ivy dependency resolution
@@ -16,9 +19,21 @@ public interface Ivy extends Serializable {
 
     /**
      * Represents the Ivy executable
-     * @param ivyJar the location of Ivy jar file
+     * @param cacheDir the path of the Ivy cache
+     * @param url the URL that Ivy can be downloaded from
      */
-    record Jar(File ivyJar) implements Ivy {
+    record Runtime(String cacheDir, String url) implements Ivy {
+
+        private Path jar() {
+            Path path = Path.of(cacheDir, url.substring(url.lastIndexOf('/') + 1));
+            if (!path.toFile().exists()) {
+                System.out.print("Downloading " + url + "... ");
+                Paths.download(path, url);
+                System.out.println("Done");
+            }
+            return path;
+        }
+
         /**
          * Fetches the specified dependency and all its transitive dependencies
          * @param depends a dependency
@@ -27,8 +42,8 @@ public interface Ivy extends Serializable {
         Fileset requires(Dependency depends) {
             try {
                 java.io.File pathFile = File.createTempFile("tmp-", ".path");
-                Args.of("java", "-jar", ivyJar.toString(),
-                        "-cache", ivyJar.getParent(),
+                Args.of("java", "-jar", jar().toString(),
+                        "-cache", cacheDir,
                         "-cachepath", pathFile.toString()).add(depends.dependencyArgs()).exec();
 
                 pathFile.deleteOnExit();
@@ -48,12 +63,11 @@ public interface Ivy extends Serializable {
          */
         void execute(Executable runnable, Collection<File> classpath, String... args) {
             String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-            File ivyJar = ivyJar();
 
-            Args.of("java", "-jar", ivyJar.toString())
+            Args.of("java", "-jar", jar().toString())
                 .add(runnable.runArgs())
                 .add(
-                    "-cache", ivyJar.getParent(),
+                    "-cache", cacheDir,
                     "-cp", cp,
                     "-args").add(args).exec();
         }
@@ -80,32 +94,41 @@ public interface Ivy extends Serializable {
     }
 
     /**
-     * A dependency that is specified by an Ivy XML files
-     * @param ivyFile the Ivy XML file
+     * Create a dependency that is specified by an Ivy XML files
+     * @param ivyFile the source location of the Ivy XML file
      * @param confs the names of configurations to use
+     * @return the dependency object
      */
-    record ConfiguredDependency(String ivyFile, String... confs) implements Dependency {
-        public Args dependencyArgs() {
-            Args args = Args.of("-ivy", ivyFile);
-            if (confs.length > 0) {
-                args.add("-confs").add(confs);
-            }
-            return args;
+    static Dependency configuredDependency(File ivyFile, String... confs) {
+        Args args = Args.of("-ivy", ivyFile.toString());
+        if (confs.length > 0) {
+            args.add("-confs").add(confs);
         }
+        return new DependencyArgs(args.array());
+
     }
 
     /**
-     * A dependency that is specified by org, name and version
+     * Creates a dependency that is specified by org, name and version
      * @param org the organization
      * @param name the artifact name
      * @param version the artifact version number
+     * @return the dependency object
      */
-    record NamedDependency(String org, String name, String version) implements Dependency {
+    static Dependency namedDependency(String org, String name, String version) {
+        return new DependencyArgs("-dependency", org, name, version);
+    }
+
+    /**
+     * The Ivy arguments required to fetch a dependency
+     * @param args the arguments
+     */
+    record DependencyArgs(String... args) implements Dependency {
         public Args dependencyArgs() {
-            return Args.of("-dependency", org, name, version);
+            return Args.of(args);
         }
         @Override public String toString() {
-            return org + ':' + name + ':' + version;
+            return Arrays.asList(args).toString();
         }
     }
 

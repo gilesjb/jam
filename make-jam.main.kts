@@ -2,6 +2,10 @@
 
 interface Maker : JavaProject {
 
+    override fun unitTestLibrary() =
+        Ivy.configuredDependency(sourceFile("ivy.xml"), "test")
+                .mainClass("org.junit.runner.JUnitCore")
+
     fun mainSources() = sourceFiles("main/**.java")
 
     fun mainClasses() = javaCompile("classes/main", mainSources())

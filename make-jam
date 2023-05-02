@@ -9,6 +9,11 @@
  */
 public interface JamProject extends JavaProject {
 
+    @Override default Ivy.Executable unitTestLibrary() {
+        return Ivy.configuredDependency(sourceFile("ivy.xml"), "test")
+                .mainClass("org.junit.runner.JUnitCore");
+    }
+
     default Fileset mainSources() {
         return sourceFiles("main/**.java");
     }

@@ -10,6 +10,6 @@
     </configurations>
     
     <dependencies>
-        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.15.0" conf="test->default"/>
+        <dependency org="junit" name="junit" rev="4.13.2" conf="test->default"/>
     </dependencies>
 </ivy-module>
