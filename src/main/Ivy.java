@@ -113,7 +113,7 @@ public interface Ivy extends Serializable {
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
-        return new DependencyArgs(args.array());
+        return new Options(args.array());
 
     }
 
@@ -125,28 +125,28 @@ public interface Ivy extends Serializable {
      * @return the dependency object
      */
     static Dependency namedDependency(String org, String name, String version) {
-        return new DependencyArgs("-dependency", org, name, version);
+        return new Options("-dependency", org, name, version);
     }
 
     /**
      * The Ivy arguments required to fetch a dependency
      * @param args the arguments
      */
-    record DependencyArgs(String... args) implements Dependency {
+    record Options(String... args) implements Dependency {
         public Args dependencyArgs() {
             return Args.of(args);
         }
         @Override public String toString() {
-            return Arrays.asList(args).toString();
+            return "Ivy-args" + Arrays.asList(args).toString();
         }
     }
 
     /**
      * A dependency with an associated executable main class
      * @param dependency the dependency
-     * @param mainClass the name of the main class
+     * @param main the name of the main class
      */
-    record Executable(Dependency dependency, String mainClass) implements Dependency {
+    record Executable(Dependency dependency, String main) implements Dependency {
         public Args dependencyArgs() {
             return dependency.dependencyArgs();
         }
@@ -156,7 +156,7 @@ public interface Ivy extends Serializable {
          * @return an Args instance
          */
         public Args runArgs() {
-            return dependencyArgs().add("-main", mainClass);
+            return dependencyArgs().add("-main", main);
         }
     }
 }
