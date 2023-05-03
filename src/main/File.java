@@ -11,7 +11,7 @@ import org.copalis.builder.Memorizable;
 /**
  * A reference to an existing file
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public final class File extends java.io.File implements Memorizable {
     private static final long serialVersionUID = 1L;

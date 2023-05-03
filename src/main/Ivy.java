@@ -13,7 +13,7 @@ import org.copalis.builder.Paths;
 /**
  * Logic for using Ivy dependency resolution
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public interface Ivy extends Serializable {
 
@@ -94,7 +94,7 @@ public interface Ivy extends Serializable {
     }
 
     /**
-     * Create a dependency that is specified by an Ivy XML files
+     * Create a dependency that is specified by an Ivy XML file
      * @param ivyFile the source location of the Ivy XML file
      * @param confs the names of configurations to use
      * @return the dependency object

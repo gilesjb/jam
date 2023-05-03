@@ -4,7 +4,7 @@ import java.util.Collection;
 /**
  * Dependency management using Apache Ivy
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public interface IvyProject extends Project {
 
@@ -46,6 +46,27 @@ public interface IvyProject extends Project {
      */
     default Fileset requires(Ivy.Dependency depends) {
         return ivyLib().requires(depends);
+    }
+
+    /**
+     * Requires a dependency that is specified by an Ivy XML file
+     * @param ivyFile the source location of the Ivy XML file
+     * @param confs the names of configurations to use
+     * @return a fileset containing the library and its dependencies
+     */
+    default Fileset configuredDependency(String ivyFile, String... confs) {
+        return ivyLib().requires(Ivy.configuredDependency(sourceFile(ivyFile), confs));
+    }
+
+    /**
+     * Requires a dependency that is specified by org, name and version
+     * @param org the organization
+     * @param name the artifact name
+     * @param version the artifact version number
+     * @return a fileset containing the library and its dependencies
+     */
+    default Fileset requiresNamedDependency(String org, String name, String version) {
+        return ivyLib().requires(Ivy.namedDependency(org, name, version));
     }
 
     /**

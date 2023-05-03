@@ -6,7 +6,7 @@
 /**
  * The build project for Jam
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public interface JamProject extends JavaProject {
 

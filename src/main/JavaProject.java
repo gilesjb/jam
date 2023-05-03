@@ -22,16 +22,17 @@ import org.copalis.builder.Paths;
 /**
  * A Project with functionality for building Java code
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public interface JavaProject extends IvyProject {
 
     /**
      * Compiles Java code
-     * @param outputPath the build path of the generated {@code .class} files
+     * @param outputPath the location within the build path to place the generated {@code .class} files
      * @param sources the source files to compile
      * @param classpath references to {@code .jar} or {@code .class} files
      * @return a reference to the compiled {@code .class} files
+     * @see #buildPath()
      */
     default Fileset javaCompile(String outputPath, Fileset sources, Fileset... classpath) {
         Path destination = Path.of(buildPath(), outputPath);
@@ -66,48 +67,15 @@ public interface JavaProject extends IvyProject {
 
     /**
      * Compiles Java unit tests
-     * @param outputPath the build path of the generated {@code .class} files
+     * @param outputPath the location within the build path to save the generated {@code .class} files
      * @param sources the source files to compile
      * @param classpath references to {@code .jar} or {@code .class} files
      * @return a reference to the compiled {@code .class} files
+     * @see #buildPath()
      */
     default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
         return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
                 Stream.of(requires(unitTestLibrary()))).toArray(Fileset[]::new));
-    }
-
-    /**
-     * Compiles Java code
-     * @param sourceFiles the source files to compile
-     * @param options to pass to the javac compiler
-     * @return a list of URIs of the generated {@code .class} files
-     */
-    default List<URI> javac(Fileset sourceFiles, String... options) {
-        return Compiler.compile(sourceFiles, options);
-    }
-
-    /**
-     * Generates JavaDoc
-     * @param outputPath the path of generated documents
-     * @param sources the source files to document
-     * @param packages names of packages to document
-     * @return a reference to the generated documentation
-     */
-    default Fileset javadoc(String outputPath, Fileset sources, String... packages) {
-        Path destination = Path.of(buildPath(), outputPath);
-        try {
-            Files.createDirectories(destination);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        String[] args = Stream.concat(
-                Stream.of("-d", destination.toString(), "-sourcepath", sources.base(), "-quiet"),
-                packages.length > 0 ? Stream.of(packages) : sources.stream().map(File::toString)
-            ).toArray(String[]::new);
-
-        Compiler.javadoc(args);
-        return Fileset.find(destination.toString(), "**");
     }
 
     /**
@@ -131,6 +99,31 @@ public interface JavaProject extends IvyProject {
 
         exec(unitTestLibrary(), files, args);
         return testClasses;
+    }
+
+    /**
+     * Generates JavaDoc
+     * @param outputPath the location within the build path to save the generated documents
+     * @param sources the source files to document
+     * @param packages names of packages to document
+     * @return a reference to the generated documentation
+     * @see #buildPath()
+     */
+    default Fileset javadoc(String outputPath, Fileset sources, String... packages) {
+        Path destination = Path.of(buildPath(), outputPath);
+        try {
+            Files.createDirectories(destination);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String[] args = Stream.concat(
+                Stream.of("-d", destination.toString(), "-sourcepath", sources.base(), "-quiet"),
+                packages.length > 0 ? Stream.of(packages) : sources.stream().map(File::toString)
+            ).toArray(String[]::new);
+
+        Compiler.javadoc(args);
+        return Fileset.find(destination.toString(), "**");
     }
 
     /**

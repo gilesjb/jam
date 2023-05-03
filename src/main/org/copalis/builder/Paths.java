@@ -15,7 +15,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 /**
  * Utility methods for paths
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public class Paths {
     private Paths() { }
@@ -72,5 +72,4 @@ public class Paths {
             }
         }
     }
-
 }

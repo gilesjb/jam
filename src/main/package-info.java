@@ -4,5 +4,5 @@
  * These types are defined in the default (unnamed) package so that scripts can use them
  * without needing to use {@code import} statements.
  *
- * @author gilesjb
+ * @author gilesjb@gmail.com
  */

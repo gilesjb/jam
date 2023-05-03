@@ -18,7 +18,7 @@ import org.copalis.builder.Memorizable;
 /**
  * A reference to a set of existing files
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public final class Fileset implements Memorizable, Iterable<File> {
 

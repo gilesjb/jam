@@ -28,7 +28,7 @@ import java.util.Set;
  * Instantiates an interface using a dynamic proxy and memoizes the method calls.
  * Memoized results can be saved to a cache file and restored later.
  *
- * @author gilesjb
+ * @author gilesjb@gmail.com
  */
 public class Memorizer {
     /**

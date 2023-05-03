@@ -13,7 +13,7 @@ import org.copalis.builder.Paths;
 /**
  * A build project that provides common file manipulation methods
  *
- * @author giles
+ * @author gilesjb@gmail.com
  */
 public interface Project {
 
@@ -76,7 +76,8 @@ public interface Project {
     }
 
     /**
-     * Gets files matching a pattern
+     * Gets source files matching a pattern.
+     * The matching files will be recorded as dependencies of all methods on the call stack.
      * @param pattern a glob pattern to search files within {@link #sourcePath()}
      * @return a fileset of the matching files
      */
@@ -85,12 +86,13 @@ public interface Project {
     }
 
     /**
-     * Gets a file with a specific path
+     * Gets a file with a specific path.
+     * The files will be recorded as a dependency of all methods on the call stack.
      * @param name a file path within {@link #sourcePath()}
      * @return a File object referencing the specified path
      */
     default File sourceFile(String name) {
-        return new File(Path.of(sourcePath()).resolve(name));
+        return memo.dependsOn(new File(Path.of(sourcePath(), name)));
     }
 
     /**
