@@ -27,7 +27,8 @@ public class Compiler {
     private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     private static final DocumentationTool documenter = ToolProvider.getSystemDocumentationTool();
 
-    private static final StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
+    private static final StandardJavaFileManager fileManager =
+            compiler.getStandardFileManager(null, null, null);
 
     /**
      * Compiles Java source files
@@ -51,11 +52,13 @@ public class Compiler {
             }
         };
 
-        compiler
+        if (!compiler
             .getTask(
                     null, outputs, null, Arrays.asList(options), null,
                     fileManager.getJavaFileObjectsFromFiles(sourceFiles))
-            .call();
+            .call()) {
+            throw new RuntimeException("Compilation failed");
+        }
 
         return outputClasses;
     }
@@ -65,6 +68,8 @@ public class Compiler {
      * @param options options to be passed to javadoc
      */
     public static void javadoc(String... options) {
-        documenter.run(null, null, null, options);
+        if (documenter.run(null, null, null, options) != 0) {
+            throw new RuntimeException("JavaDoc failed");
+        }
     }
 }

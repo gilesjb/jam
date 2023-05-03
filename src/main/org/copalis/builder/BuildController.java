@@ -144,13 +144,31 @@ public class BuildController<T> implements Memorizer.Listener {
             }
             color(GREEN_BRIGHT).print("COMPLETED");
         } catch (InvocationTargetException e) {
-            e.getCause().printStackTrace();
+            printStackTrace(e.getCause());
             color(RED_BRIGHT).print("FAILED");
         } catch (Exception e) {
-            e.printStackTrace();
+            printStackTrace(e);
             color(RED_BRIGHT).print("FAILED");
         } finally {
             print(String.format(" in %dms", System.currentTimeMillis() - start)).line();
+        }
+    }
+
+    /**
+     * Print the stack trace for an exception, with reflection methods filtered out
+     * @param ex the exception
+     */
+    private void printStackTrace(Throwable ex) {
+        synchronized(System.err) {
+            System.err.println(ex);
+            for (StackTraceElement el : ex.getStackTrace()) {
+                if (el.getClassName().contains(".reflect.")
+                        || el.getMethodName().startsWith("_")
+                        || el.getFileName() == null) {
+                    continue;
+                }
+                System.err.println("\tat " + el);
+            }
         }
     }
 }
