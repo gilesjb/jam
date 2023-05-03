@@ -15,6 +15,7 @@ import org.copalis.builder.Paths;
  *
  * @author gilesjb@gmail.com
  */
+// TODO: Add support for settings files
 public interface Ivy extends Serializable {
 
     /**
@@ -24,7 +25,7 @@ public interface Ivy extends Serializable {
      */
     record Runtime(String cacheDir, String url) implements Ivy {
 
-        private Path jar() {
+        private Path ivyJar() {
             Path path = Path.of(cacheDir, url.substring(url.lastIndexOf('/') + 1));
             if (!path.toFile().exists()) {
                 System.out.print("Downloading " + url + "... ");
@@ -41,10 +42,12 @@ public interface Ivy extends Serializable {
          */
         Fileset requires(Dependency depends) {
             try {
-                java.io.File pathFile = File.createTempFile("tmp-", ".path");
-                Args.of("java", "-jar", jar().toString(),
+                java.io.File pathFile = File.createTempFile("classpath-", null);
+                Args.of("java", "-jar", ivyJar().toString(),
                         "-cache", cacheDir,
-                        "-cachepath", pathFile.toString()).add(depends.dependencyArgs()).exec();
+                        "-cachepath", pathFile.toString())
+                    .add(depends.dependencyArgs())
+                    .exec();
 
                 pathFile.deleteOnExit();
                 return Fileset.of(Stream.of(Files.readString(pathFile.toPath()).trim().split(":"))
@@ -62,14 +65,20 @@ public interface Ivy extends Serializable {
          * @param args command line arguments
          */
         void execute(Executable runnable, Collection<File> classpath, String... args) {
-            String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-
-            Args.of("java", "-jar", jar().toString())
+            Args cmd = Args.of("java", "-jar", ivyJar().toString())
                 .add(runnable.runArgs())
-                .add(
-                    "-cache", cacheDir,
-                    "-cp", cp,
-                    "-args").add(args).exec();
+                .add("-cache", cacheDir);
+
+            if (!classpath.isEmpty()) {
+                cmd.add("-cp", classpath.stream()
+                        .map(File::toString).collect(Collectors.joining(":")));
+            }
+
+            if (args.length > 0) {
+                cmd.add("-args").add(args);
+            }
+
+            cmd.exec();
         }
     }
 
