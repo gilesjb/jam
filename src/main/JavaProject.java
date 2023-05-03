@@ -79,7 +79,7 @@ public interface JavaProject extends IvyProject {
     }
 
     /**
-     * Runs unit tests
+     * Runs unit tests using the library specified by {@link #unitTestLibrary()}
      * @param testClasses a reference to the test {@code .class} files
      * @param classpath references to {@code .jar} or {@code .class} files
      * @return the test class files
@@ -87,7 +87,7 @@ public interface JavaProject extends IvyProject {
     default Fileset jUnit(Fileset testClasses, Fileset... classpath) {
         Path base = Path.of(testClasses.base());
 
-        String[] args = testClasses.stream()
+        String[] tests = testClasses.stream()
             .filter(file -> file.getName().endsWith("Test.class"))
             .map(file -> base.relativize(file.toPath()).toString())
             .map(name -> name.replace('/', '.').substring(0, name.length() - ".class".length()))
@@ -97,7 +97,7 @@ public interface JavaProject extends IvyProject {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        exec(unitTestLibrary(), files, args);
+        exec(unitTestLibrary(), files, tests);
         return testClasses;
     }
 
