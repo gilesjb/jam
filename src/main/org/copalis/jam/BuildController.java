@@ -15,7 +15,7 @@ import java.util.function.Function;
  * Controller for the build process
  * @param <T> the build class
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".jam-cache";

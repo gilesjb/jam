@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * A utility class for constructing vararg parameter lists.
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public class Args {
     private final List<String> list = new LinkedList<>();

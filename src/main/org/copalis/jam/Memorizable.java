@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * A reference to a resource that might have been modified
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public interface Memorizable extends Serializable {
 

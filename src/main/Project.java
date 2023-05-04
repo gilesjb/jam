@@ -13,7 +13,7 @@ import org.copalis.jam.Paths;
 /**
  * A build project that provides common file manipulation methods
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public interface Project {
 

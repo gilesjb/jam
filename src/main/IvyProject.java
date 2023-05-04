@@ -4,7 +4,7 @@ import java.util.Collection;
 /**
  * Dependency management using Apache Ivy
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public interface IvyProject extends Project {
 
@@ -63,10 +63,11 @@ public interface IvyProject extends Project {
      * @param org the organization
      * @param name the artifact name
      * @param version the artifact version number
+     * @param confs the names of configurations to use
      * @return a fileset containing the library and its dependencies
      */
-    default Fileset requiresNamedDependency(String org, String name, String version) {
-        return ivyLib().requires(Ivy.namedDependency(org, name, version));
+    default Fileset requiresNamedDependency(String org, String name, String version, String... confs) {
+        return ivyLib().requires(Ivy.namedDependency(org, name, version, confs));
     }
 
     /**

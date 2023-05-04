@@ -22,7 +22,7 @@ import org.copalis.jam.Paths;
 /**
  * A Project with functionality for building Java code
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public interface JavaProject extends IvyProject {
 
@@ -61,7 +61,7 @@ public interface JavaProject extends IvyProject {
      * @return a library identifier
      */
     default Ivy.Executable unitTestLibrary() {
-        return Ivy.namedDependency("junit", "junit", "4.13.2")
+        return Ivy.namedDependency("junit", "junit", "4.13.2", "default")
                 .mainClass("org.junit.runner.JUnitCore");
     }
 

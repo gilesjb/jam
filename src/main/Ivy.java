@@ -13,7 +13,7 @@ import org.copalis.jam.Paths;
 /**
  * Logic for using Ivy dependency resolution
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 // TODO: Add support for settings files
 public interface Ivy extends Serializable {
@@ -114,7 +114,6 @@ public interface Ivy extends Serializable {
             args.add("-confs").add(confs);
         }
         return new Options(args.array());
-
     }
 
     /**
@@ -122,10 +121,15 @@ public interface Ivy extends Serializable {
      * @param org the organization
      * @param name the artifact name
      * @param version the artifact version number
+     * @param confs the names of configurations to use
      * @return the dependency object
      */
-    static Dependency namedDependency(String org, String name, String version) {
-        return new Options("-dependency", org, name, version);
+    static Dependency namedDependency(String org, String name, String version, String... confs) {
+        Args args = Args.of("-dependency", org, name, version);
+        if (confs.length > 0) {
+            args.add("-confs").add(confs);
+        }
+        return new Options(args.array());
     }
 
     /**
@@ -137,7 +141,7 @@ public interface Ivy extends Serializable {
             return Args.of(args);
         }
         @Override public String toString() {
-            return "IvyArgs" + Arrays.asList(args).toString();
+            return "IvyArgs" + Arrays.asList(args);
         }
     }
 

@@ -19,7 +19,7 @@ import javax.tools.ToolProvider;
 /**
  * Java build utilities
  *
- * @author gilesjb@gmail.com
+ * @author gilesjb
  */
 public class Compiler {
     private Compiler() { }
