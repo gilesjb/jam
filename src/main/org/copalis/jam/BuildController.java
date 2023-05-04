@@ -19,18 +19,17 @@ import java.util.function.Function;
  */
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".jam-cache";
-    private static final boolean colors = Objects.nonNull(System.console())
-            && Objects.requireNonNullElse(System.getenv("COLORFGBG"), "").endsWith(";0");
+    private static final boolean colors = Objects.nonNull(System.console());
 
     private static final String
         RESET =         "\033[0m",
+        BOLD =          "\033[0;1m",
         RED_BRIGHT =    "\033[0;91m",
         GREEN =         "\033[0;32m",
         GREEN_BRIGHT =  "\033[0;92m",
         YELLOW =        "\033[0;33m",
         CYAN =          "\033[0;36m",
-        CYAN_BRIGHT =   "\033[0;96m",
-        WHITE_BOLD =    "\033[1;37m";
+        CYAN_BRIGHT =   "\033[0;96m";
 
     record Call(Method method, List<Object> params) { }
 
@@ -67,7 +66,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 print(" ");
                 printValue(param);
             }
-            color(WHITE_BOLD).line();
+            color(BOLD).line();
         }
 
         calls++;
