@@ -1,4 +1,4 @@
-package org.copalis.builder;
+package org.copalis.jam;
 
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;

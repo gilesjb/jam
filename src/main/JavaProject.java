@@ -15,9 +15,9 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.builder.Args;
-import org.copalis.builder.Compiler;
-import org.copalis.builder.Paths;
+import org.copalis.jam.Args;
+import org.copalis.jam.Compiler;
+import org.copalis.jam.Paths;
 
 /**
  * A Project with functionality for building Java code

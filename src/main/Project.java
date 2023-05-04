@@ -5,10 +5,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.copalis.builder.Args;
-import org.copalis.builder.BuildController;
-import org.copalis.builder.Memorizer;
-import org.copalis.builder.Paths;
+import org.copalis.jam.Args;
+import org.copalis.jam.BuildController;
+import org.copalis.jam.Memorizer;
+import org.copalis.jam.Paths;
 
 /**
  * A build project that provides common file manipulation methods
@@ -127,10 +127,10 @@ public interface Project {
      * @param args command line arguments
      */
     public static <T extends Project> void make(Class<T> t, Consumer<T> fn, String[] args) {
-        make(t, o -> {
+        new BuildController<>(memo, t).execute(o -> {
             fn.accept(o);
             return null;
-        }, args);
+        }, Project::buildPath, args);
     }
 
     /**

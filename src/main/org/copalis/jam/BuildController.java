@@ -1,4 +1,4 @@
-package org.copalis.builder;
+package org.copalis.jam;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -19,7 +19,8 @@ import java.util.function.Function;
  */
 public class BuildController<T> implements Memorizer.Listener {
     private static final String CACHE_FILE = ".jam-cache";
-    private static final boolean colors = Objects.nonNull(System.console());
+    private static final boolean colors = Objects.nonNull(System.console())
+            && Objects.requireNonNullElse(System.getenv("COLORFGBG"), "").endsWith(";0");
 
     private static final String
         RESET =         "\033[0m",
@@ -28,6 +29,7 @@ public class BuildController<T> implements Memorizer.Listener {
         GREEN_BRIGHT =  "\033[0;92m",
         YELLOW =        "\033[0;33m",
         CYAN =          "\033[0;36m",
+        CYAN_BRIGHT =   "\033[0;96m",
         WHITE_BOLD =    "\033[1;37m";
 
     record Call(Method method, List<Object> params) { }
@@ -65,7 +67,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 print(" ");
                 printValue(param);
             }
-            color(WHITE_BOLD).line();;
+            color(WHITE_BOLD).line();
         }
 
         calls++;
@@ -119,7 +121,7 @@ public class BuildController<T> implements Memorizer.Listener {
             memo.setListener(this);
 
             if (cache.exists() && cache.lastModified() < scriptModified) {
-                print("Build script has changed, rebuilding all").line();
+                color(CYAN_BRIGHT).print("Build script has changed, rebuilding all").line();
             } else if (cache.exists()) {
                 memo.loadCache(cache);
             }
@@ -160,7 +162,9 @@ public class BuildController<T> implements Memorizer.Listener {
      */
     private void printStackTrace(Throwable ex) {
         synchronized(System.err) {
+            color(RED_BRIGHT);
             System.err.println(ex);
+            color(RESET);
             for (StackTraceElement el : ex.getStackTrace()) {
                 if (el.getClassName().contains(".reflect.")
                         || el.getMethodName().startsWith("_")

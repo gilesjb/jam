@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.builder.Memorizable;
+import org.copalis.jam.Memorizable;
 
 /**
  * A reference to an existing file

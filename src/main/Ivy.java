@@ -7,8 +7,8 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.builder.Args;
-import org.copalis.builder.Paths;
+import org.copalis.jam.Args;
+import org.copalis.jam.Paths;
 
 /**
  * Logic for using Ivy dependency resolution
@@ -129,7 +129,7 @@ public interface Ivy extends Serializable {
     }
 
     /**
-     * The Ivy arguments required to fetch a dependency
+     * The Ivy options required to fetch a dependency
      * @param args the arguments
      */
     record Options(String... args) implements Dependency {
@@ -137,7 +137,7 @@ public interface Ivy extends Serializable {
             return Args.of(args);
         }
         @Override public String toString() {
-            return "Ivy-args" + Arrays.asList(args).toString();
+            return "IvyArgs" + Arrays.asList(args).toString();
         }
     }
 

@@ -1,12 +1,12 @@
-package org.copalis.builder;
+package org.copalis.jam;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.copalis.builder.Memorizer.Status;
+import org.copalis.jam.Memorizer.Status;
 import org.junit.Test;
 
 public class MemorizerTest {
