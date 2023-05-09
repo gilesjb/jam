@@ -110,6 +110,8 @@ public class BuildController<T> implements Memorizer.Listener {
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         long start = System.currentTimeMillis();
 
+        if (options(buildFn, args) > 0) return;
+
         try {
             URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
             long scriptModified = Objects.nonNull(scriptLocation)
@@ -127,23 +129,18 @@ public class BuildController<T> implements Memorizer.Listener {
                 memo.loadCache(cache);
             }
 
-            Object result = null;
             try {
                 if (args.length == 0) {
-                    result = buildFn.apply(obj);
+                    printResult(buildFn.apply(obj));
                 } else {
                     for (String arg : args) {
-                        result = param(obj, buildFn, arg);
+                        printResult(type.getMethod(arg).invoke(obj));
                     }
                 }
             } finally {
                 if (cache.getParentFile().exists()) {
                     memo.saveCache(cache);
                 }
-            }
-            if (Objects.nonNull(result)) {
-                print("Result: ").printValue(result).line();
-
             }
             color(GREEN_BRIGHT).print("COMPLETED");
         } catch (InvocationTargetException e) {
@@ -157,35 +154,37 @@ public class BuildController<T> implements Memorizer.Listener {
         }
     }
 
-    private Object param(T obj, Function<T, ?> buildFn, String arg) throws Exception {
-        if (!arg.startsWith("-")) {
-            return type.getMethod(arg).invoke(obj);
-        }
+    private int options(Function<T, ?> buildFn, String[] args) {
+        int ix = 0;
 
-        color(BOLD);
-        switch (arg) {
-        case "--targets":
-            printBuildTargets(obj, buildFn);
-            break;
-        default:
-            color(RED_BRIGHT).print("Illegal option: ").print(arg).color(BOLD).line();
-        case "--help":
-            print("Options ").line();
-            print("--help      print this help message").line();
-            print("--targets   print the defined build targets").line();
+        for (; ix < args.length && args[ix].startsWith("-"); ix++) {
+            color(BOLD);
+            switch (args[ix]) {
+            case "--targets":
+                printBuildTargets(buildFn);
+                break;
+            default:
+                color(RED_BRIGHT).print("Illegal option: ").print(args[ix]).color(BOLD).line();
+            case "--help":
+                print("Options ").line();
+                print("    --help         print this help message").line();
+                print("    --targets      print the available build targets").line();
+                print("    [targets..]    builds the specified targets, or else the default target").line();
+            }
         }
-        return null;
+        return ix;
     }
 
-    private void printBuildTargets(T obj, Function<T, ?> buildFn) {
+    private void printBuildTargets(Function<T, ?> buildFn) {
         String[] target = new String[1];
-        buildFn.apply(type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
+        T proxy = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
             target[0] = m.getName();
             return null;
-        })));
+        }));
+        buildFn.apply(proxy);
 
         print("Build targets").line();
-        Stream.of(obj.getClass().getInterfaces())
+        Stream.of(proxy.getClass().getInterfaces())
                 .map(Class::getMethods)
                 .flatMap(Stream::of)
                 .filter(m -> m.getParameterCount() == 0)
@@ -197,6 +196,12 @@ public class BuildController<T> implements Memorizer.Listener {
                     }
                     print(m.getName() + " : " + m.getReturnType().getSimpleName()).line();
                 });
+    }
+
+    private void printResult(Object result) {
+        if (Objects.nonNull(result)) {
+            print("Result: ").printValue(result).line();
+        }
     }
 
     /**
