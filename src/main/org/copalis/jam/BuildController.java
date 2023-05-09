@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Controller for the build process
@@ -131,7 +133,7 @@ public class BuildController<T> implements Memorizer.Listener {
                     result = buildFn.apply(obj);
                 } else {
                     for (String arg : args) {
-                        result = type.getMethod(arg).invoke(obj);
+                        result = param(obj, buildFn, arg);
                     }
                 }
             } finally {
@@ -153,6 +155,48 @@ public class BuildController<T> implements Memorizer.Listener {
         } finally {
             print(String.format(" in %dms", System.currentTimeMillis() - start)).line();
         }
+    }
+
+    private Object param(T obj, Function<T, ?> buildFn, String arg) throws Exception {
+        if (!arg.startsWith("-")) {
+            return type.getMethod(arg).invoke(obj);
+        }
+
+        color(BOLD);
+        switch (arg) {
+        case "--targets":
+            printBuildTargets(obj, buildFn);
+            break;
+        default:
+            color(RED_BRIGHT).print("Illegal option: ").print(arg).color(BOLD).line();
+        case "--help":
+            print("Options ").line();
+            print("--help      print this help message").line();
+            print("--targets   print the defined build targets").line();
+        }
+        return null;
+    }
+
+    private void printBuildTargets(T obj, Function<T, ?> buildFn) {
+        String[] target = new String[1];
+        buildFn.apply(type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
+            target[0] = m.getName();
+            return null;
+        })));
+
+        print("Build targets").line();
+        Stream.of(obj.getClass().getInterfaces())
+                .map(Class::getMethods)
+                .flatMap(Stream::of)
+                .filter(m -> m.getParameterCount() == 0)
+                .forEach(m -> {
+                    if (target[0].equals(m.getName())) {
+                        print("       *");
+                    } else {
+                        print("        ");
+                    }
+                    print(m.getName() + " : " + m.getReturnType().getSimpleName()).line();
+                });
     }
 
     /**

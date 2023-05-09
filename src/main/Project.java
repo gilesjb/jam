@@ -3,7 +3,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.copalis.jam.Args;
 import org.copalis.jam.BuildController;
@@ -21,27 +20,6 @@ public interface Project {
      * The memorizer that memoizes method calls on interfaces derived from this
      */
     final Memorizer memo = new Memorizer();
-
-    /**
-     * Print help information
-     */
-    default void help() {
-        System.out.println("Jam build system");
-        System.out.println("Syntax: <build-script> <target> <target>...");
-        System.out.println("Specify target 'targets' to see all build targets and their result types");
-    }
-
-    /**
-     * Prints the project's targets
-     */
-    default void targets() {
-        System.out.println("Project targets");
-        Stream.of(getClass().getInterfaces())
-                .map(Class::getMethods)
-                .flatMap(Stream::of)
-                .filter(m -> m.getParameterCount() == 0)
-                .forEach(m -> System.out.println("  " + m.getName() + " : " + m.getReturnType().getSimpleName()));
-    }
 
     /**
      * The default source file root directory. Override if the desired directory is not {@code src}
