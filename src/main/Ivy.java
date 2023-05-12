@@ -59,12 +59,13 @@ public interface Ivy extends Serializable {
         }
 
         /**
-         * Runs the main class of the specified dependency
+         * Generates the command line arguments to execute the main class of the specified dependency
          * @param runnable a dependency with a main class
          * @param classpath additional classpath elements
-         * @param args command line arguments
+         * @param args additional command line arguments
+         * @return the complete Ivy command line arguments
          */
-        void execute(Executable runnable, Collection<File> classpath, String... args) {
+        Args command(Executable runnable, Collection<File> classpath, String... args) {
             Args cmd = Args.of("java", "-jar", ivyJar().toString())
                 .add(runnable.runArgs())
                 .add("-cache", cacheDir);
@@ -78,7 +79,7 @@ public interface Ivy extends Serializable {
                 cmd.add("-args").add(args);
             }
 
-            cmd.exec();
+            return cmd;
         }
     }
 

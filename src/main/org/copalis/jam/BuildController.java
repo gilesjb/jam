@@ -169,7 +169,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 print("Options ").line();
                 print("    --help         print this help message").line();
                 print("    --targets      print the available build targets").line();
-                print("    [targets..]    builds the specified targets, or else the default target").line();
+                print("    [targets...]   executes the specified targets, or the default").line();
             }
         }
         return ix;
@@ -183,19 +183,19 @@ public class BuildController<T> implements Memorizer.Listener {
         }));
         buildFn.apply(proxy);
 
-        print("Build targets").line();
-        Stream.of(proxy.getClass().getInterfaces())
-                .map(Class::getMethods)
-                .flatMap(Stream::of)
-                .filter(m -> m.getParameterCount() == 0)
-                .forEach(m -> {
-                    if (target[0].equals(m.getName())) {
-                        print("       *");
-                    } else {
-                        print("        ");
-                    }
-                    print(m.getName() + " : " + m.getReturnType().getSimpleName()).line();
-                });
+        for (Class<?> iface : proxy.getClass().getInterfaces()) {
+            print(iface.getSimpleName()).print(" targets").line();
+            Stream.of(iface.getMethods())
+                    .filter(m -> m.getParameterCount() == 0)
+                    .forEach(m -> {
+                        if (target[0].equals(m.getName())) {
+                            print("       *");
+                        } else {
+                            print("        ");
+                        }
+                        print(m.getName() + " : " + m.getReturnType().getSimpleName()).line();
+                    });
+        }
     }
 
     private void printResult(Object result) {
