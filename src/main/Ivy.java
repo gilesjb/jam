@@ -15,7 +15,6 @@ import org.copalis.jam.Paths;
  *
  * @author gilesjb
  */
-// TODO: Add support for settings files
 public interface Ivy extends Serializable {
 
     /**
@@ -43,8 +42,7 @@ public interface Ivy extends Serializable {
         Fileset requires(Dependency depends) {
             try {
                 java.io.File pathFile = File.createTempFile("classpath-", null);
-                Args.of("java", "-jar", ivyJar().toString(),
-                        "-cache", cacheDir,
+                Args.of("java", "-jar", ivyJar().toString(), "-cache", cacheDir,
                         "-cachepath", pathFile.toString())
                     .add(depends.dependencyArgs())
                     .exec();
@@ -66,9 +64,9 @@ public interface Ivy extends Serializable {
          * @return the complete Ivy command line arguments
          */
         Args command(Executable runnable, Collection<File> classpath, String... args) {
-            Args cmd = Args.of("java", "-jar", ivyJar().toString())
-                .add(runnable.runArgs())
-                .add("-cache", cacheDir);
+            Args cmd = Args.of(
+                    "java", "-jar", ivyJar().toString(), "-cache", cacheDir)
+                .add(runnable.runArgs());
 
             if (!classpath.isEmpty()) {
                 cmd.add("-cp", classpath.stream()
@@ -92,6 +90,34 @@ public interface Ivy extends Serializable {
          * @return an Args instance
          */
         Args dependencyArgs();
+
+        /**
+         * Adds a reference to an Ivy settings file
+         * @param settingsFile a reference to an XML settings file
+         * @return a dependency object including the reference
+         */
+        default Dependency addSettings(File settingsFile) {
+            return addOptions("-settings", settingsFile.toString());
+        }
+
+        /**
+         * Adds a reference to an Ivy settings file
+         * @param settingsFile a reference to an XML settings file
+         * @param propertiesFile a reference to an additional properties file
+         * @return a dependency object including the references
+         */
+        default Dependency addSettings(File settingsFile, File propertiesFile) {
+            return addSettings(settingsFile).addOptions("-properties", propertiesFile.toString());
+        }
+
+        /**
+         * Adds dependency resolution command line arguments
+         * @param args arguments
+         * @return a dependency object including the arguments
+         */
+        default Dependency addOptions(String... args) {
+            return new Options(dependencyArgs().add(args).array());
+        }
 
         /**
          * Associates a main class with this dependency

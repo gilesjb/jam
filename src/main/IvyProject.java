@@ -66,7 +66,7 @@ public interface IvyProject extends Project {
      * @param confs the names of configurations to use
      * @return a fileset containing the library and its dependencies
      */
-    default Fileset requiresNamedDependency(String org, String name, String version, String... confs) {
+    default Fileset namedDependency(String org, String name, String version, String... confs) {
         return ivyLib().requires(Ivy.namedDependency(org, name, version, confs));
     }
 

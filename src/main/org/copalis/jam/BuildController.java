@@ -187,14 +187,10 @@ public class BuildController<T> implements Memorizer.Listener {
             print(iface.getSimpleName()).print(" targets").line();
             Stream.of(iface.getMethods())
                     .filter(m -> m.getParameterCount() == 0)
-                    .forEach(m -> {
-                        if (target[0].equals(m.getName())) {
-                            print("       *");
-                        } else {
-                            print("        ");
-                        }
-                        print(m.getName() + " : " + m.getReturnType().getSimpleName()).line();
-                    });
+                    .forEach(m -> print("       ")
+                            .print(target[0].equals(m.getName()) ? "*" : " ")
+                            .print(m.getName()).print(" : ")
+                            .print(m.getReturnType().getSimpleName()).line());
         }
     }
 
