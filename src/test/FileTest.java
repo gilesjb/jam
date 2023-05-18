@@ -1,19 +1,19 @@
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URISyntaxException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class FileTest {
+class FileTest {
 
     File file;
 
-    @Before
-    public void setUp() throws URISyntaxException {
+    @BeforeEach
+    void test() throws URISyntaxException {
         file = new File(getClass().getClassLoader().getResource("file.txt").toURI());
     }
 

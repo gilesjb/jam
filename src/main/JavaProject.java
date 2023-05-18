@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -61,8 +62,8 @@ public interface JavaProject extends IvyProject {
      * @return a library identifier
      */
     default Ivy.Executable unitTestLibrary() {
-        return Ivy.namedDependency("junit", "junit", "4.13.2", "default")
-                .mainClass("org.junit.runner.JUnitCore");
+        return Ivy.namedDependency("org.junit.platform", "junit-platform-console-standalone", "1.9.3", "default")
+                .mainClass("org.junit.platform.console.ConsoleLauncher");
     }
 
     /**
@@ -85,19 +86,19 @@ public interface JavaProject extends IvyProject {
      * @return the test class files
      */
     default Fileset jUnit(Fileset testClasses, Fileset... classpath) {
-        Path base = Path.of(testClasses.base());
-
-        String[] tests = testClasses.stream()
-            .filter(file -> file.getName().endsWith("Test.class"))
-            .map(file -> base.relativize(file.toPath()).toString())
-            .map(name -> name.replace('/', '.').substring(0, name.length() - ".class".length()))
-            .toArray(String[]::new);
-
         List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        exec(unitTestLibrary(), files, tests);
+        try {
+            java.io.File pathFile = File.createTempFile("path", null);
+            Files.writeString(pathFile.toPath(), "--scan-class-path=" + testClasses.base + "\n",
+                    StandardOpenOption.WRITE);
+            pathFile.deleteOnExit();
+            exec(unitTestLibrary(), files, "@" + pathFile.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return testClasses;
     }
 

@@ -1,13 +1,14 @@
 package org.copalis.jam;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.copalis.jam.Memorizer.Status;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class MemorizerTest {
 
@@ -39,10 +40,12 @@ public class MemorizerTest {
         assertEquals(1, calls.size());
     }
 
-    @Test(expected = RuntimeException.class) public void testAbstractMethod() {
+    @Test public void testAbstractMethod() {
         Memorizer memo = new Memorizer();
         Fibonacci fib = memo.instantiate(Fibonacci.class);
 
-        fib.foo();
+        Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
+            fib.foo();
+        });
     }
 }
