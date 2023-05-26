@@ -9,9 +9,8 @@
  */
 public interface JamProject extends JavaProject {
 
-    @Override default Ivy.Executable unitTestLibrary() {
-        return Ivy.configuredDependency(sourceFile("ivy.xml"), "test")
-                .mainClass("org.junit.platform.console.ConsoleLauncher");
+    @Override default Ivy.Dependency unitTestLibrary() {
+        return Ivy.configuredDependency(sourceFile("ivy.xml"), "test");
     }
 
     default Fileset mainSources() {
@@ -31,7 +30,7 @@ public interface JamProject extends JavaProject {
     }
 
     default Fileset testBuild() {
-        return jUnit(testClasses(), testSources(), mainClasses());
+        return jUnit("test-report", testClasses(), testSources(), mainClasses());
     }
 
     default Fileset docs() {

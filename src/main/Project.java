@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.copalis.jam.Args;
+import org.copalis.jam.Cmd;
 import org.copalis.jam.BuildController;
 import org.copalis.jam.Memorizer;
 import org.copalis.jam.Paths;
@@ -41,7 +41,7 @@ public interface Project {
      * Deletes the build directory
      */
     default void clean() {
-        deleteDir(buildPath());
+        rmDir(buildPath());
         memo.resetCache();
     }
 
@@ -49,7 +49,7 @@ public interface Project {
      * Recursively deletes the specified directory and its contents
      * @param path location of the directory to delete
      */
-    default void deleteDir(String path) {
+    default void rmDir(String path) {
         Paths.rmDir(Path.of(path));
     }
 
@@ -78,7 +78,7 @@ public interface Project {
      * @param command the command and arguments
      */
     default void exec(String... command) {
-        Args.of(command).exec();
+        Cmd.of(command).exec();
     }
 
     /**

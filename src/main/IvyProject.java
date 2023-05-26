@@ -28,7 +28,7 @@ public interface IvyProject extends Project {
      * Deletes the Ivy cache directory given by {@link #jarCachePath()}
      */
     default void cleanJarCache() {
-        deleteDir(jarCachePath());
+        rmDir(jarCachePath());
     }
 
     /**

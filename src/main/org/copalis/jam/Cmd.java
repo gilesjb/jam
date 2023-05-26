@@ -10,18 +10,18 @@ import java.util.List;
  *
  * @author gilesjb
  */
-public class Args {
+public class Cmd {
     private final List<String> list = new LinkedList<>();
 
-    private Args() { }
+    private Cmd() { }
 
     /**
      * Creates a new list with the supplied arguments
      * @param args an arbitrary number of arguments
      * @return the new list
      */
-    public static Args of(String... args) {
-        return new Args().add(args);
+    public static Cmd of(String... args) {
+        return new Cmd().add(args);
     }
 
     /**
@@ -29,7 +29,7 @@ public class Args {
      * @param args an arbitrary number of arguments
      * @return the current list
      */
-    public Args add(String... args) {
+    public Cmd add(String... args) {
         for (String arg : args) {
             list.add(arg);
         }
@@ -41,7 +41,7 @@ public class Args {
      * @param other another args
      * @return the current list
      */
-    public Args add(Args other) {
+    public Cmd add(Cmd other) {
         list.addAll(other.list);
         return this;
     }
@@ -71,5 +71,9 @@ public class Args {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override public String toString() {
+        return list.toString();
     }
 }

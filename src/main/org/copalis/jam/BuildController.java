@@ -196,7 +196,7 @@ public class BuildController<T> implements Memorizer.Listener {
 
     private void printResult(Object result) {
         if (Objects.nonNull(result)) {
-            print("Result: ").printValue(result).line();
+            color(BOLD).print("Result: ").printValue(result).line();
         }
     }
 

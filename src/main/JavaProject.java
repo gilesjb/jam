@@ -5,7 +5,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -16,7 +15,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Args;
+import org.copalis.jam.Cmd;
 import org.copalis.jam.Compiler;
 import org.copalis.jam.Paths;
 
@@ -61,9 +60,8 @@ public interface JavaProject extends IvyProject {
      * By default this is JUnit 4.13.2.
      * @return a library identifier
      */
-    default Ivy.Executable unitTestLibrary() {
-        return Ivy.namedDependency("org.junit.platform", "junit-platform-console-standalone", "1.9.3", "default")
-                .mainClass("org.junit.platform.console.ConsoleLauncher");
+    default Ivy.Dependency unitTestLibrary() {
+        return Ivy.namedDependency("org.junit.platform", "junit-platform-console-standalone", "1.9.3", "default");
     }
 
     /**
@@ -90,16 +88,21 @@ public interface JavaProject extends IvyProject {
                 .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
                 .collect(Collectors.toList());
 
-        try {
-            java.io.File pathFile = File.createTempFile("path", null);
-            Files.writeString(pathFile.toPath(), "--scan-class-path=" + testClasses.base + "\n",
-                    StandardOpenOption.WRITE);
-            pathFile.deleteOnExit();
-            exec(unitTestLibrary(), files, "@" + pathFile.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        javaJar(requires(unitTestLibrary()).iterator().next(), files,
+                "--scan-class-path=" + testClasses.base);
         return testClasses;
+    }
+
+    default Fileset jUnit(String reportPath, Fileset testClasses, Fileset... classpath) {
+        List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
+                .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
+                .collect(Collectors.toList());
+
+        Path destination = Path.of(buildPath(), reportPath);
+        javaJar(requires(unitTestLibrary()).iterator().next(), files,
+                "--scan-class-path=" + testClasses.base,
+                "--reports-dir=" + destination);
+        return Fileset.find(destination.toString(), "**");
     }
 
     /**
@@ -137,7 +140,21 @@ public interface JavaProject extends IvyProject {
      */
     default void execMain(String className, Collection<File> classpath, String... args) {
         String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-        Args.of("java", "-cp", cp, className).add(args).exec();
+        Cmd.of("java", "-cp", cp, className).add(args).exec();
+    }
+
+    /**
+     * Executes a jar file
+     * @param jar the jar file
+     * @param classpath additional jar files on the classpath
+     * @param args command line arguments
+     */
+    default void javaJar(File jar, Collection<File> classpath, String... args) {
+        Cmd cmd = Cmd.of("java", "-jar", jar.toString());
+        if (!classpath.isEmpty()) {
+            cmd.add("-cp", classpath.stream().map(File::toString).collect(Collectors.joining(":")));
+        }
+        cmd.add(args).exec();
     }
 
     /**

@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Args;
+import org.copalis.jam.Cmd;
 import org.copalis.jam.Paths;
 
 /**
@@ -42,7 +42,7 @@ public interface Ivy extends Serializable {
         Fileset requires(Dependency depends) {
             try {
                 java.io.File pathFile = File.createTempFile("classpath-", null);
-                Args.of("java", "-jar", ivyJar().toString(), "-cache", cacheDir,
+                Cmd.of("java", "-jar", ivyJar().toString(), "-cache", cacheDir,
                         "-cachepath", pathFile.toString())
                     .add(depends.dependencyArgs())
                     .exec();
@@ -63,8 +63,8 @@ public interface Ivy extends Serializable {
          * @param args additional command line arguments
          * @return the complete Ivy command line arguments
          */
-        Args command(Executable runnable, Collection<File> classpath, String... args) {
-            Args cmd = Args.of(
+        Cmd command(Executable runnable, Collection<File> classpath, String... args) {
+            Cmd cmd = Cmd.of(
                     "java", "-jar", ivyJar().toString(), "-cache", cacheDir)
                 .add(runnable.runArgs());
 
@@ -89,7 +89,7 @@ public interface Ivy extends Serializable {
          * Gets the Ivy arguments necessary to resolve this dependency
          * @return an Args instance
          */
-        Args dependencyArgs();
+        Cmd dependencyArgs();
 
         /**
          * Adds a reference to an Ivy settings file
@@ -136,7 +136,7 @@ public interface Ivy extends Serializable {
      * @return the dependency object
      */
     static Dependency configuredDependency(File ivyFile, String... confs) {
-        Args args = Args.of("-ivy", ivyFile.toString());
+        Cmd args = Cmd.of("-ivy", ivyFile.toString());
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
@@ -152,7 +152,7 @@ public interface Ivy extends Serializable {
      * @return the dependency object
      */
     static Dependency namedDependency(String org, String name, String version, String... confs) {
-        Args args = Args.of("-dependency", org, name, version);
+        Cmd args = Cmd.of("-dependency", org, name, version);
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
@@ -164,8 +164,8 @@ public interface Ivy extends Serializable {
      * @param args the arguments
      */
     record Options(String... args) implements Dependency {
-        public Args dependencyArgs() {
-            return Args.of(args);
+        public Cmd dependencyArgs() {
+            return Cmd.of(args);
         }
         @Override public String toString() {
             return "IvyArgs" + Arrays.asList(args);
@@ -178,7 +178,7 @@ public interface Ivy extends Serializable {
      * @param main the name of the main class
      */
     record Executable(Dependency dependency, String main) implements Dependency {
-        public Args dependencyArgs() {
+        public Cmd dependencyArgs() {
             return dependency.dependencyArgs();
         }
 
@@ -186,7 +186,7 @@ public interface Ivy extends Serializable {
          * Gets the Ivy arguments required to execute the main class of this dependency
          * @return an Args instance
          */
-        public Args runArgs() {
+        public Cmd runArgs() {
             return dependencyArgs().add("-main", main);
         }
     }

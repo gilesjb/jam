@@ -4,7 +4,6 @@ interface Maker : JavaProject {
 
     override fun unitTestLibrary() =
         Ivy.configuredDependency(sourceFile("ivy.xml"), "test")
-                .mainClass("org.junit.runner.JUnitCore")
 
     fun mainSources() = sourceFiles("main/**.java")
 
@@ -14,7 +13,7 @@ interface Maker : JavaProject {
 
     fun testClasses() = javaTestCompile("classes/test", testSources(), mainClasses())
 
-    fun testBuild() = jUnit(testClasses(), testSources(), mainClasses())
+    fun testBuild() = jUnit("test-report", testClasses(), testSources(), mainClasses())
 
     fun docs() = javadoc("docs", mainSources())
 
