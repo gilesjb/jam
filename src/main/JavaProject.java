@@ -41,7 +41,9 @@ public interface JavaProject extends IvyProject {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        String cp = classpath(classpath);
+        String cp = Stream.of(classpath)
+                .flatMap(JavaProject::pathElements).map(File::toString)
+                .collect(Collectors.joining(":"));
         final List<URI> uris;
 
         if (cp.isEmpty()) {
@@ -57,10 +59,9 @@ public interface JavaProject extends IvyProject {
 
     /**
      * Gets the unit test library identifier.
-     * By default this is JUnit 4.13.2.
      * @return a library identifier
      */
-    default Ivy.Dependency unitTestLibrary() {
+    default Ivy.Dependency jUnitLib() {
         return Ivy.namedDependency("org.junit.platform", "junit-platform-console-standalone", "1.9.3", "default");
     }
 
@@ -74,35 +75,48 @@ public interface JavaProject extends IvyProject {
      */
     default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
         return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
-                Stream.of(requires(unitTestLibrary()))).toArray(Fileset[]::new));
+                Stream.of(jUnitJar())).toArray(Fileset[]::new));
     }
 
     /**
-     * Runs unit tests using the library specified by {@link #unitTestLibrary()}
+     * Runs unit tests using the library specified by {@link #jUnitLib()}
      * @param testClasses a reference to the test {@code .class} files
      * @param classpath references to {@code .jar} or {@code .class} files
-     * @return the test class files
      */
-    default Fileset jUnit(Fileset testClasses, Fileset... classpath) {
+    default void jUnit(Fileset testClasses, Fileset... classpath) {
         List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
-                .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
+                .flatMap(JavaProject::pathElements)
                 .collect(Collectors.toList());
 
-        javaJar(requires(unitTestLibrary()).iterator().next(), files,
+        javaJar(jUnitJar().iterator().next(), files,
                 "--scan-class-path=" + testClasses.base);
-        return testClasses;
     }
 
+    /**
+     * Runs unit tests using the library specified by {@link #jUnitLib()}
+     * @param reportPath the build path for generated test report
+     * @param testClasses a reference to the test {@code .class} files
+     * @param classpath references to {@code .jar} or {@code .class} files
+     * @return a fileset referring to the unit test report
+     */
     default Fileset jUnit(String reportPath, Fileset testClasses, Fileset... classpath) {
         List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
-                .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream())
+                .flatMap(JavaProject::pathElements)
                 .collect(Collectors.toList());
 
         Path destination = Path.of(buildPath(), reportPath);
-        javaJar(requires(unitTestLibrary()).iterator().next(), files,
+        javaJar(jUnitJar().iterator().next(), files,
                 "--scan-class-path=" + testClasses.base,
                 "--reports-dir=" + destination);
         return Fileset.find(destination.toString(), "**");
+    }
+
+    /**
+     * Gets the classpath for the unit tests
+     * @return the fileset
+     */
+    default Fileset jUnitJar() {
+        return requires(jUnitLib());
     }
 
     /**
@@ -140,7 +154,7 @@ public interface JavaProject extends IvyProject {
      */
     default void execMain(String className, Collection<File> classpath, String... args) {
         String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-        Cmd.of("java", "-cp", cp, className).add(args).exec();
+        Cmd.args("java", "-cp", cp, className).add(args).run();
     }
 
     /**
@@ -150,11 +164,11 @@ public interface JavaProject extends IvyProject {
      * @param args command line arguments
      */
     default void javaJar(File jar, Collection<File> classpath, String... args) {
-        Cmd cmd = Cmd.of("java", "-jar", jar.toString());
+        Cmd cmd = Cmd.args("java", "-jar", jar.toString());
         if (!classpath.isEmpty()) {
             cmd.add("-cp", classpath.stream().map(File::toString).collect(Collectors.joining(":")));
         }
-        cmd.add(args).exec();
+        cmd.add(args).run();
     }
 
     /**
@@ -207,13 +221,11 @@ public interface JavaProject extends IvyProject {
     }
 
     /**
-     * Generates a classpath string
-     * @param classpath collections of {@code .class} or {@code .jar} files
-     * @return a colon-separated classpath string
+     * Extracts classpath element(s) from a Fileset
+     * @param fs a fileset
+     * @return the base directory of the fileset, or the files contained within it
      */
-    static String classpath(Fileset... classpath) {
-        return Stream.of(classpath)
-                .flatMap(fs -> Objects.nonNull(fs.base()) ? Stream.of(fs.base()) : fs.stream().map(File::toString))
-                .collect(Collectors.joining(":"));
+    static Stream<File> pathElements(Fileset fs) {
+        return Objects.nonNull(fs.base()) ? Stream.of(fs.base()).map(File::new) : fs.stream();
     }
 }

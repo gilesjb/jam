@@ -167,9 +167,9 @@ public class BuildController<T> implements Memorizer.Listener {
                 color(RED_BRIGHT).print("Illegal option: ").print(args[ix]).color(BOLD).line();
             case "--help":
                 print("Options ").line();
-                print("    --help         print this help message").line();
-                print("    --targets      print the available build targets").line();
-                print("    [targets...]   executes the specified targets, or the default").line();
+                print("    --help             display this help message").line();
+                print("    --targets          display the available build targets").line();
+                print("    <target-name>...   builds the specified targets, or the default").line();
             }
         }
         return ix;

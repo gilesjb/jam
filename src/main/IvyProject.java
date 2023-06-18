@@ -77,6 +77,6 @@ public interface IvyProject extends Project {
      * @param args command line arguments
      */
     default void exec(Ivy.Executable main, Collection<File> classpath, String... args) {
-        ivyLib().command(main, classpath, args).exec();
+        ivyLib().command(main, classpath, args).run();
     }
 }

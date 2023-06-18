@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <ivy-module version="2.0"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
@@ -6,10 +7,12 @@
     <info organisation="org.copalis" module="jam"/>
     
     <configurations>
-        <conf name="test"/>
+        <conf name="test-build" extends="test-run"/>
+        <conf name="test-run"/>
     </configurations>
     
     <dependencies>
-        <dependency org="org.junit.platform" name="junit-platform-console-standalone" rev="1.9.3" conf="test->default"/>
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.15.2" conf="test-build"/>
+        <dependency org="org.junit.platform" name="junit-platform-console-standalone" rev="1.9.3" conf="test-run->default"/>
     </dependencies>
 </ivy-module>

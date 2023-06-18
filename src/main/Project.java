@@ -78,7 +78,7 @@ public interface Project {
      * @param command the command and arguments
      */
     default void exec(String... command) {
-        Cmd.of(command).exec();
+        Cmd.args(command).run();
     }
 
     /**

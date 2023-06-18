@@ -42,10 +42,10 @@ public interface Ivy extends Serializable {
         Fileset requires(Dependency depends) {
             try {
                 java.io.File pathFile = File.createTempFile("classpath-", null);
-                Cmd.of("java", "-jar", ivyJar().toString(), "-cache", cacheDir,
+                Cmd.args("java", "-jar", ivyJar().toString(), "-cache", cacheDir,
                         "-cachepath", pathFile.toString())
                     .add(depends.dependencyArgs())
-                    .exec();
+                    .run();
 
                 pathFile.deleteOnExit();
                 return Fileset.of(Stream.of(Files.readString(pathFile.toPath()).trim().split(":"))
@@ -64,7 +64,7 @@ public interface Ivy extends Serializable {
          * @return the complete Ivy command line arguments
          */
         Cmd command(Executable runnable, Collection<File> classpath, String... args) {
-            Cmd cmd = Cmd.of(
+            Cmd cmd = Cmd.args(
                     "java", "-jar", ivyJar().toString(), "-cache", cacheDir)
                 .add(runnable.runArgs());
 
@@ -136,7 +136,7 @@ public interface Ivy extends Serializable {
      * @return the dependency object
      */
     static Dependency configuredDependency(File ivyFile, String... confs) {
-        Cmd args = Cmd.of("-ivy", ivyFile.toString());
+        Cmd args = Cmd.args("-ivy", ivyFile.toString());
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
@@ -152,7 +152,7 @@ public interface Ivy extends Serializable {
      * @return the dependency object
      */
     static Dependency namedDependency(String org, String name, String version, String... confs) {
-        Cmd args = Cmd.of("-dependency", org, name, version);
+        Cmd args = Cmd.args("-dependency", org, name, version);
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
@@ -165,7 +165,7 @@ public interface Ivy extends Serializable {
      */
     record Options(String... args) implements Dependency {
         public Cmd dependencyArgs() {
-            return Cmd.of(args);
+            return Cmd.args(args);
         }
         @Override public String toString() {
             return "IvyArgs" + Arrays.asList(args);

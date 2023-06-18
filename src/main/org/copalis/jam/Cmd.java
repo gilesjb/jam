@@ -20,7 +20,7 @@ public class Cmd {
      * @param args an arbitrary number of arguments
      * @return the new list
      */
-    public static Cmd of(String... args) {
+    public static Cmd args(String... args) {
         return new Cmd().add(args);
     }
 
@@ -57,7 +57,7 @@ public class Cmd {
     /**
      * Executes an external process using these arguments
      */
-    public void exec() {
+    public void run() {
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(array());
         pb.redirectError(Redirect.INHERIT);
