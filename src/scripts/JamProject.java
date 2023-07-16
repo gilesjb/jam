@@ -10,8 +10,12 @@
  */
 public interface JamProject extends JavaProject {
 
-    @Override default Ivy.Dependency jUnitLib() {
-        return Ivy.configuredDependency(sourceFile("ivy.xml"), "test-run");
+    @Override default File ivyFile() {
+        return sourceFile("ivy.xml");
+    }
+
+    @Override default Fileset jUnitLib() {
+        return ivyConfigurations("test-run");
     }
 
     default Fileset mainSources() {

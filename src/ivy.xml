@@ -12,7 +12,7 @@
     </configurations>
     
     <dependencies>
-        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.15.2" conf="test-build"/>
         <dependency org="org.junit.platform" name="junit-platform-console-standalone" rev="1.9.3" conf="test-run->default"/>
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.15.2" conf="test-build"/>
     </dependencies>
 </ivy-module>

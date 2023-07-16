@@ -58,11 +58,11 @@ public interface JavaProject extends IvyProject {
     }
 
     /**
-     * Gets the unit test library identifier.
-     * @return a library identifier
+     * Specifies the jUnit test libraries
+     * @return a dependency referencing the unit test libraries
      */
-    default Ivy.Dependency jUnitLib() {
-        return Ivy.namedDependency("org.junit.platform", "junit-platform-console-standalone", "1.9.3", "default");
+    default Fileset jUnitLib() {
+        return namedIvyDependency("org.junit.platform:junit-platform-console-standalone:1.9.3", "default");
     }
 
     /**
@@ -75,21 +75,7 @@ public interface JavaProject extends IvyProject {
      */
     default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
         return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
-                Stream.of(jUnitJar())).toArray(Fileset[]::new));
-    }
-
-    /**
-     * Runs unit tests using the library specified by {@link #jUnitLib()}
-     * @param testClasses a reference to the test {@code .class} files
-     * @param classpath references to {@code .jar} or {@code .class} files
-     */
-    default void jUnit(Fileset testClasses, Fileset... classpath) {
-        List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
-                .flatMap(JavaProject::pathElements)
-                .collect(Collectors.toList());
-
-        javaJar(jUnitJar().iterator().next(), files,
-                "--scan-class-path=" + testClasses.base);
+                Stream.of(jUnitLib())).toArray(Fileset[]::new));
     }
 
     /**
@@ -105,18 +91,10 @@ public interface JavaProject extends IvyProject {
                 .collect(Collectors.toList());
 
         Path destination = Path.of(buildPath(), reportPath);
-        javaJar(jUnitJar().iterator().next(), files,
+        javaJar(jUnitLib().stream().findFirst().get(), files,
                 "--scan-class-path=" + testClasses.base,
                 "--reports-dir=" + destination);
         return Fileset.find(destination.toString(), "**");
-    }
-
-    /**
-     * Gets the classpath for the unit tests
-     * @return the fileset
-     */
-    default Fileset jUnitJar() {
-        return requires(jUnitLib());
     }
 
     /**

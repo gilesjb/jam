@@ -2,8 +2,9 @@
 
 interface Maker : JavaProject {
 
-    override fun jUnitLib() =
-        Ivy.configuredDependency(sourceFile("ivy.xml"), "test-run")
+    override fun ivyFile() = sourceFile("ivy.xml")
+
+    override fun jUnitLib() = ivyConfigurations("test-run")
 
     fun mainSources() = sourceFiles("main/**.java")
 

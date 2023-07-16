@@ -1,5 +1,6 @@
 import java.nio.file.Path;
-import java.util.Collection;
+
+import org.copalis.jam.IvyResolver;
 
 /**
  * Dependency management using Apache Ivy
@@ -9,74 +10,62 @@ import java.util.Collection;
 public interface IvyProject extends Project {
 
     /**
-     * Gets the URL for downloading the Ivy library
-     * @return the URL string
-     */
-    default String ivyJarURL() {
-        return "https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.5.1/ivy-2.5.1.jar";
-    }
-
-    /**
-     * Gets the local Ivy cache location
+     * Specifies the local Ivy cache location
      * @return the path of the Ivy cache
      */
-    default String jarCachePath() {
+    default String ivyCachePath() {
         return Path.of(System.getProperty("user.home"), ".jam").toString();
     }
 
     /**
-     * Deletes the Ivy cache directory given by {@link #jarCachePath()}
+     * Override this method to specify the Ivy xml file that defines dependency configurations.
+     * @return a reference to the ivy xml file, or null if there is none
      */
-    default void cleanJarCache() {
-        rmDir(jarCachePath());
+    default File ivyFile() {
+        return null;
     }
 
     /**
-     * Gets a reference to the Ivy library
-     * @return a reference to the Ivy library
+     * Specifies the Ivy dependency resolver.
+     * The Ivy instance uses
+     * <ul>
+     * <li>the cache directory specified by {@link #ivyCachePath()}
+     * <li>the local ivy.xml file specified by {@link #ivyFile()}
+     * </ul>
+     * @return an instance of Ivy
      */
-    default Ivy.Runtime ivyLib() {
-        return new Ivy.Runtime(jarCachePath(), ivyJarURL());
+    default IvyResolver ivyResolver() {
+        return new IvyResolver(ivyCachePath(), ivyFile());
     }
 
     /**
-     * Requires a library and its dependencies
-     * @param depends the required library
-     * @return a fileset containing the library and its dependencies
+     * Resolves dependency configurations and returns the result
+     * @param configurations one or more configuration names
+     * @return a fileset referencing the dependency and its transitive dependencies
      */
-    default Fileset requires(Ivy.Dependency depends) {
-        return ivyLib().requires(depends);
+    default Fileset ivyConfigurations(String... configurations) {
+        return ivyResolver().resolveConfigurations(configurations)
+                .map(File::new)
+                .collect(Fileset.FILES);
     }
 
     /**
-     * Requires a dependency that is specified by an Ivy XML file
-     * @param ivyFile the source location of the Ivy XML file
-     * @param confs the names of configurations to use
-     * @return a fileset containing the library and its dependencies
+     * Resolves a named dependency
+     * @param identifier the dependency name in the form "organization:module:revision"
+     * @param configurations optional configuration names
+     * @return a fileset referencing the dependency and its transitive dependencies
      */
-    default Fileset configuredDependency(String ivyFile, String... confs) {
-        return ivyLib().requires(Ivy.configuredDependency(sourceFile(ivyFile), confs));
+    default Fileset namedIvyDependency(String identifier, String... configurations) {
+        String[] parts = identifier.split(":");
+        return ivyResolver().resolveNamedDependency(parts[0], parts[1], parts[2], configurations)
+                .map(File::new)
+                .collect(Fileset.FILES);
     }
 
     /**
-     * Requires a dependency that is specified by org, name and version
-     * @param org the organization
-     * @param name the artifact name
-     * @param version the artifact version number
-     * @param confs the names of configurations to use
-     * @return a fileset containing the library and its dependencies
+     * Deletes the Ivy cache directory given by {@link #ivyCachePath()}
      */
-    default Fileset namedDependency(String org, String name, String version, String... confs) {
-        return ivyLib().requires(Ivy.namedDependency(org, name, version, confs));
-    }
-
-    /**
-     * Executes a library with a main class
-     * @param main an executable dependency
-     * @param classpath additional classpath elements
-     * @param args command line arguments
-     */
-    default void exec(Ivy.Executable main, Collection<File> classpath, String... args) {
-        ivyLib().command(main, classpath, args).run();
+    default void cleanIvyCache() {
+        rmDir(ivyCachePath());
     }
 }
