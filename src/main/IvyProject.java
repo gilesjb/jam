@@ -14,7 +14,7 @@ public interface IvyProject extends Project {
      * @return the path of the Ivy cache
      */
     default String ivyCachePath() {
-        return Path.of(System.getProperty("user.home"), ".jam").toString();
+        return Path.of(System.getProperty("user.home"), ".ivy2").toString();
     }
 
     /**

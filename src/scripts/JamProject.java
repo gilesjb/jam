@@ -1,5 +1,5 @@
 /* Delete this line when using as command line script
-#!/usr/bin/java -classpath jam-classes --source 17
+#!/usr/bin/java -classpath .jam-classes --source 17
 /*
  */
 

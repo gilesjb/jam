@@ -1,4 +1,4 @@
-#!/usr/bin/env kotlin -Xjvm-default=all -cp jam-classes
+#!/usr/bin/env kotlin -Xjvm-default=all -cp .jam-classes
 
 interface Maker : JavaProject {
 
