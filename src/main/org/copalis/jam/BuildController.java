@@ -20,7 +20,6 @@ import java.util.stream.Stream;
  * @author gilesjb
  */
 public class BuildController<T> implements Memorizer.Listener {
-    private static final String CACHE_FILE = ".jam-cache";
     private static final boolean colors = Objects.nonNull(System.console());
 
     private static final String
@@ -118,7 +117,7 @@ public class BuildController<T> implements Memorizer.Listener {
                     ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
 
             T obj = memo.instantiate(type);
-            File cache = new File(cacheDir.apply(obj) + '/' + CACHE_FILE);
+            File cache = new File(cacheDir.apply(obj) + "/." + type.getSimpleName() + ".ser");
 
             memo.resetCache();
             memo.setListener(this);
@@ -176,19 +175,25 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     private void printBuildTargets(Function<T, ?> buildFn) {
-        String[] target = new String[1];
         T proxy = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
-            target[0] = m.getName();
-            return null;
+            throw new UnsupportedOperationException(m.getName());
         }));
-        buildFn.apply(proxy);
 
+        try {
+            if (Objects.nonNull(buildFn)) buildFn.apply(proxy);
+            printBuildTargets(proxy, null);
+        } catch (UnsupportedOperationException e) {
+            printBuildTargets(proxy, e.getMessage());
+        }
+    }
+
+    private void printBuildTargets(T proxy, String target) {
         for (Class<?> iface : proxy.getClass().getInterfaces()) {
             print(iface.getSimpleName()).print(" targets").line();
             Stream.of(iface.getMethods())
                     .filter(m -> m.getParameterCount() == 0)
                     .forEach(m -> print("       ")
-                            .print(target[0].equals(m.getName()) ? "*" : " ")
+                            .print(Objects.equals(target, m.getName()) ? "*" : " ")
                             .print(m.getName()).print(" : ")
                             .print(m.getReturnType().getSimpleName()).line());
         }
@@ -212,7 +217,7 @@ public class BuildController<T> implements Memorizer.Listener {
             for (StackTraceElement el : ex.getStackTrace()) {
                 if (el.getClassName().contains(".reflect.")
                         || el.getMethodName().startsWith("_")
-                        || el.getFileName() == null) {
+                        || Objects.isNull(el.getFileName())) {
                     continue;
                 }
                 System.err.println("\tat " + el);

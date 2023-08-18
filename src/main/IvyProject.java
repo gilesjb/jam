@@ -13,7 +13,7 @@ public interface IvyProject extends Project {
      * Specifies the local Ivy cache location
      * @return the path of the Ivy cache
      */
-    default String ivyCachePath() {
+    default String pkgCachePath() {
         return Path.of(System.getProperty("user.home"), ".ivy2").toString();
     }
 
@@ -29,13 +29,13 @@ public interface IvyProject extends Project {
      * Specifies the Ivy dependency resolver.
      * The Ivy instance uses
      * <ul>
-     * <li>the cache directory specified by {@link #ivyCachePath()}
+     * <li>the cache directory specified by {@link #pkgCachePath()}
      * <li>the local ivy.xml file specified by {@link #ivyFile()}
      * </ul>
      * @return an instance of Ivy
      */
     default IvyResolver ivyResolver() {
-        return new IvyResolver(ivyCachePath(), ivyFile());
+        return new IvyResolver(pkgCachePath(), ivyFile());
     }
 
     /**
@@ -63,9 +63,9 @@ public interface IvyProject extends Project {
     }
 
     /**
-     * Deletes the Ivy cache directory given by {@link #ivyCachePath()}
+     * Deletes the Ivy cache directory given by {@link #pkgCachePath()}
      */
-    default void cleanIvyCache() {
-        rmDir(ivyCachePath());
+    default void cleanPkgCache() {
+        rmDir(pkgCachePath());
     }
 }

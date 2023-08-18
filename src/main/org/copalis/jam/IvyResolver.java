@@ -50,7 +50,6 @@ public record IvyResolver(String url, String cacheDir, File ivyFile) implements 
 
             pathFile.deleteOnExit();
             String path = Files.readString(pathFile.toPath());
-            System.out.println("Path: " + path);
             return Stream.of(path.trim().split(":"))
                     .map(Path::of);
         } catch (IOException e) {
