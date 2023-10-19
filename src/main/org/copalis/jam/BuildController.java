@@ -175,19 +175,19 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     private void printBuildTargets(Function<T, ?> buildFn) {
-        T proxy = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
+        Object proxy = Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
             throw new UnsupportedOperationException(m.getName());
-        }));
+        });
 
         try {
-            if (Objects.nonNull(buildFn)) buildFn.apply(proxy);
+            if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(proxy));
             printBuildTargets(proxy, null);
         } catch (UnsupportedOperationException e) {
             printBuildTargets(proxy, e.getMessage());
         }
     }
 
-    private void printBuildTargets(T proxy, String target) {
+    private void printBuildTargets(Object proxy, String target) {
         for (Class<?> iface : proxy.getClass().getInterfaces()) {
             print(iface.getSimpleName()).print(" targets").line();
             Stream.of(iface.getMethods())

@@ -40,7 +40,7 @@ public record IvyResolver(String url, String cacheDir, File ivyFile) implements 
         return path;
     }
 
-    private Stream<Path> resolve(Cmd args) {
+    public Stream<Path> getDependencies(Cmd args) {
         try {
             java.io.File pathFile = File.createTempFile("classpath-", null);
             Cmd.args("java", "-jar", ivyJar().toString(), "-cache", cacheDir,
@@ -70,7 +70,7 @@ public record IvyResolver(String url, String cacheDir, File ivyFile) implements 
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
-        return resolve(args);
+        return getDependencies(args);
     }
 
     /**
@@ -86,6 +86,6 @@ public record IvyResolver(String url, String cacheDir, File ivyFile) implements 
         if (confs.length > 0) {
             args.add("-confs").add(confs);
         }
-        return resolve(args);
+        return getDependencies(args);
     }
 }
