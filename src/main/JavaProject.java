@@ -24,7 +24,7 @@ import org.copalis.jam.Paths;
  *
  * @author gilesjb
  */
-public interface JavaProject extends IvyProject {
+public interface JavaProject extends Project {
 
     /**
      * Compiles Java code
@@ -34,7 +34,7 @@ public interface JavaProject extends IvyProject {
      * @return a reference to the compiled {@code .class} files
      * @see #buildPath()
      */
-    default Fileset javaCompile(String outputPath, Fileset sources, Fileset... classpath) {
+    default Fileset javac(String outputPath, Fileset sources, Fileset... classpath) {
         Path destination = Path.of(buildPath(), outputPath);
         try {
             Files.createDirectories(destination);
@@ -62,7 +62,7 @@ public interface JavaProject extends IvyProject {
      * @return a dependency referencing the unit test libraries
      */
     default Fileset jUnitLib() {
-        return namedIvyDependency("org.junit.platform:junit-platform-console-standalone:1.9.3", "default");
+        return resolve("org.junit.platform:junit-platform-console-standalone:1.9.3");
     }
 
     /**
@@ -74,7 +74,7 @@ public interface JavaProject extends IvyProject {
      * @see #buildPath()
      */
     default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
-        return javaCompile(outputPath, sources, Stream.concat(Stream.of(classpath),
+        return javac(outputPath, sources, Stream.concat(Stream.of(classpath),
                 Stream.of(jUnitLib())).toArray(Fileset[]::new));
     }
 
@@ -85,13 +85,13 @@ public interface JavaProject extends IvyProject {
      * @param classpath references to {@code .jar} or {@code .class} files
      * @return a fileset referring to the unit test report
      */
-    default Fileset jUnit(String reportPath, Fileset testClasses, Fileset... classpath) {
+    default Fileset junit(String reportPath, Fileset testClasses, Fileset... classpath) {
         List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
                 .flatMap(JavaProject::pathElements)
                 .collect(Collectors.toList());
 
         Path destination = Path.of(buildPath(), reportPath);
-        javaJar(jUnitLib().stream().findFirst().get(), files,
+        executeJar(jUnitLib().stream().findFirst().get(), files,
                 "--scan-class-path=" + testClasses.base,
                 "--reports-dir=" + destination);
         return Fileset.find(destination.toString(), "**");
@@ -141,7 +141,7 @@ public interface JavaProject extends IvyProject {
      * @param classpath additional jar files on the classpath
      * @param args command line arguments
      */
-    default void javaJar(File jar, Collection<File> classpath, String... args) {
+    default void executeJar(File jar, Collection<File> classpath, String... args) {
         Cmd cmd = Cmd.args("java", "-jar", jar.toString());
         if (!classpath.isEmpty()) {
             cmd.add("-cp", classpath.stream().map(File::toString).collect(Collectors.joining(":")));
@@ -204,6 +204,6 @@ public interface JavaProject extends IvyProject {
      * @return the base directory of the fileset, or the files contained within it
      */
     static Stream<File> pathElements(Fileset fs) {
-        return Objects.nonNull(fs.base()) ? Stream.of(fs.base()).map(File::new) : fs.stream();
+        return Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream();
     }
 }

@@ -9,7 +9,7 @@ public interface ExampleProject extends JavaProject {
     }
 
     default Fileset classes() {
-        return javaCompile("classes/main", sources());
+        return javac("classes/main", sources());
     }
 
     default File jarfile() {
@@ -17,6 +17,6 @@ public interface ExampleProject extends JavaProject {
     }
 
     static void main(String[] args) {
-        Project.make(ExampleProject.class, ExampleProject::jarfile, args);
+        Project.run(ExampleProject.class, ExampleProject::jarfile, args);
     }
 }

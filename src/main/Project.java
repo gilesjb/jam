@@ -7,6 +7,7 @@ import java.util.function.Function;
 import org.copalis.jam.Cmd;
 import org.copalis.jam.BuildController;
 import org.copalis.jam.Memorizer;
+import org.copalis.jam.PackageResolver;
 import org.copalis.jam.Paths;
 
 /**
@@ -43,6 +44,30 @@ public interface Project {
     default void clean() {
         rmDir(buildPath());
         memo.resetCache();
+    }
+
+    /**
+     * Gets the package dependency resolver.
+     * @return the package resolver
+     */
+    PackageResolver packageResolver();
+
+    /**
+     * Gets dependencies
+     * @param identifiers names of dependencies in the format org:name:rev
+     * @return a Fileset containing references to the fetched dependencies
+     */
+    default Fileset resolve(String... identifiers) {
+        return packageResolver().resolve(identifiers)
+                .map(File::new)
+                .collect(Fileset.FILES);
+    }
+
+    /**
+     * Deletes the package cache
+     */
+    default void cleanPkgCache() {
+        packageResolver().cleanCache();
     }
 
     /**
@@ -104,7 +129,7 @@ public interface Project {
      * @param fn a consumer that calls the default build method
      * @param args command line arguments
      */
-    public static <T extends Project> void make(Class<T> t, Consumer<T> fn, String[] args) {
+    public static <T extends Project> void run(Class<T> t, Consumer<T> fn, String[] args) {
         new BuildController<>(memo, t).execute(o -> {
             fn.accept(o);
             return null;
@@ -118,7 +143,7 @@ public interface Project {
      * @param fn a function that calls the default build method
      * @param args command line arguments
      */
-    public static <T extends Project> void make(Class<T> t, Function<T, ?> fn, String[] args) {
+    public static <T extends Project> void run(Class<T> t, Function<T, ?> fn, String[] args) {
         new BuildController<>(memo, t).execute(fn, Project::buildPath, args);
     }
 }

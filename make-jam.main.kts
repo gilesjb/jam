@@ -1,20 +1,16 @@
 #!/usr/bin/env kotlin -Xjvm-default=all -cp .jam-classes
 
-interface Maker : JavaProject {
-
-    override fun ivyFile() = sourceFile("ivy.xml")
-
-    override fun jUnitLib() = ivyConfigurations("test-run")
+interface Maker : JavaProject, IvyProject {
 
     fun mainSources() = sourceFiles("main/**.java")
 
-    fun mainClasses() = javaCompile("classes/main", mainSources())
+    fun mainClasses() = javac("classes/main", mainSources())
 
     fun testSources() = sourceFiles("test/**.java")
 
-    fun testClasses() = javaTestCompile("classes/test", testSources(), mainClasses())
+    fun testClasses() = javac("classes/test", testSources(), mainClasses(), jUnitLib())
 
-    fun testBuild() = jUnit("test-report", testClasses(), testSources(), mainClasses())
+    fun testBuild() = junit("test-report", testClasses(), testSources(), mainClasses())
 
     fun docs() = javadoc("docs", mainSources())
 
@@ -27,4 +23,4 @@ interface Maker : JavaProject {
     }
 }
 
-Project.make(Maker::class.java, Maker::release, args)
+Project.run(Maker::class.java, Maker::release, args)

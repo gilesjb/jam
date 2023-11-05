@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
@@ -142,7 +143,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 }
             }
             color(GREEN_BRIGHT).print("COMPLETED");
-        } catch (InvocationTargetException e) {
+        } catch (InvocationTargetException | UndeclaredThrowableException e) {
             printStackTrace(e.getCause());
             color(RED_BRIGHT).print("FAILED");
         } catch (Exception e) {
