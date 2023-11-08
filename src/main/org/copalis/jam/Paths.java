@@ -36,13 +36,14 @@ public class Paths {
      * Downloads a resource
      * @param path the download path
      * @param url the resource to download
+     * @return the number of bytes downloaded
      */
-    public static void download(Path path, String url) {
+    public static long download(Path path, String url) {
         try {
             Files.createDirectories(path.getParent());
             try (ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
                     FileOutputStream out = new FileOutputStream(path.toFile())) {
-                out.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                return out.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

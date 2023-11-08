@@ -28,8 +28,7 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
         Path path = Path.of(cacheDir, url.substring(url.lastIndexOf('/') + 1));
         if (!path.toFile().exists()) {
             System.out.print("Downloading " + url + "... ");
-            Paths.download(path, url);
-            System.out.println("Done");
+            System.out.format("(%skB)%n", Paths.download(path, url) / 1024);
         }
         return path;
     }
