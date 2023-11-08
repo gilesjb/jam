@@ -2,6 +2,7 @@
 CLASSES=.jam-classes
 rm -r $CLASSES
 tail +2 src/scripts/JamProject.java > make-jam
+chmod +x make-jam
 set -x
 javac -sourcepath src/main -d $CLASSES src/main/**.java || exit 1
 ./make-jam --help
