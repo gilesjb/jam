@@ -10,6 +10,10 @@
  */
 public interface JamProject extends JavaProject, IvyProject {
 
+    default Fileset testDependencies() {
+        return resolve("commons-lang:commons-lang:2.1", "commons-cli:commons-cli:1.4");
+    }
+
     default Fileset mainSources() {
         return sourceFiles("main/**.java");
     }
@@ -23,11 +27,13 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset testClasses() {
-        return javac("classes/test", testSources(), mainClasses(), jUnitLib());
+        return javac("classes/test", testSources(),
+                mainClasses(), jUnitLib(), testDependencies());
     }
 
     default Fileset unitTests() {
-        return junit("test-report", testClasses(), testSources(), mainClasses());
+        return junit("test-report", testClasses(),
+                testSources(), mainClasses(), testDependencies());
     }
 
     default Fileset docs() {

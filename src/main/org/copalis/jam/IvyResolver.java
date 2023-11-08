@@ -59,10 +59,12 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
             ivyFile.deleteOnExit();
 
             try (Writer out = new FileWriter(ivyFile)) {
-                out.write("<ivy-module version=\"2.0\"><info organisation=\"org\" module=\"jam\"/><dependencies>");
+                out.write("<ivy-module version='2.0'><info organisation='org' module='jam'/>");
+                out.write("<dependencies defaultconf='default->default'>");
                 for (String ident : dependencies) {
                     String[] parts = ident.split(":");
-                    out.write(String.format("<dependency org=\"%s\" name=\"%s\" rev=\"%s\"/>", parts[0], parts[1], parts[2]));
+                    out.write(String.format("<dependency org='%s' name='%s' rev='%s'/>",
+                            parts[0], parts[1], parts[2]));
                 }
                 out.write("</dependencies></ivy-module>");
             }

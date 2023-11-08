@@ -21,12 +21,16 @@ public interface JamProject extends JavaProject, IvyProject {
         return sourceFiles("test/**.java");
     }
 
+    default Fileset testDependencies() {
+        return resolve("commons-lang:commons-lang:2.1");
+    }
+
     default Fileset testClasses() {
-        return javac("classes/test", testSources(), mainClasses(), jUnitLib());
+        return javac("classes/test", testSources(), mainClasses(), jUnitLib(), testDependencies());
     }
 
     default Fileset unitTests() {
-        return junit("test-report", testClasses(), testSources(), mainClasses());
+        return junit("test-report", testClasses(), testSources(), mainClasses(), testDependencies());
     }
 
     default Fileset docs() {

@@ -4,8 +4,8 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.copalis.jam.Cmd;
 import org.copalis.jam.BuildController;
+import org.copalis.jam.Cmd;
 import org.copalis.jam.Memorizer;
 import org.copalis.jam.PackageResolver;
 import org.copalis.jam.Paths;
