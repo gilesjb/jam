@@ -190,15 +190,13 @@ public class BuildController<T> implements Memorizer.Listener {
     }
 
     private void printBuildTargets(Object proxy, String target) {
-        for (Class<?> iface : proxy.getClass().getInterfaces()) {
-            print(iface.getSimpleName()).print(" targets").line();
-            Stream.of(iface.getMethods())
-                    .filter(m -> m.getParameterCount() == 0)
-                    .forEach(m -> print("       ")
-                            .print(Objects.equals(target, m.getName()) ? "*" : " ")
-                            .print(m.getName()).print(" : ")
-                            .print(m.getReturnType().getSimpleName()).line());
-        }
+        print(type.getSimpleName()).print(" targets").line();
+        Stream.of(type.getMethods())
+                .filter(m -> m.getParameterCount() == 0 && !m.isSynthetic())
+                .forEach(m -> print("       ")
+                        .print(Objects.equals(target, m.getName()) ? "*" : " ")
+                        .print(m.getName()).print(" : ")
+                        .print(m.getReturnType().getSimpleName()).line());
     }
 
     private void printResult(Object result) {
