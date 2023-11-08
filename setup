@@ -1,6 +1,7 @@
+#!/bin/bash
 CLASSES=.jam-classes
 rm -r $CLASSES
+tail +2 src/scripts/JamProject.java > make-jam
+set -x
 javac -sourcepath src/main -d $CLASSES src/main/**.java || exit 1
-echo Compiled build tool classes are in directory \'$CLASSES\'
-echo Start build scripts with: 
-echo "#!/usr/bin/java -classpath $CLASSES --source 17"
+./make-jam --help

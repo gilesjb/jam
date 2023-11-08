@@ -27,7 +27,8 @@ import org.copalis.jam.Paths;
 public interface JavaProject extends Project {
 
     /**
-     * Compiles Java code
+     * Compiles Java code.
+     * When compiling unit tests, include {@link #jUnitLib()} in the classpath.
      * @param outputPath the location within the build path to place the generated {@code .class} files
      * @param sources the source files to compile
      * @param classpath references to {@code .jar} or {@code .class} files
@@ -58,24 +59,11 @@ public interface JavaProject extends Project {
     }
 
     /**
-     * Specifies the jUnit test libraries
-     * @return a dependency referencing the unit test libraries
+     * Specifies the jUnit console and runtime libraries.
+     * @return a dependency referencing the jUnit libraries
      */
     default Fileset jUnitLib() {
         return resolve("org.junit.platform:junit-platform-console-standalone:1.9.3");
-    }
-
-    /**
-     * Compiles Java unit tests
-     * @param outputPath the location within the build path to save the generated {@code .class} files
-     * @param sources the source files to compile
-     * @param classpath references to {@code .jar} or {@code .class} files
-     * @return a reference to the compiled {@code .class} files
-     * @see #buildPath()
-     */
-    default Fileset javaTestCompile(String outputPath, Fileset sources, Fileset... classpath) {
-        return javac(outputPath, sources, Stream.concat(Stream.of(classpath),
-                Stream.of(jUnitLib())).toArray(Fileset[]::new));
     }
 
     /**
