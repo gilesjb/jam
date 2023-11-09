@@ -23,15 +23,19 @@ public interface Project {
     final Memorizer memo = new Memorizer();
 
     /**
-     * The default source file root directory. Override if the desired directory is not {@code src}
-     * @return the path of the source directory
+     * Gets the root directory for the project's source code.
+     * The default source code directory is {@code src};
+     * Override this method to specify a different location.
+     * @return the path of the source code directory
      */
     default String sourcePath() {
         return "src";
     }
 
     /**
-     * The default root build directory. Override if the desired build directory is not {@code build}
+     * Gets the root directory for the project's build artifacts.
+     * The default build artifact directory is {@code build};
+     * Override this method to specify a different location.
      * @return the path of the build directory
      */
     default String buildPath() {
@@ -64,15 +68,15 @@ public interface Project {
     }
 
     /**
-     * Deletes the package cache
+     * Deletes the package resolver's cache
      */
     default void cleanPkgCache() {
         packageResolver().cleanCache();
     }
 
     /**
-     * Recursively deletes the specified directory and its contents
-     * @param path location of the directory to delete
+     * Recursively deletes a specified directory and its contents
+     * @param path a directory path
      */
     default void rmDir(String path) {
         Paths.rmDir(Path.of(path));
