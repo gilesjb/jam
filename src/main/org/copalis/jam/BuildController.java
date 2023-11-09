@@ -124,7 +124,7 @@ public class BuildController<T> implements Memorizer.Listener {
             memo.setListener(this);
 
             if (cache.exists() && cache.lastModified() < scriptModified) {
-                color(CYAN_BRIGHT).print("Build script has changed, rebuilding all").line();
+                color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").line();
             } else if (cache.exists()) {
                 memo.loadCache(cache);
             }
