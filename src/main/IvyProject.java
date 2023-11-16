@@ -3,7 +3,7 @@ import java.nio.file.Path;
 import org.copalis.jam.IvyResolver;
 
 /**
- * Project mixin that provides an implementation of {@link Project#packageResolver()}
+ * Project mixin which provides an implementation of {@link Project#packageResolver()}
  * that uses Apache Ivy
  *
  * @author gilesjb

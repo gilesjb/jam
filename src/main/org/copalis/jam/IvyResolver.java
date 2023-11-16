@@ -52,20 +52,25 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
         args.run();
     }
 
+    void writeXML(Writer out, String... dependencies) throws IOException {
+        out.write("<ivy-module version='2.0'>");
+        out.write("<info organisation='org' module='module'/>");
+        out.write("<dependencies defaultconf='*->default'>");
+        for (String ident : dependencies) {
+            String[] parts = ident.split(":");
+            out.write(String.format("<dependency org='%s' name='%s' rev='%s'/>",
+                    parts[0], parts[1], parts[2]));
+        }
+        out.write("</dependencies></ivy-module>");
+    }
+
     @Override public Stream<Path> resolve(String... dependencies) {
         try {
             File ivyFile = File.createTempFile("ivy-", ".xml");
             ivyFile.deleteOnExit();
 
             try (Writer out = new FileWriter(ivyFile)) {
-                out.write("<ivy-module version='2.0'><info organisation='org' module='jam'/>");
-                out.write("<dependencies defaultconf='default->default'>");
-                for (String ident : dependencies) {
-                    String[] parts = ident.split(":");
-                    out.write(String.format("<dependency org='%s' name='%s' rev='%s'/>",
-                            parts[0], parts[1], parts[2]));
-                }
-                out.write("</dependencies></ivy-module>");
+                writeXML(out, dependencies);
             }
 
             File cacheFile = File.createTempFile("classpath-", null);

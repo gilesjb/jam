@@ -58,7 +58,7 @@ public interface Project {
 
     /**
      * Gets dependencies
-     * @param identifiers names of dependencies in the format org:name:rev
+     * @param identifiers names of dependencies in the format {@code "org:name:revision"}
      * @return a Fileset containing references to the fetched dependencies
      */
     default Fileset resolve(String... identifiers) {
