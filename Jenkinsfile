@@ -5,12 +5,11 @@ pipeline {
         jdk 'Java17'
     }
     
-
     stages {
         stage('Build') {
             steps {
-                sh 'echo $PATH'
-                sh './setup'
+                sh 'javac -sourcepath src/main -d classes src/main/**.java || exit 1'
+                sh 'java -classpath classes src/scripts/JamProject.java clean release || exit 1'
             }
         }
     }
