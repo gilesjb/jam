@@ -12,5 +12,10 @@ pipeline {
                 sh 'java -classpath classes src/scripts/JamProject.java clean release || exit 1'
             }
         }
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'build/*.jar', followSymlinks: false
+            }
+        }
     }
 }
