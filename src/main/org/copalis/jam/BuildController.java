@@ -1,6 +1,7 @@
 package org.copalis.jam;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,6 +42,8 @@ public class BuildController<T> implements Memorizer.Listener {
     private final PrintStream out = System.out;
 
     private int calls = 0;
+    private T object;
+    private File cache;
 
     /**
      * Creates a build controller instance
@@ -54,24 +57,28 @@ public class BuildController<T> implements Memorizer.Listener {
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
         if (status != Memorizer.Status.CURRENT || cached.add(new Call(method, params))) {
-            switch (status) {
-            case CURRENT: color(GREEN); break;
-            case EXECUTE: color(YELLOW); break;
-            case UPDATE: color(CYAN); break;
-            }
-            print("[").print(status.name().toLowerCase());
-            print(" ".repeat(7 - status.name().length()));
-            print("] ");
-            color(RESET);
-            print(" ".repeat(calls * 2)).print(method.getName());
-            for (Object param : params) {
-                print(" ");
-                printValue(param);
-            }
-            color(BOLD).line();
+            printMethod(method.getName(), params, status);
         }
 
         calls++;
+    }
+
+    private void printMethod(String method, List<Object> params, Memorizer.Status status) {
+        switch (status) {
+        case CURRENT: color(GREEN); break;
+        case EXECUTE: color(YELLOW); break;
+        case UPDATE: color(CYAN); break;
+        }
+        print("[").print(status.name().toLowerCase());
+        print(" ".repeat(7 - status.name().length()));
+        print("] ");
+        color(RESET);
+        print(" ".repeat(calls * 2)).print(method);
+        for (Object param : params) {
+            print(" ");
+            printValue(param);
+        }
+        color(BOLD).line();
     }
 
     private BuildController<T>  printValue(Object val) {
@@ -109,32 +116,41 @@ public class BuildController<T> implements Memorizer.Listener {
      */
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         long start = System.currentTimeMillis();
-
-        if (options(buildFn, args) > 0) return;
+        int ix = 0;
 
         try {
-            URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
-            long scriptModified = Objects.nonNull(scriptLocation)
-                    ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
-
-            T obj = memo.instantiate(type);
-            File cache = new File(cacheDir.apply(obj) + "/." + type.getSimpleName() + ".ser");
-
-            memo.resetCache();
-            memo.setListener(this);
-
-            if (cache.exists() && cache.lastModified() < scriptModified) {
-                color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").line();
-            } else if (cache.exists()) {
-                memo.loadCache(cache);
+            for (; ix < args.length && args[ix].startsWith("-"); ix++) {
+                color(BOLD);
+                switch (args[ix]) {
+                case "--status":
+                    load(cacheDir);
+                    memo.entries().forEach(e ->
+                            printMethod(e.signature().name(), e.signature().params(),
+                                    e.isCurrent() ? Memorizer.Status.CURRENT : Memorizer.Status.UPDATE));
+                    break;
+                case "--targets":
+                    printBuildTargets(buildFn);
+                    break;
+                default:
+                    color(RED_BRIGHT).print("Illegal option: ").print(args[ix]).color(BOLD).line();
+                case "--help":
+                    print("Jam build tool").line();
+                    print("Options ").line();
+                    print("    --help             display this help message").line();
+                    print("    --targets          display the available build targets").line();
+                    print("    --status           display the cache contents").line();
+                    print("    <target-name>...   builds the specified targets, or the default").line();
+                }
             }
+
+            if (ix > 0) System.exit(0);
 
             try {
                 if (args.length == 0) {
-                    printResult(buildFn.apply(obj));
+                    printResult(buildFn.apply(load(cacheDir)));
                 } else {
                     for (String arg : args) {
-                        printResult(type.getMethod(arg).invoke(obj));
+                        printResult(type.getMethod(arg).invoke(load(cacheDir)));
                     }
                 }
             } finally {
@@ -154,26 +170,28 @@ public class BuildController<T> implements Memorizer.Listener {
         }
     }
 
-    private int options(Function<T, ?> buildFn, String[] args) {
-        int ix = 0;
+    private T load(Function<T, String> cacheDir) throws ClassNotFoundException, IOException {
+        if (Objects.isNull(object)) {
+            object = memo.instantiate(type);
+            cache = new File(cacheDir.apply(object) + "/." + type.getSimpleName() + ".ser");
 
-        for (; ix < args.length && args[ix].startsWith("-"); ix++) {
-            color(BOLD);
-            switch (args[ix]) {
-            case "--targets":
-                printBuildTargets(buildFn);
-                break;
-            default:
-                color(RED_BRIGHT).print("Illegal option: ").print(args[ix]).color(BOLD).line();
-            case "--help":
-                print("Jam build tool").line();
-                print("Options ").line();
-                print("    --help             display this help message").line();
-                print("    --targets          display the available build targets").line();
-                print("    <target-name>...   builds the specified targets, or the default").line();
+            memo.resetCache();
+            memo.setListener(this);
+
+            if (cache.exists() && cache.lastModified() < scriptModified()) {
+                color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").line();
+            } else if (cache.exists()) {
+                memo.loadCache(cache);
             }
         }
-        return ix;
+
+        return object;
+    }
+
+    private long scriptModified() {
+        URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
+        return Objects.nonNull(scriptLocation)
+                ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
     }
 
     private void printBuildTargets(Function<T, ?> buildFn) {

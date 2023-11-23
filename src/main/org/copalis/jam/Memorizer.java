@@ -18,11 +18,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Instantiates an interface using a dynamic proxy and memoizes the method calls.
@@ -45,8 +47,13 @@ public class Memorizer {
         default void endMethod(Status status, Method method, List<Object> params, Object result) { }
     }
 
-    record Signature(String name, List<Object> params) implements Serializable {
-        public Signature(Method method, Object[] params) {
+    /**
+     * The signature of a method call
+     * @param name the name of an invoked method
+     * @param params the parameters passed in the method call
+     */
+    public record Signature(String name, List<Object> params) implements Serializable {
+        Signature(Method method, Object[] params) {
             this(method.getName(), Objects.isNull(params) ? Collections.emptyList()
                     : method.isVarArgs() ? expandVarArgs(params) : Arrays.asList(params));
         }
@@ -68,7 +75,13 @@ public class Memorizer {
         }
     }
 
-    record Result(Signature signature, Object value, Set<Memorizable> sources) implements Serializable {
+    /**
+     * The result of a method call
+     * @param signature the method call signature
+     * @param value the method call result
+     * @param sources the dependencies of the method call
+     */
+    public record Result(Signature signature, Object value, Set<Memorizable> sources) implements Serializable {
         boolean isCurrent() {
             return signature.isCurrent() && Memorizable.isCurrent(value)
                     && sources.stream().allMatch(Memorizable::current);
@@ -76,7 +89,7 @@ public class Memorizer {
     }
 
     private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
-    private Map<Signature, Result> cache = new HashMap<>();
+    private Map<Signature, Result> cache = new LinkedHashMap<>();
     private Listener listener = new Listener() { };
 
     void setListener(Listener listener) {
@@ -102,10 +115,18 @@ public class Memorizer {
     }
 
     /**
+     * Gets the cache contents
+     * @return a stream of cached method results
+     */
+    public Stream<Result> entries() {
+        return cache.values().stream();
+    }
+
+    /**
      * Erases all method calls from the cache
      */
     public void resetCache() {
-        cache = new HashMap<>();
+        cache = new LinkedHashMap<>();
     }
 
     /**
