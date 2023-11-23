@@ -116,12 +116,12 @@ public class BuildController<T> implements Memorizer.Listener {
      */
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         long start = System.currentTimeMillis();
-        int ix = 0;
+        int opt = 0;
 
         try {
-            for (; ix < args.length && args[ix].startsWith("-"); ix++) {
+            for (; opt < args.length && args[opt].startsWith("-"); opt++) {
                 color(BOLD);
-                switch (args[ix]) {
+                switch (args[opt]) {
                 case "--status":
                     load(cacheDir);
                     memo.entries().forEach(e ->
@@ -132,7 +132,7 @@ public class BuildController<T> implements Memorizer.Listener {
                     printBuildTargets(buildFn);
                     break;
                 default:
-                    color(RED_BRIGHT).print("Illegal option: ").print(args[ix]).color(BOLD).line();
+                    color(RED_BRIGHT).print("Illegal option: ").print(args[opt]).color(BOLD).line();
                 case "--help":
                     print("Jam build tool").line();
                     print("Options ").line();
@@ -143,22 +143,22 @@ public class BuildController<T> implements Memorizer.Listener {
                 }
             }
 
-            if (ix > 0) System.exit(0);
-
-            try {
-                if (args.length == 0) {
-                    printResult(buildFn.apply(load(cacheDir)));
-                } else {
-                    for (String arg : args) {
-                        printResult(type.getMethod(arg).invoke(load(cacheDir)));
+            if (opt == 0) {
+                try {
+                    if (args.length == 0) {
+                        printResult(buildFn.apply(load(cacheDir)));
+                    } else {
+                        for (String arg : args) {
+                            printResult(type.getMethod(arg).invoke(load(cacheDir)));
+                        }
+                    }
+                } finally {
+                    if (cache.getParentFile().exists()) {
+                        memo.saveCache(cache);
                     }
                 }
-            } finally {
-                if (cache.getParentFile().exists()) {
-                    memo.saveCache(cache);
-                }
+                color(GREEN_BRIGHT).print("COMPLETED");
             }
-            color(GREEN_BRIGHT).print("COMPLETED");
         } catch (InvocationTargetException | UndeclaredThrowableException e) {
             printStackTrace(e.getCause());
             color(RED_BRIGHT).print("FAILED");
@@ -178,7 +178,11 @@ public class BuildController<T> implements Memorizer.Listener {
             memo.resetCache();
             memo.setListener(this);
 
-            if (cache.exists() && cache.lastModified() < scriptModified()) {
+            URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
+            long scriptModified = Objects.nonNull(scriptLocation)
+                    ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
+
+            if (cache.exists() && cache.lastModified() < scriptModified) {
                 color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").line();
             } else if (cache.exists()) {
                 memo.loadCache(cache);
@@ -186,12 +190,6 @@ public class BuildController<T> implements Memorizer.Listener {
         }
 
         return object;
-    }
-
-    private long scriptModified() {
-        URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
-        return Objects.nonNull(scriptLocation)
-                ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
     }
 
     private void printBuildTargets(Function<T, ?> buildFn) {
