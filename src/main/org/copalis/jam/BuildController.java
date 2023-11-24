@@ -116,10 +116,10 @@ public class BuildController<T> implements Memorizer.Listener {
      */
     public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
         long start = System.currentTimeMillis();
-        int opt = 0;
+        boolean exit = false;
 
         try {
-            for (; opt < args.length && args[opt].startsWith("-"); opt++) {
+            for (int opt = 0; opt < args.length && args[opt].startsWith("-"); opt++) {
                 color(BOLD);
                 switch (args[opt]) {
                 case "--status":
@@ -141,9 +141,10 @@ public class BuildController<T> implements Memorizer.Listener {
                     print("    --status           display the cache contents").line();
                     print("    <target-name>...   builds the specified targets, or the default").line();
                 }
+                exit = true;
             }
 
-            if (opt == 0) {
+            if (!exit) {
                 try {
                     if (args.length == 0) {
                         printResult(buildFn.apply(load(cacheDir)));
@@ -166,7 +167,7 @@ public class BuildController<T> implements Memorizer.Listener {
             printStackTrace(e);
             color(RED_BRIGHT).print("FAILED");
         } finally {
-            print(String.format(" in %dms", System.currentTimeMillis() - start)).line();
+            if (!exit) print(String.format(" in %dms", System.currentTimeMillis() - start)).line();
         }
     }
 
