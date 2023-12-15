@@ -154,7 +154,8 @@ public class BuildController<T> implements Memorizer.Listener {
                         }
                     }
                 } finally {
-                    if (cache.getParentFile().exists()) {
+                    if (memo.entries().findAny().isPresent()) {
+                        cache.getParentFile().mkdir();
                         memo.saveCache(cache);
                     }
                 }
