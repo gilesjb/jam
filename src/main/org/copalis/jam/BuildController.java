@@ -43,7 +43,6 @@ public class BuildController<T> implements Memorizer.Listener {
 
     private int calls = 0;
     private T object;
-    private File cache;
 
     /**
      * Creates a build controller instance
@@ -110,11 +109,10 @@ public class BuildController<T> implements Memorizer.Listener {
 
     /**
      * Runs the build
-     * @param buildFn a function representing the default build target
-     * @param cacheDir a function that returns the path of the directory to put the build cache in
+     * @param buildFn a function that invokes the default build target
      * @param args the build's command line arguments
      */
-    public void execute(Function<T, ?> buildFn, Function<T, String> cacheDir, String[] args) {
+    public void execute(Function<T, ?> buildFn, String[] args) {
         long start = System.currentTimeMillis();
         boolean exit = false;
 
@@ -123,7 +121,7 @@ public class BuildController<T> implements Memorizer.Listener {
                 color(BOLD);
                 switch (args[opt]) {
                 case "--status":
-                    load(cacheDir);
+                    load();
                     memo.entries().forEach(e ->
                             printMethod(e.signature().name(), e.signature().params(),
                                     e.isCurrent() ? Memorizer.Status.CURRENT : Memorizer.Status.UPDATE));
@@ -147,16 +145,15 @@ public class BuildController<T> implements Memorizer.Listener {
             if (!exit) {
                 try {
                     if (args.length == 0) {
-                        printResult(buildFn.apply(load(cacheDir)));
+                        printResult(buildFn.apply(load()));
                     } else {
                         for (String arg : args) {
-                            printResult(type.getMethod(arg).invoke(load(cacheDir)));
+                            printResult(type.getMethod(arg).invoke(load()));
                         }
                     }
                 } finally {
                     if (memo.entries().findAny().isPresent()) {
-                        cache.getParentFile().mkdir();
-                        memo.saveCache(cache);
+                        memo.save();
                     }
                 }
                 color(GREEN_BRIGHT).print("COMPLETED");
@@ -172,12 +169,11 @@ public class BuildController<T> implements Memorizer.Listener {
         }
     }
 
-    private T load(Function<T, String> cacheDir) throws ClassNotFoundException, IOException {
+    private T load() throws ClassNotFoundException, IOException {
         if (Objects.isNull(object)) {
             object = memo.instantiate(type);
-            cache = new File(cacheDir.apply(object) + "/." + type.getSimpleName() + ".ser");
-
-            memo.resetCache();
+            File cache = new File("." + type.getSimpleName() + ".ser");
+            memo.setCacheFile(cache);
             memo.setListener(this);
 
             URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
@@ -187,7 +183,7 @@ public class BuildController<T> implements Memorizer.Listener {
             if (cache.exists() && cache.lastModified() < scriptModified) {
                 color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").line();
             } else if (cache.exists()) {
-                memo.loadCache(cache);
+                memo.loadCache();
             }
         }
 

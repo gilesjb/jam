@@ -52,8 +52,8 @@ public class Memorizer {
      * @param name the name of an invoked method
      * @param params the parameters passed in the method call
      */
-    public record Signature(String name, List<Object> params) implements Serializable {
-        Signature(Method method, Object[] params) {
+    public record Invocation(String name, List<Object> params) implements Serializable {
+        Invocation(Method method, Object[] params) {
             this(method.getName(), Objects.isNull(params) ? Collections.emptyList()
                     : method.isVarArgs() ? expandVarArgs(params) : Arrays.asList(params));
         }
@@ -81,7 +81,7 @@ public class Memorizer {
      * @param value the method call result
      * @param sources the dependencies of the method call
      */
-    public record Result(Signature signature, Object value, Set<Memorizable> sources) implements Serializable {
+    public record Result(Invocation signature, Object value, Set<Memorizable> sources) implements Serializable {
         boolean isCurrent() {
             return signature.isCurrent() && Memorizable.isCurrent(value)
                     && sources.stream().allMatch(Memorizable::current);
@@ -89,25 +89,30 @@ public class Memorizer {
     }
 
     private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
-    private Map<Signature, Result> cache = new LinkedHashMap<>();
+    private Map<Invocation, Result> cache = new LinkedHashMap<>();
+    private File cacheFile = null;
     private Listener listener = new Listener() { };
 
     void setListener(Listener listener) {
         this.listener = listener;
     }
 
-    void loadCache(File file) throws IOException, ClassNotFoundException {
-        try (InputStream in = new FileInputStream(file)) {
+    void setCacheFile(File file) {
+        this.cacheFile = file;
+    }
+
+    void loadCache() throws IOException, ClassNotFoundException {
+        try (InputStream in = new FileInputStream(cacheFile)) {
             try (ObjectInputStream obj = new ObjectInputStream(in)) {
                 @SuppressWarnings("unchecked")
-                HashMap<Signature, Result> map = (HashMap<Signature, Result>) obj.readObject();
+                HashMap<Invocation, Result> map = (HashMap<Invocation, Result>) obj.readObject();
                 cache = map;
             }
         }
     }
 
-    void saveCache(File file) throws FileNotFoundException, IOException {
-        try (OutputStream out = new FileOutputStream(file)) {
+    void save() throws FileNotFoundException, IOException {
+        try (OutputStream out = new FileOutputStream(cacheFile)) {
             try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
                 obj.writeObject(cache);
             }
@@ -123,11 +128,11 @@ public class Memorizer {
     }
 
     /**
-     * Erases all method calls from the cache
+     * Erases all method calls from the cache and deletes the cache file
      */
-    public void resetCache() {
+    public void forget() {
         cache = new LinkedHashMap<>();
-    }
+        cacheFile.delete();    }
 
     /**
      * Records a resource as being a dependency of the current method that is executing
@@ -154,7 +159,7 @@ public class Memorizer {
     // This method's name starts with '_' to make it easy to filter out of stack traces
     private Object _invokeMethod(Object proxy, Method method, Object[] args)
             throws Throwable {
-        Signature signature = new Signature(method, args);
+        Invocation signature = new Invocation(method, args);
 
         Status status = Status.EXECUTE;
         if (cache.containsKey(signature)) {

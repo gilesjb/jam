@@ -3,7 +3,7 @@ package org.copalis.jam;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.FileVisitResult;
@@ -41,11 +41,12 @@ public class Paths {
     public static long download(Path path, String url) {
         try {
             Files.createDirectories(path.getParent());
-            try (ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
+            URI uri = new URI(url);
+            try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream());
                     FileOutputStream out = new FileOutputStream(path.toFile())) {
                 return out.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

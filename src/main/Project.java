@@ -47,7 +47,7 @@ public interface Project {
      */
     default void clean() {
         rmDir(buildPath());
-        memo.resetCache();
+        memo.forget();
     }
 
     /**
@@ -137,7 +137,7 @@ public interface Project {
         new BuildController<>(memo, t).execute(o -> {
             fn.accept(o);
             return null;
-        }, Project::buildPath, args);
+        }, args);
     }
 
     /**
@@ -148,6 +148,6 @@ public interface Project {
      * @param args command line arguments
      */
     public static <T extends Project> void run(Class<T> t, Function<T, ?> fn, String[] args) {
-        new BuildController<>(memo, t).execute(fn, Project::buildPath, args);
+        new BuildController<>(memo, t).execute(fn, args);
     }
 }
