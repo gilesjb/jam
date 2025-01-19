@@ -8,11 +8,9 @@
  * #!/usr/bin/env kotlin -Xjvm-default=all -cp <path of Jam jar>
  */
 
-object Constants {
-    const val VERSION = "0.9"
-}
-
 interface Maker : JavaProject, IvyProject {
+
+    fun version() = "0.9"
 
     fun testDependencies() = resolve("commons-lang:commons-lang:2.1", "commons-cli:commons-cli:1.4")
 
@@ -28,7 +26,7 @@ interface Maker : JavaProject, IvyProject {
 
     fun docs() = javadoc("docs", mainSources())
 
-    fun jarfile() = jar("jam-${Constants.VERSION}.jar", mainSources(), mainClasses())
+    fun jarfile() = jar("jam-${version()}.jar", mainSources(), mainClasses())
 
     fun release(): File {
         testBuild()
@@ -36,7 +34,7 @@ interface Maker : JavaProject, IvyProject {
         return jarfile()
     }
     
-    fun about() = "Jam is ready! Run ./make-jam to build Jam ${Constants.VERSION}"
+    fun about() = "Jam is ready! Run ./make-jam.main.kts to build Jam ${version()}"
 }
 
 Project.run(Maker::class.java, Maker::release, args)

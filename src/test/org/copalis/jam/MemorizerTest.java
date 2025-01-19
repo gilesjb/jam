@@ -32,7 +32,7 @@ public class MemorizerTest {
             }
         });
         assertEquals(3736710778780434371L, fib.fib(100));
-        assertEquals(101, calls.stream().filter(Status.EXECUTE::equals).count());
+        assertEquals(101, calls.stream().filter(Status.COMPUTE::equals).count());
         assertEquals(98, calls.stream().filter(Status.CURRENT::equals).count());
 
         calls.clear();

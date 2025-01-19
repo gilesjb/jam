@@ -39,7 +39,7 @@ public class Memorizer {
     public Memorizer() { }
 
     enum Status {
-        EXECUTE, UPDATE, CURRENT
+        COMPUTE, UPDATE, CURRENT
     }
 
     interface Listener {
@@ -161,7 +161,7 @@ public class Memorizer {
             throws Throwable {
         Invocation signature = new Invocation(method, args);
 
-        Status status = Status.EXECUTE;
+        Status status = Status.COMPUTE;
         if (cache.containsKey(signature)) {
             Result result = cache.get(signature);
 

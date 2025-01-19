@@ -15,7 +15,9 @@
  */
 public interface JamProject extends JavaProject, IvyProject {
 
-    static String VERSION = "0.9";
+    default String version() {
+        return "0.9";
+    }
 
     default Fileset testDependencies() {
         return resolve("commons-lang:commons-lang:2.1", "commons-cli:commons-cli:1.4");
@@ -48,7 +50,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default File jarfile() {
-        return jar("jam-" + VERSION + ".jar", mainSources(), mainClasses());
+        return jar("jam-" + version() + ".jar", mainSources(), mainClasses());
     }
 
     default File release() {
@@ -58,7 +60,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default String about() {
-        return "Jam is ready! Run ./make-jam to build Jam " + VERSION;
+        return "Jam is ready! Run ./make-jam to build Jam " + version();
     }
 
     static void main(String[] args) {

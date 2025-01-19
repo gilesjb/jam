@@ -65,7 +65,7 @@ public class BuildController<T> implements Memorizer.Listener {
     private void printMethod(String method, List<Object> params, Memorizer.Status status) {
         switch (status) {
         case CURRENT: color(GREEN); break;
-        case EXECUTE: color(YELLOW); break;
+        case COMPUTE: color(YELLOW); break;
         case UPDATE: color(CYAN); break;
         }
         print("[").print(status.name().toLowerCase());
