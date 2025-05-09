@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.copalis.jam.Memorizer.Invocation;
@@ -27,9 +26,9 @@ import org.copalis.jam.Memorizer.Result;
  */
 public class BuildController<T> implements Memorizer.Observer {
     /**
-     * A dummy object that is replaced by a supplier of the controller's memoizer
+     * A dummy memoizer that is replaced by the real memoizer during execution of projects
      */
-    public static final Supplier<Memorizer> MEMO = (() -> null);
+    public static final Memorizer MEMO = new Memorizer();
 
     private static final boolean colors = Objects.nonNull(System.console());
 
@@ -59,8 +58,7 @@ public class BuildController<T> implements Memorizer.Observer {
      */
     public BuildController(Class<T> type) {
         this.type = type;
-        this.memo = new Memorizer();
-        memo.setObserver(this);
+        this.memo = new Memorizer(this, new File("." + type.getSimpleName() + ".ser"));
     }
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
@@ -83,7 +81,7 @@ public class BuildController<T> implements Memorizer.Observer {
     public Object endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
         calls--;
         if (result == MEMO) {
-            return (Supplier<Memorizer>) () -> memo;
+            return memo;
         } else {
             return result;
         }
@@ -157,16 +155,14 @@ public class BuildController<T> implements Memorizer.Observer {
     private T load() throws ClassNotFoundException, IOException {
         if (Objects.isNull(object)) {
             object = memo.instantiate(type);
-            File cache = new File("." + type.getSimpleName() + ".ser");
-            memo.setCacheFile(cache);
 
             URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
             long scriptModified = Objects.nonNull(scriptLocation)
                     ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
 
-            if (cache.exists() && cache.lastModified() < scriptModified) {
-                color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").line();
-            } else if (cache.exists()) {
+            if (memo.cacheFile().exists() && memo.cacheFile().lastModified() < scriptModified) {
+                color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").color(RESET).line();
+            } else if (memo.cacheFile().exists()) {
                 memo.loadCache();
             }
         }

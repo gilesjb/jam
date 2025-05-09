@@ -21,16 +21,17 @@ public class MemorizerTest {
     }
 
     @Test public void testMemoization() {
-        Memorizer memo = new Memorizer();
-        Fibonacci fib = memo.instantiate(Fibonacci.class);
-
         List<Status> calls = new LinkedList<>();
 
-        memo.setObserver(new Memorizer.Observer() {
+        Memorizer memo = new Memorizer(new Memorizer.Observer() {
             public void startMethod(Status status, Method method, List<Object> params) {
                 calls.add(status);
             }
-        });
+        }, null);
+
+        Fibonacci fib = memo.instantiate(Fibonacci.class);
+
+
         assertEquals(3736710778780434371L, fib.fib(100));
         assertEquals(101, calls.stream().filter(Status.COMPUTE::equals).count());
         assertEquals(98, calls.stream().filter(Status.CURRENT::equals).count());

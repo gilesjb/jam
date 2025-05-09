@@ -33,10 +33,28 @@ import java.util.stream.Stream;
  * @author gilesjb
  */
 public class Memorizer {
+
+    private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
+    private Map<Invocation, Result> cache = new LinkedHashMap<>();
+    private final Observer observer;
+    private final File cacheFile;
+
     /**
      * Creates an instance
+     * @param observer an invocation observer, must not be null
+     * @param cacheFile a cache file reference, may be null
      */
-    public Memorizer() { }
+    public Memorizer(Observer observer, File cacheFile) {
+        this.observer = Objects.requireNonNull(observer);
+        this.cacheFile = cacheFile;
+    }
+
+    /**
+     * Creates an instance with no related observer or cache file
+     */
+    public Memorizer() {
+        this(new Observer() { }, null);
+    }
 
     enum Status {
         COMPUTE, UPDATE, CURRENT
@@ -90,17 +108,12 @@ public class Memorizer {
         }
     }
 
-    private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
-    private Map<Invocation, Result> cache = new LinkedHashMap<>();
-    private File cacheFile = null;
-    private Observer observer = new Observer() { };
-
-    void setObserver(Observer observer) {
-        this.observer = observer;
-    }
-
-    void setCacheFile(File file) {
-        this.cacheFile = file;
+    /**
+     * Gets the cache file being used
+     * @return a file reference or null
+     */
+    public File cacheFile() {
+        return cacheFile;
     }
 
     void loadCache() throws IOException, ClassNotFoundException {

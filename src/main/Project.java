@@ -3,7 +3,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.copalis.jam.BuildController;
 import org.copalis.jam.Cmd;
@@ -20,9 +19,9 @@ public interface Project {
 
     /**
      * Gets the current memoizer
-     * @return a supplier that gets the memoizer
+     * @return the memoizer
      */
-    default Supplier<Memorizer> memo() {
+    default Memorizer memo() {
         return BuildController.MEMO;
     }
 
@@ -51,7 +50,7 @@ public interface Project {
      */
     default void clean() {
         rmBuildDir("");
-        memo().get().forget();
+        memo().forget();
     }
 
     /**
@@ -93,7 +92,7 @@ public interface Project {
      * @return a fileset of the matching files
      */
     default Fileset sourceFiles(String pattern) {
-        return memo().get().dependsOn(Fileset.find(sourcePath() + '/' + pattern));
+        return memo().dependsOn(Fileset.find(sourcePath() + '/' + pattern));
     }
 
     /**
@@ -103,7 +102,7 @@ public interface Project {
      * @return a File object referencing the specified path
      */
     default File sourceFile(String name) {
-        return memo().get().dependsOn(new File(Path.of(sourcePath(), name)));
+        return memo().dependsOn(new File(Path.of(sourcePath(), name)));
     }
 
     /**
