@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.copalis.jam.Memorizer.Invocation;
@@ -24,7 +25,12 @@ import org.copalis.jam.Memorizer.Result;
  *
  * @author gilesjb
  */
-public class BuildController<T> implements Memorizer.Listener {
+public class BuildController<T> implements Memorizer.Observer {
+    /**
+     * A dummy object that is replaced by a supplier of the controller's memoizer
+     */
+    public static final Supplier<Memorizer> MEMO = (() -> null);
+
     private static final boolean colors = Objects.nonNull(System.console());
 
     private static final String
@@ -49,12 +55,12 @@ public class BuildController<T> implements Memorizer.Listener {
 
     /**
      * Creates a build controller instance
-     * @param memo a memorizer
      * @param type the build class
      */
-    public BuildController(Memorizer memo, Class<T> type) {
-        this.memo = memo;
+    public BuildController(Class<T> type) {
         this.type = type;
+        this.memo = new Memorizer();
+        memo.setObserver(this);
     }
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
@@ -74,8 +80,13 @@ public class BuildController<T> implements Memorizer.Listener {
         calls++;
     }
 
-    public void endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
+    public Object endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
         calls--;
+        if (result == MEMO) {
+            return (Supplier<Memorizer>) () -> memo;
+        } else {
+            return result;
+        }
     }
 
     /**
@@ -148,7 +159,6 @@ public class BuildController<T> implements Memorizer.Listener {
             object = memo.instantiate(type);
             File cache = new File("." + type.getSimpleName() + ".ser");
             memo.setCacheFile(cache);
-            memo.setListener(this);
 
             URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
             long scriptModified = Objects.nonNull(scriptLocation)

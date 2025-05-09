@@ -42,9 +42,11 @@ public class Memorizer {
         COMPUTE, UPDATE, CURRENT
     }
 
-    interface Listener {
-        default void startMethod(Status status, Method method, List<Object> params) { }
-        default void endMethod(Status status, Method method, List<Object> params, Object result) { }
+    interface Observer {
+        default void startMethod(Status status, Method method, List<Object> params) { };
+        default Object endMethod(Status status, Method method, List<Object> params, Object result) {
+            return result;
+        }
     }
 
     /**
@@ -91,10 +93,10 @@ public class Memorizer {
     private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
     private Map<Invocation, Result> cache = new LinkedHashMap<>();
     private File cacheFile = null;
-    private Listener listener = new Listener() { };
+    private Observer observer = new Observer() { };
 
-    void setListener(Listener listener) {
-        this.listener = listener;
+    void setObserver(Observer observer) {
+        this.observer = observer;
     }
 
     void setCacheFile(File file) {
@@ -178,24 +180,24 @@ public class Memorizer {
                 status = Status.UPDATE;
                 cache.remove(signature);
             } else {
-                listener.startMethod(Status.CURRENT, method, signature.params());
+                observer.startMethod(Status.CURRENT, method, signature.params());
                 dependencies.peek().addAll(result.sources());
-                listener.endMethod(Status.CURRENT, method, signature.params(), result.value());
+                observer.endMethod(Status.CURRENT, method, signature.params(), result.value());
                 return result.value();
             }
         }
         dependencies.push(new HashSet<>());
-        listener.startMethod(status, method, signature.params());
+        observer.startMethod(status, method, signature.params());
 
         Object value = null;
         try {
-            value = InvocationHandler.invokeDefault(proxy, method, args);
+            value = observer.endMethod(status, method, signature.params(),
+                    InvocationHandler.invokeDefault(proxy, method, args));
             if (value instanceof Serializable) {
                 cache.put(signature, new Result(signature, value, dependencies.peek()));
             }
             return value;
         } finally {
-            listener.endMethod(status, method, signature.params(), value);
             Set<Memorizable> used = dependencies.pop();
             dependencies.peek().addAll(used);
         }

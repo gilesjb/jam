@@ -26,7 +26,7 @@ public class MemorizerTest {
 
         List<Status> calls = new LinkedList<>();
 
-        memo.setListener(new Memorizer.Listener() {
+        memo.setObserver(new Memorizer.Observer() {
             public void startMethod(Status status, Method method, List<Object> params) {
                 calls.add(status);
             }

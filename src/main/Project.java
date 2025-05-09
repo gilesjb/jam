@@ -3,6 +3,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.copalis.jam.BuildController;
 import org.copalis.jam.Cmd;
@@ -18,9 +19,12 @@ import org.copalis.jam.Paths;
 public interface Project {
 
     /**
-     * The memorizer that memoizes method calls on interfaces derived from this
+     * Gets the current memoizer
+     * @return a supplier that gets the memoizer
      */
-    final Memorizer memo = new Memorizer();
+    default Supplier<Memorizer> memo() {
+        return BuildController.MEMO;
+    }
 
     /**
      * Gets the root directory for the project's source code.
@@ -47,7 +51,7 @@ public interface Project {
      */
     default void clean() {
         rmBuildDir("");
-        memo.forget();
+        memo().get().forget();
     }
 
     /**
@@ -89,7 +93,7 @@ public interface Project {
      * @return a fileset of the matching files
      */
     default Fileset sourceFiles(String pattern) {
-        return memo.dependsOn(Fileset.find(sourcePath() + '/' + pattern));
+        return memo().get().dependsOn(Fileset.find(sourcePath() + '/' + pattern));
     }
 
     /**
@@ -99,7 +103,7 @@ public interface Project {
      * @return a File object referencing the specified path
      */
     default File sourceFile(String name) {
-        return memo.dependsOn(new File(Path.of(sourcePath(), name)));
+        return memo().get().dependsOn(new File(Path.of(sourcePath(), name)));
     }
 
     /**
@@ -134,7 +138,7 @@ public interface Project {
      * @param args command line arguments
      */
     public static <T extends Project> void run(Class<T> t, Consumer<T> fn, String[] args) {
-        new BuildController<>(memo, t).execute(o -> {
+        new BuildController<>(t).execute(o -> {
             fn.accept(o);
             return null;
         }, args);
@@ -148,6 +152,6 @@ public interface Project {
      * @param args command line arguments
      */
     public static <T extends Project> void run(Class<T> t, Function<T, ?> fn, String[] args) {
-        new BuildController<>(memo, t).execute(fn, args);
+        new BuildController<>(t).execute(fn, args);
     }
 }
