@@ -15,6 +15,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.copalis.jam.Memorizer.Invocation;
+import org.copalis.jam.Memorizer.Result;
+
 /**
  * Controller for the build process
  * @param <T> the build class
@@ -56,55 +59,23 @@ public class BuildController<T> implements Memorizer.Listener {
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
         if (status != Memorizer.Status.CURRENT || cached.add(new Call(method, params))) {
-            printMethod(method.getName(), params, status);
+            switch (status) {
+            case CURRENT: color(GREEN); break;
+            case COMPUTE: color(YELLOW); break;
+            case UPDATE: color(CYAN); break;
+            }
+            print("[").print(status.name().toLowerCase());
+            print(" ".repeat(7 - status.name().length()));
+            print("] ");
+            color(RESET);
+            printMethod(method.getName(), params);
         }
 
         calls++;
     }
 
-    private void printMethod(String method, List<Object> params, Memorizer.Status status) {
-        switch (status) {
-        case CURRENT: color(GREEN); break;
-        case COMPUTE: color(YELLOW); break;
-        case UPDATE: color(CYAN); break;
-        }
-        print("[").print(status.name().toLowerCase());
-        print(" ".repeat(7 - status.name().length()));
-        print("] ");
-        color(RESET);
-        print(" ".repeat(calls * 2)).print(method);
-        for (Object param : params) {
-            print(" ");
-            printValue(param);
-        }
-        color(BOLD).line();
-    }
-
-    private BuildController<T>  printValue(Object val) {
-        if (val instanceof String) print("'");
-        out.print(val);
-        if (val instanceof String) print("'");
-        return this;
-    }
-
     public void endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
         calls--;
-    }
-
-    private BuildController<T> color(String str) {
-        if (colors) {
-            out.print(str);
-        }
-        return this;
-    }
-
-    private BuildController<T> print(Object obj) {
-        out.print(obj.toString());
-        return this;
-    }
-
-    private void line() {
-        out.println();
     }
 
     /**
@@ -120,13 +91,15 @@ public class BuildController<T> implements Memorizer.Listener {
             for (int opt = 0; opt < args.length && args[opt].startsWith("-"); opt++) {
                 color(BOLD);
                 switch (args[opt]) {
-                case "--status":
+                case "--cache":
                     load();
-                    memo.entries().forEach(e ->
-                            printMethod(e.signature().name(), e.signature().params(),
-                                    e.isCurrent() ? Memorizer.Status.CURRENT : Memorizer.Status.UPDATE));
+                    memo.entries().forEach(e -> {
+                            printResultStatus(e);
+                            printMethod(e.signature().name(), e.signature().params());
+                        });
                     break;
                 case "--targets":
+                    load();
                     printBuildTargets(buildFn);
                     break;
                 default:
@@ -136,8 +109,9 @@ public class BuildController<T> implements Memorizer.Listener {
                     print("Options ").line();
                     print("    --help             display this help message").line();
                     print("    --targets          display the available build targets").line();
-                    print("    --status           display the cache contents").line();
-                    print("    <target-name>...   builds the specified targets, or the default").line();
+                    print("    --cache            display the cache contents").line();
+                    print("    <target-name>...   builds the specified targets").line();
+                    print("Running the build with no arguments builds the default target").line();
                 }
                 exit = true;
             }
@@ -195,27 +169,41 @@ public class BuildController<T> implements Memorizer.Listener {
             throw new UnsupportedOperationException(m.getName());
         });
 
+        print(type.getSimpleName()).color(RESET).print(" targets").line();
         try {
             if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(proxy));
-            printBuildTargets(proxy, null);
+            printTargets();
         } catch (UnsupportedOperationException e) {
-            printBuildTargets(proxy, e.getMessage());
+            printTargets();
+            print("Default target is: ").color(BOLD).print(e.getMessage()).line();
         }
     }
 
-    private void printBuildTargets(Object proxy, String target) {
-        print(type.getSimpleName()).print(" targets").line();
+    private void printTargets() {
         Stream.of(type.getMethods())
                 .filter(m -> m.getParameterCount() == 0 && !m.isSynthetic())
-                .forEach(m -> print("       ")
-                        .print(Objects.equals(target, m.getName()) ? "*" : " ")
-                        .print(m.getName()).print(" : ")
-                        .print(m.getReturnType().getSimpleName()).line());
+                .forEach(m -> {
+                    printResultStatus(memo.lookup(new Invocation(m)));
+                    print(m.getName()).print(" : ");
+                    print(m.getReturnType().getSimpleName()).line();
+                });
+    }
+
+    private void printResultStatus(Result result) {
+        if (Objects.isNull(result)) {
+            print("         ");
+        } else if (result.isCurrent()) {
+            color(GREEN).print("[fresh]  ");
+        } else {
+            color(CYAN).print("[stale]  ");
+        }
+        color(RESET);
     }
 
     private void printResult(Object result) {
         if (Objects.nonNull(result)) {
-            color(BOLD).print("Result: ").printValue(result).line();
+            color(BOLD).print("Result: ").printValue(result);
+            line();
         }
     }
 
@@ -237,5 +225,36 @@ public class BuildController<T> implements Memorizer.Listener {
                 System.err.println("\tat " + el);
             }
         }
+    }
+
+    private void printMethod(String method, List<Object> params) {
+        print(" ".repeat(calls * 2)).print(method);
+        for (Object param : params) {
+            print(" ");
+            printValue(param);
+        }
+        color(BOLD).line();
+    }
+
+    private void  printValue(Object val) {
+        if (val instanceof String) print("'");
+        out.print(val);
+        if (val instanceof String) print("'");
+    }
+
+    private BuildController<T> color(String str) {
+        if (colors) {
+            out.print(str);
+        }
+        return this;
+    }
+
+    private BuildController<T> print(Object obj) {
+        out.print(obj.toString());
+        return this;
+    }
+
+    private void line() {
+        out.println();
     }
 }

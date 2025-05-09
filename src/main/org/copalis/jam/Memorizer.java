@@ -53,7 +53,7 @@ public class Memorizer {
      * @param params the parameters passed in the method call
      */
     public record Invocation(String name, List<Object> params) implements Serializable {
-        Invocation(Method method, Object[] params) {
+        Invocation(Method method, Object... params) {
             this(method.getName(), Objects.isNull(params) ? Collections.emptyList()
                     : method.isVarArgs() ? expandVarArgs(params) : Arrays.asList(params));
         }
@@ -125,6 +125,15 @@ public class Memorizer {
      */
     public Stream<Result> entries() {
         return cache.values().stream();
+    }
+
+    /**
+     * Looks up a cache entry
+     * @param invocation the method call
+     * @return a Result or null
+     */
+    public Result lookup(Invocation invocation) {
+        return cache.get(invocation);
     }
 
     /**

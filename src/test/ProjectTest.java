@@ -39,7 +39,7 @@ class ProjectTest {
 
     @Test public void testTargets() {
         Project.run(Fibonacci.class, Fibonacci::fib10, new String[] { "--targets" });
-        assertTrue(bytes.toString().contains("*fib10"));
+        assertTrue(bytes.toString().contains("fib10"));
     }
 
     @Test public void testFib() {
