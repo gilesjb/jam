@@ -6,7 +6,6 @@ import java.util.function.Function;
 
 import org.copalis.jam.BuildController;
 import org.copalis.jam.Cmd;
-import org.copalis.jam.Memorizer;
 import org.copalis.jam.PackageResolver;
 import org.copalis.jam.Paths;
 
@@ -18,11 +17,13 @@ import org.copalis.jam.Paths;
 public interface Project {
 
     /**
-     * Gets the current memoizer
-     * @return the memoizer
+     * Reflects a value so that build controller can override the value
+     * @param <T> the type of object
+     * @param obj the value to return
+     * @return the same value passed to it, which may be replaced by the controller
      */
-    default Memorizer memo() {
-        return BuildController.MEMO;
+    default <T> T get(T obj) {
+        return obj;
     }
 
     /**
@@ -50,7 +51,7 @@ public interface Project {
      */
     default void clean() {
         rmBuildDir("");
-        memo().forget();
+        get(BuildController.MEMO).forget();
     }
 
     /**
@@ -92,7 +93,7 @@ public interface Project {
      * @return a fileset of the matching files
      */
     default Fileset sourceFiles(String pattern) {
-        return memo().dependsOn(Fileset.find(sourcePath() + '/' + pattern));
+        return get(BuildController.MEMO).dependsOn(Fileset.find(sourcePath() + '/' + pattern));
     }
 
     /**
@@ -102,7 +103,7 @@ public interface Project {
      * @return a File object referencing the specified path
      */
     default File sourceFile(String name) {
-        return memo().dependsOn(new File(Path.of(sourcePath(), name)));
+        return get(BuildController.MEMO).dependsOn(new File(Path.of(sourcePath(), name)));
     }
 
     /**

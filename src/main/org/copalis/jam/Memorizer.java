@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -93,6 +93,9 @@ public class Memorizer {
         boolean isCurrent() {
             return params.stream().allMatch(Memorizable::isCurrent);
         }
+        boolean serializable() {
+            return params.stream().allMatch(p -> p instanceof Serializable);
+        }
     }
 
     /**
@@ -105,6 +108,9 @@ public class Memorizer {
         boolean isCurrent() {
             return signature.isCurrent() && Memorizable.isCurrent(value)
                     && sources.stream().allMatch(Memorizable::current);
+        }
+        boolean serializable() {
+            return value instanceof Serializable && signature.serializable();
         }
     }
 
@@ -120,8 +126,8 @@ public class Memorizer {
         try (InputStream in = new FileInputStream(cacheFile)) {
             try (ObjectInputStream obj = new ObjectInputStream(in)) {
                 @SuppressWarnings("unchecked")
-                HashMap<Invocation, Result> map = (HashMap<Invocation, Result>) obj.readObject();
-                cache = map;
+                List<Result> results = (List<Result>) obj.readObject();
+                results.forEach(result -> cache.put(result.signature(), result));
             }
         }
     }
@@ -129,7 +135,8 @@ public class Memorizer {
     void save() throws FileNotFoundException, IOException {
         try (OutputStream out = new FileOutputStream(cacheFile)) {
             try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
-                obj.writeObject(cache);
+                obj.writeObject(cache.values().stream().filter(Result::serializable)
+                        .collect(Collectors.toList()));
             }
         }
     }
@@ -206,9 +213,7 @@ public class Memorizer {
         try {
             value = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
-            if (value instanceof Serializable) {
-                cache.put(signature, new Result(signature, value, dependencies.peek()));
-            }
+            cache.put(signature, new Result(signature, value, dependencies.peek()));
             return value;
         } finally {
             Set<Memorizable> used = dependencies.pop();

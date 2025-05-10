@@ -1,8 +1,6 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -111,19 +109,6 @@ public interface JavaProject extends Project {
     }
 
     /**
-     * Executes the {@code main()} method of a specified class,
-     * running it in a new Java process
-     * @param className the class name
-     * @param classpath the classpath to use
-     * @param args arguments to be passed to the main method
-     * @see #runMain(String, Collection, String...)
-     */
-    default void execMain(String className, Collection<File> classpath, String... args) {
-        String cp = classpath.stream().map(File::toString).collect(Collectors.joining(":"));
-        Cmd.args("java", "-cp", cp, className).add(args).run();
-    }
-
-    /**
      * Executes a jar file
      * @param jar the jar file
      * @param classpath additional jar files on the classpath
@@ -135,28 +120,6 @@ public interface JavaProject extends Project {
             cmd.add("-cp", classpath.stream().map(File::toString).collect(Collectors.joining(":")));
         }
         cmd.add(args).run();
-    }
-
-    /**
-     * Executes the {@code main()} method of a specified class,
-     * running it in the current process
-     * @param className the class name
-     * @param classpath the classpath to use
-     * @param args arguments to be passed to the main method
-     * @see #execMain(String, Collection, String...)
-     */
-    default void runMain(String className, Collection<File> classpath, String... args) {
-        URL[] urls = classpath.stream().map(File::getURL).toArray(URL[]::new);
-
-        Thread thread = Thread.currentThread();
-        try (URLClassLoader loader = new URLClassLoader(urls, this.getClass().getClassLoader())) {
-            thread.setContextClassLoader(loader);
-            loader.loadClass(className)
-                    .getDeclaredMethod("main", String[].class)
-                    .invoke(null, (Object) args);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**

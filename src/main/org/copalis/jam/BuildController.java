@@ -28,7 +28,11 @@ public class BuildController<T> implements Memorizer.Observer {
     /**
      * A dummy memoizer that is replaced by the real memoizer during execution of projects
      */
-    public static final Memorizer MEMO = new Memorizer();
+    public static final Memorizer MEMO = new Memorizer() {
+        @Override public String toString() {
+            return "current-cache";
+        }
+    };
 
     private static final boolean colors = Objects.nonNull(System.console());
 
@@ -71,8 +75,8 @@ public class BuildController<T> implements Memorizer.Observer {
             print("[").print(status.name().toLowerCase());
             print(" ".repeat(7 - status.name().length()));
             print("] ");
-            color(RESET);
-            printMethod(method.getName(), params);
+            color(RESET).printMethod(method.getName(), params);
+            line();
         }
 
         calls++;
@@ -105,6 +109,8 @@ public class BuildController<T> implements Memorizer.Observer {
                     memo.entries().forEach(e -> {
                             printResultStatus(e);
                             printMethod(e.signature().name(), e.signature().params());
+                            print(" = ").print(e.value());
+                            line();
                         });
                     break;
                 case "--targets":
@@ -239,7 +245,6 @@ public class BuildController<T> implements Memorizer.Observer {
             print(" ");
             printValue(param);
         }
-        color(BOLD).line();
     }
 
     private void  printValue(Object val) {
