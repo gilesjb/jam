@@ -106,12 +106,7 @@ public class BuildController<T> implements Memorizer.Observer {
                 switch (args[opt]) {
                 case "--cache":
                     load();
-                    memo.entries().forEach(e -> {
-                            printResultStatus(e);
-                            printMethod(e.signature().name(), e.signature().params());
-                            print(" = ").print(e.value());
-                            line();
-                        });
+                    printCacheContents();
                     break;
                 case "--targets":
                     load();
@@ -174,6 +169,16 @@ public class BuildController<T> implements Memorizer.Observer {
         }
 
         return object;
+    }
+
+    private void printCacheContents() {
+        print("Contents of cache file ").print(memo.cacheFile()).line();
+        memo.entries().forEach(e -> {
+                printResultStatus(e);
+                printMethod(e.signature().name(), e.signature().params());
+                print(" = ").print(e.value());
+                line();
+            });
     }
 
     private void printBuildTargets(Function<T, ?> buildFn) {
