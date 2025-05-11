@@ -22,7 +22,7 @@ import org.copalis.jam.Paths;
  *
  * @author gilesjb
  */
-public interface JavaProject extends Project {
+public interface JavaProject extends BuilderProject {
 
     /**
      * Compiles Java code.

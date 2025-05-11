@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 
 class ProjectTest {
-    public interface Fibonacci extends Project {
+    public interface FibProject extends Project {
 
         default long fib(int x) {
             return x < 2 ? x : fib(x - 1) + fib(x - 2);
@@ -19,10 +19,6 @@ class ProjectTest {
 
         default String fib10() {
             return "result=" + fib(10);
-        }
-
-        @Override default String buildPath() {
-            return "build/test";
         }
     }
 
@@ -34,16 +30,17 @@ class ProjectTest {
     }
 
     @AfterEach public void cleanup() {
+        Project.run(FibProject.class, FibProject::clean);
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
     }
 
     @Test public void testTargets() {
-        Project.run(Fibonacci.class, Fibonacci::fib10, new String[] { "--targets" });
+        Project.run(FibProject.class, FibProject::fib10, "--targets");
         assertTrue(bytes.toString().contains("fib10"));
     }
 
     @Test public void testFib() {
-        Project.run(Fibonacci.class, Fibonacci::fib10, new String[] {});
+        Project.run(FibProject.class, FibProject::fib10);
         String output = bytes.toString();
         assertTrue(output.contains("result=55"));
     }
