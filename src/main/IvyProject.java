@@ -11,11 +11,10 @@ public interface IvyProject extends BuilderProject {
     /**
      * {@inheritDoc}
      * <p>
-     * This implementation uses Apache Ivy,
-     * with the directory {@code .ivy2} as its local package cache
+     * This implementation uses Apache Ivy
      * @return an instance of IvyResolver
      */
     @Override default IvyResolver packageResolver() {
-        return new IvyResolver(IvyResolver.VER2_5_1_URL, ".ivy2");
+        return new IvyResolver(IvyResolver.VER2_5_1_URL, ".package-cache");
     }
 }
