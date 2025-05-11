@@ -57,7 +57,7 @@ public class Memorizer {
     }
 
     enum Status {
-        COMPUTE, UPDATE, CURRENT
+        COMPUTE, REFRESH, CURRENT
     }
 
     interface Observer {
@@ -94,8 +94,12 @@ public class Memorizer {
             return params.stream().allMatch(Memorizable::isCurrent);
         }
         boolean serializable() {
-            return params.stream().allMatch(p -> p instanceof Serializable);
+            return params.stream().allMatch(Memorizer::objSerializable);
         }
+    }
+
+    private static boolean objSerializable(Object obj) {
+        return Objects.isNull(obj) || obj instanceof Serializable;
     }
 
     /**
@@ -110,7 +114,7 @@ public class Memorizer {
                     && sources.stream().allMatch(Memorizable::current);
         }
         boolean serializable() {
-            return value instanceof Serializable && signature.serializable();
+            return objSerializable(value) && signature.serializable();
         }
     }
 
@@ -133,10 +137,14 @@ public class Memorizer {
     }
 
     void save() throws FileNotFoundException, IOException {
-        try (OutputStream out = new FileOutputStream(cacheFile)) {
-            try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
-                obj.writeObject(cache.values().stream().filter(Result::serializable)
-                        .collect(Collectors.toList()));
+        if (cache.isEmpty()) {
+            cacheFile.delete();
+        } else {
+            try (OutputStream out = new FileOutputStream(cacheFile)) {
+                try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
+                    obj.writeObject(cache.values().stream().filter(Result::serializable)
+                            .collect(Collectors.toList()));
+                }
             }
         }
     }
@@ -163,7 +171,8 @@ public class Memorizer {
      */
     public void forget() {
         cache = new LinkedHashMap<>();
-        cacheFile.delete();    }
+        cacheFile.delete();
+    }
 
     /**
      * Records a resource as being a dependency of the current method that is executing
@@ -197,7 +206,7 @@ public class Memorizer {
             Result result = cache.get(signature);
 
             if (!result.isCurrent()) {
-                status = Status.UPDATE;
+                status = Status.REFRESH;
                 cache.remove(signature);
             } else {
                 observer.startMethod(Status.CURRENT, method, signature.params());
@@ -213,7 +222,9 @@ public class Memorizer {
         try {
             value = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
-            cache.put(signature, new Result(signature, value, dependencies.peek()));
+            if (method.getReturnType() != Void.TYPE) {
+                cache.put(signature, new Result(signature, value, dependencies.peek()));
+            }
             return value;
         } finally {
             Set<Memorizable> used = dependencies.pop();

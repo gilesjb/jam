@@ -8,7 +8,7 @@
  * #!/usr/bin/env kotlin -Xjvm-default=all -cp <path of Jam jar>
  */
 
-interface Maker : JavaProject, IvyProject {
+interface KotlinJamProject : JavaProject, IvyProject {
 
     fun version() = "0.9"
 
@@ -37,4 +37,4 @@ interface Maker : JavaProject, IvyProject {
     fun about() = "Jam is ready! Run ./make-jam.main.kts to build Jam ${version()}"
 }
 
-Project.run(Maker::class.java, Maker::release, args)
+Project.run(KotlinJamProject::class.java, KotlinJamProject::release, args)

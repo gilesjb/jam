@@ -1,5 +1,3 @@
-import java.nio.file.Path;
-
 import org.copalis.jam.IvyResolver;
 
 /**

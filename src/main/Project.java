@@ -35,7 +35,7 @@ public interface Project {
      * @param fn a consumer that calls the default build method
      * @param args command line arguments
      */
-    public static <T extends Project> void run(Class<T> t, Consumer<T> fn, String... args) {
+    public static <T extends Project> void run(Class<T> t, Consumer<T> fn, String[] args) {
         new BuildController<>(t).execute(o -> {
             fn.accept(o);
             return null;
@@ -49,7 +49,7 @@ public interface Project {
      * @param fn a function that calls the default build method
      * @param args command line arguments
      */
-    public static <T extends Project> void run(Class<T> t, Function<T, ?> fn, String... args) {
+    public static <T extends Project> void run(Class<T> t, Function<T, ?> fn, String[] args) {
         new BuildController<>(t).execute(fn, args);
     }
 }

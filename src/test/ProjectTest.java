@@ -30,17 +30,17 @@ class ProjectTest {
     }
 
     @AfterEach public void cleanup() {
-        Project.run(FibProject.class, FibProject::clean);
+        Project.run(FibProject.class, FibProject::clean, new String[] {});
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
     }
 
     @Test public void testTargets() {
-        Project.run(FibProject.class, FibProject::fib10, "--targets");
+        Project.run(FibProject.class, FibProject::fib10, new String[] {"--targets"});
         assertTrue(bytes.toString().contains("fib10"));
     }
 
     @Test public void testFib() {
-        Project.run(FibProject.class, FibProject::fib10);
+        Project.run(FibProject.class, FibProject::fib10, new String[] {});
         String output = bytes.toString();
         assertTrue(output.contains("result=55"));
     }

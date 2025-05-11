@@ -70,7 +70,7 @@ public class BuildController<T> implements Memorizer.Observer {
             switch (status) {
             case CURRENT: color(GREEN); break;
             case COMPUTE: color(YELLOW); break;
-            case UPDATE: color(CYAN); break;
+            case REFRESH: color(CYAN); break;
             }
             print("[").print(status.name().toLowerCase());
             print(" ".repeat(7 - status.name().length()));
@@ -266,7 +266,7 @@ public class BuildController<T> implements Memorizer.Observer {
     }
 
     private BuildController<T> print(Object obj) {
-        out.print(obj.toString());
+        out.print(Objects.toString(obj));
         return this;
     }
 
