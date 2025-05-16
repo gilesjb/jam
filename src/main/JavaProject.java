@@ -1,6 +1,5 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -15,6 +14,7 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.Cmd;
 import org.copalis.jam.Compiler;
+import org.copalis.jam.PackageResolver;
 import org.copalis.jam.Paths;
 
 /**
@@ -25,35 +25,72 @@ import org.copalis.jam.Paths;
 public interface JavaProject extends BuilderProject {
 
     /**
-     * Compiles Java code.
-     * When compiling unit tests, include {@link #jUnitLib()} in the classpath.
-     * @param outputPath the location within the build path to place the generated {@code .class} files
-     * @param sources the source files to compile
-     * @param classpath references to {@code .jar} or {@code .class} files
-     * @return a reference to the compiled {@code .class} files
-     * @see #buildPath()
+     * Runs a Java process. The output of this process will not be tracked as a dependency.
+     * @param args arguments to be supplied to the Java runtime
      */
-    default Fileset javac(String outputPath, Fileset sources, Fileset... classpath) {
-        Path destination = Path.of(buildPath(), outputPath);
-        try {
-            Files.createDirectories(destination);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        String cp = Stream.of(classpath)
-                .flatMap(JavaProject::pathElements).map(File::toString)
-                .collect(Collectors.joining(":"));
-        final List<URI> uris;
+    default void java(String... args) {
+        Cmd cmd = Cmd.args("java");
+        cmd.add(args);
+        cmd.run();
+    }
 
-        if (cp.isEmpty()) {
-            uris = Compiler.compile(sources, "-d", destination.toString());
-        } else {
-            uris = Compiler.compile(sources, "-d", destination.toString(), "-cp", cp);
+    /**
+     * Compiles Java code.
+     * @param sources the source files to compile
+     * @param args the command-line options to be passed to the javac compiler
+     * @return a reference to the compiled {@code .class} files
+     */
+    default Fileset javac(Fileset sources, String... args) {
+        String base = null;
+
+        for (int i = 0; i < args.length - 1; i++) {
+            if (args[i].equals("-d")) {
+                base = args[i + 1];
+            }
         }
-        Set<File> classFiles = uris.stream()
+
+        Set<File> classFiles = Compiler.compile(sources, args).stream()
                 .map(Paths::fromURI).map(File::new)
                 .collect(Collectors.toSet());
-        return new Fileset(classFiles, destination.toString(), "**.class");
+        return new Fileset(classFiles, base, "**.class");
+    }
+
+    /**
+     * Generates a classpath string suitable for the java compiler
+     * @param filesets a group of filesets
+     * @return a colon-delimited list of paths
+     */
+    default String classpath(Fileset... filesets) {
+        return Stream.of(filesets)
+                .flatMap(Fileset::pathElements)
+                .map(File::toString)
+                .collect(Collectors.joining(":"));
+    }
+
+    /**
+     * Gets the package dependency resolver.
+     * @return the package resolver
+     */
+    PackageResolver packageResolver();
+
+    /**
+     * Gets dependencies
+     * @param identifiers names of dependencies in the format {@code "org:name:revision"}
+     * @return a Fileset containing references to the fetched dependencies
+     */
+    default Fileset resolve(String... identifiers) {
+        return packageResolver()
+                .resolve(identifiers)
+                .map(Paths::relativize)
+                .map(File::new)
+                .collect(Fileset.FILES);
+    }
+
+    /**
+     * Deletes the package resolver's cache
+     */
+    default void cleanPkgCache() {
+        packageResolver().cleanCache();
     }
 
     /**
@@ -73,12 +110,12 @@ public interface JavaProject extends BuilderProject {
      */
     default Fileset junit(String reportPath, Fileset testClasses, Fileset... classpath) {
         List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
-                .flatMap(JavaProject::pathElements)
+                .flatMap(Fileset::pathElements)
                 .collect(Collectors.toList());
 
         Path destination = Path.of(buildPath(), reportPath);
         executeJar(jUnitLib().stream().findFirst().get(), files,
-                "--scan-class-path=" + testClasses.base,
+                "--scan-class-path=" + Objects.requireNonNull(testClasses.base()),
                 "--reports-dir=" + destination);
         return Fileset.find(destination.toString(), "**");
     }
@@ -147,14 +184,5 @@ public interface JavaProject extends BuilderProject {
             throw new RuntimeException(e);
         }
         return new File(path);
-    }
-
-    /**
-     * Extracts classpath element(s) from a Fileset
-     * @param fs a fileset
-     * @return the base directory of the fileset, or the files contained within it
-     */
-    static Stream<File> pathElements(Fileset fs) {
-        return Objects.nonNull(fs.base()) ? Stream.of(new File(fs.base())) : fs.stream();
     }
 }

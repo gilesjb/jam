@@ -5,4 +5,4 @@ chmod +x make-jam
 set -x
 rm -r $CLASSES
 javac -sourcepath src/main -d $CLASSES src/main/**.java || exit 1
-./make-jam about
+./make-jam clean about

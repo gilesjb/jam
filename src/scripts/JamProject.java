@@ -28,7 +28,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset mainClasses() {
-        return javac("classes/main", mainSources());
+        return javac(mainSources(), "-d", buildPath("classes/main"));
     }
 
     default Fileset testSources() {
@@ -36,8 +36,9 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset testClasses() {
-        return javac("classes/test", testSources(),
-                mainClasses(), jUnitLib(), testDependencies());
+        return javac(testSources(),
+                "-d", buildPath("classes/test"),
+                "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()));
     }
 
     default Fileset unitTests() {

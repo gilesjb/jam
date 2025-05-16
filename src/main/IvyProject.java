@@ -1,12 +1,12 @@
 import org.copalis.jam.IvyResolver;
 
 /**
- * Project mixin which provides an implementation of {@link BuilderProject#packageResolver()}
+ * Project mixin which provides an implementation of {@link JavaProject#packageResolver()}
  * that uses Apache Ivy
  *
  * @author gilesjb
  */
-public interface IvyProject extends BuilderProject {
+public interface IvyProject extends JavaProject {
 
     /**
      * {@inheritDoc}

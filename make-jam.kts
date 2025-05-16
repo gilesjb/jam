@@ -16,11 +16,13 @@ interface KotlinJamProject : JavaProject, IvyProject {
 
     fun mainSources() = sourceFiles("main/**.java")
 
-    fun mainClasses() = javac("classes/main", mainSources())
+    fun mainClasses() = javac(mainSources(), "-d", buildPath("classes/main"))
 
     fun testSources() = sourceFiles("test/**.java")
 
-    fun testClasses() = javac("classes/test", testSources(), mainClasses(), jUnitLib(), testDependencies())
+    fun testClasses() = javac(testSources(),
+            "-d", buildPath("classes/test"),
+            "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()))
 
     fun testBuild() = junit("test-report", testClasses(), testSources(), mainClasses(), testDependencies())
 
@@ -28,7 +30,7 @@ interface KotlinJamProject : JavaProject, IvyProject {
 
     fun jarfile() = jar("jam-${version()}.jar", mainSources(), mainClasses())
 
-    fun release(): File {
+    fun release() : File {
         testBuild()
         docs()
         return jarfile()

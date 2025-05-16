@@ -139,6 +139,14 @@ public final class Fileset implements Memorizable, Iterable<File> {
         return files.size();
     }
 
+    /**
+     * Gets a stream of contents
+     * @return a stream containing either the files or the base directory
+     */
+    public Stream<File> pathElements() {
+        return Objects.nonNull(base) ? Stream.of(new File(base)) : stream();
+    }
+
     public boolean current() {
         return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
                 && files.stream().map(File::current).allMatch(Boolean.TRUE::equals);

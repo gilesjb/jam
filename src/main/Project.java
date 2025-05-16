@@ -2,6 +2,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.copalis.jam.BuildController;
+import org.copalis.jam.Memorizable;
 
 /**
  * A build project that provides common file manipulation methods
@@ -16,15 +17,28 @@ public interface Project {
      * @param obj the value to return
      * @return the same value passed to it, which may be replaced by the controller
      */
-    default <T> T get(T obj) {
+    default <T> T using(T obj) {
         return obj;
+    }
+
+    /**
+     * Records a dependency on a mutable resource.
+     * The resource will be recorded as a dependency of all project methods currently on the call stack,
+     * and all methods it is passed to.
+     * @param <T> the resource type
+     * @param resource a reference to a mutable resource
+     * @return the
+     */
+    default <T extends Memorizable> T dependsOn(T resource) {
+        using(BuildController.MEMO).dependsOn(resource);
+        return resource;
     }
 
     /**
      * Empties the result cache
      */
     default void clean() {
-        get(BuildController.MEMO).forget();
+        using(BuildController.MEMO).forget();
     }
 
 

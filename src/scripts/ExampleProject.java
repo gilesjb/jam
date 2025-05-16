@@ -9,7 +9,7 @@ public interface ExampleProject extends JavaProject {
     }
 
     default Fileset classes() {
-        return javac("classes/main", sources());
+        return javac(sources(), "-d", buildPath("classes/main"));
     }
 
     default File jarfile() {

@@ -9,5 +9,5 @@ bin/
 classes/
 build/
 .jam-classes/
-.ivy2/
+.package-cache/
 *.ser

@@ -74,4 +74,17 @@ public class Paths {
             }
         }
     }
+
+    /**
+     * Relativizes a path with respect to the current working directory
+     * @param path the path relativize
+     * @return the path from the working directory to the given path
+     */
+    public static Path relativize(Path path) {
+        if (path.startsWith(workDir)) {
+            return workDir.relativize(path);
+        } else {
+            return path;
+        }
+    }
 }

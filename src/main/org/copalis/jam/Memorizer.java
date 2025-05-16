@@ -177,12 +177,9 @@ public class Memorizer {
     /**
      * Records a resource as being a dependency of the current method that is executing
      * @param resource the resource
-     * @return the supplied resource
-     * @param <T> the type of resource(s)
      */
-    public <T extends Memorizable> T dependsOn(T resource) {
+    public void dependsOn(Memorizable resource) {
         dependencies.peek().add(resource);
-        return resource;
     }
 
     /**

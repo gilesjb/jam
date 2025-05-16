@@ -30,7 +30,7 @@ public class BuildController<T> implements Memorizer.Observer {
      */
     public static final Memorizer MEMO = new Memorizer() {
         @Override public String toString() {
-            return "current-cache";
+            return Memorizer.class.getSimpleName();
         }
     };
 
@@ -175,8 +175,8 @@ public class BuildController<T> implements Memorizer.Observer {
         print("Contents of cache file ").print(memo.cacheFile()).line();
         memo.entries().forEach(e -> {
                 printResultStatus(e);
-                printMethod(e.signature().name(), e.signature().params());
-                print(" = ").print(e.value());
+                color(BOLD).printMethod(e.signature().name(), e.signature().params());
+                color(RESET).print(" = ").print(e.value());
                 line();
             });
     }

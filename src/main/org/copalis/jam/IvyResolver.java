@@ -38,7 +38,7 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
      * @param cacheFile the file which will contain the paths of all resolved dependencies
      * @param ivyFile the ixy.xml file
      */
-    public void execute(File cacheFile, File ivyFile) {
+    private void execute(File cacheFile, File ivyFile) {
         Cmd args = Cmd.args("java", "-jar", ivyJar().toString(), "-cache", cacheDir);
 
         if (Objects.nonNull(cacheFile)) {
@@ -52,7 +52,7 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
         args.run();
     }
 
-    void writeXML(Writer out, String... dependencies) throws IOException {
+    private void writeXML(Writer out, String... dependencies) throws IOException {
         out.write("<ivy-module version='2.0'>");
         out.write("<info organisation='org' module='module'/>");
         out.write("<dependencies defaultconf='*->default'>");

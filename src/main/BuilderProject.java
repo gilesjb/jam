@@ -2,9 +2,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.jam.BuildController;
 import org.copalis.jam.Cmd;
-import org.copalis.jam.PackageResolver;
 import org.copalis.jam.Paths;
 
 /**
@@ -35,43 +33,38 @@ public interface BuilderProject extends Project {
     }
 
     /**
+     * Generates the path of a build directory and creates the directory if it does not exist
+     * @param path a path relative to {@link #buildPath()}
+     * @return the directory path
+     */
+    default String buildPath(String path) {
+        Path p = Path.of(buildPath(), path);
+        try {
+            Files.createDirectories(p);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return p.toString();
+    }
+
+    /**
      * Deletes the build directory and empties the method cache
      */
     default void clean() {
-        rmBuildDir("");
+        rmdir(buildPath());
         Project.super.clean();
     }
 
     /**
-     * Gets the package dependency resolver.
-     * @return the package resolver
+     * Deletes a directory, which must be the build directory or one of its children
+     * @param path the directory path
      */
-    PackageResolver packageResolver();
-
-    /**
-     * Gets dependencies
-     * @param identifiers names of dependencies in the format {@code "org:name:revision"}
-     * @return a Fileset containing references to the fetched dependencies
-     */
-    default Fileset resolve(String... identifiers) {
-        return packageResolver().resolve(identifiers)
-                .map(File::new)
-                .collect(Fileset.FILES);
-    }
-
-    /**
-     * Deletes the package resolver's cache
-     */
-    default void cleanPkgCache() {
-        packageResolver().cleanCache();
-    }
-
-    /**
-     * Recursively deletes a specified build directory and its contents
-     * @param path a directory path relative to {@link #buildPath()}
-     */
-    default void rmBuildDir(String path) {
-        Paths.rmDir(Path.of(buildPath(), path));
+    default void rmdir(String path) {
+        Path p = Path.of(path);
+        if (!p.startsWith(Path.of(buildPath()))) {
+            throw new IllegalArgumentException(path + " is not a build directory");
+        }
+        Paths.rmDir(p);
     }
 
     /**
@@ -81,7 +74,7 @@ public interface BuilderProject extends Project {
      * @return a fileset of the matching files
      */
     default Fileset sourceFiles(String pattern) {
-        return get(BuildController.MEMO).dependsOn(Fileset.find(sourcePath() + '/' + pattern));
+        return dependsOn(Fileset.find(sourcePath() + '/' + pattern));
     }
 
     /**
@@ -91,7 +84,7 @@ public interface BuilderProject extends Project {
      * @return a File object referencing the specified path
      */
     default File sourceFile(String name) {
-        return get(BuildController.MEMO).dependsOn(new File(Path.of(sourcePath(), name)));
+        return dependsOn(new File(Path.of(sourcePath(), name)));
     }
 
     /**
