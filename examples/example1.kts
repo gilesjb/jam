@@ -2,7 +2,7 @@
 
 interface Example1 : JavaProject {
 
-    override fun sourcePath() = "src/examples/example1"
+    override fun sourcePath() = "src/example1"
     override fun buildPath() = "build/examples/example1"
 
     fun sources() = sourceFiles("**.java")

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.copalis.jam.Memorizer.Invocation;
@@ -182,28 +183,40 @@ public class BuildController<T> implements Memorizer.Observer {
     }
 
     private void printBuildTargets(Function<T, ?> buildFn) {
+        color(RESET).printTargets(type, new HashSet<>());
+
         Object proxy = Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
             throw new UnsupportedOperationException(m.getName());
         });
 
-        print(type.getSimpleName()).color(RESET).print(" targets").line();
         try {
             if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(proxy));
-            printTargets();
         } catch (UnsupportedOperationException e) {
-            printTargets();
             print("Default target is: ").color(BOLD).print(e.getMessage()).line();
         }
     }
 
-    private void printTargets() {
-        Stream.of(type.getMethods())
+    private void printTargets(Class<?> t, Set<String> visited) {
+        List<Method> targets = Stream.of(t.getDeclaredMethods())
+                .filter(Method::isDefault)
                 .filter(m -> m.getParameterCount() == 0 && !m.isSynthetic())
-                .forEach(m -> {
-                    printResultStatus(memo.lookup(new Invocation(m)));
-                    print(m.getName()).print(" : ");
-                    print(m.getReturnType().getSimpleName()).line();
-                });
+                .filter(m -> !visited.contains(m.getName()))
+                .collect(Collectors.toList());
+
+        if (!targets.isEmpty()) {
+            color(BOLD).print(t.getSimpleName()).color(RESET).line();
+            for (Method m : targets) {
+                printResultStatus(memo.lookup(new Invocation(m)));
+                print(m.getName()).print(" : ");
+                print(m.getReturnType().getSimpleName()).line();
+                visited.add(m.getName());
+            }
+        }
+
+        Class<?>[] interfaces = t.getInterfaces();
+        for (int i = interfaces.length - 1; i >= 0; i--) {
+            printTargets(interfaces[i], visited);
+        }
     }
 
     private void printResultStatus(Result result) {
@@ -235,7 +248,7 @@ public class BuildController<T> implements Memorizer.Observer {
             color(RESET);
             for (StackTraceElement el : ex.getStackTrace()) {
                 if (el.getClassName().contains(".reflect.")
-                        || el.getMethodName().startsWith("_")
+                        || el.getClassName().equals(Memorizer.class.getName())
                         || Objects.isNull(el.getFileName())) {
                     continue;
                 }

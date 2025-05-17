@@ -190,11 +190,10 @@ public class Memorizer {
      */
     public <T> T instantiate(Class<T> t) {
         dependencies.push(new HashSet<>());
-        return t.cast(Proxy.newProxyInstance(t.getClassLoader(), new Class[]{t}, this::_invokeMethod));
+        return t.cast(Proxy.newProxyInstance(t.getClassLoader(), new Class[]{t}, this::invokeMethod));
     }
 
-    // This method's name starts with '_' to make it easy to filter out of stack traces
-    private Object _invokeMethod(Object proxy, Method method, Object[] args)
+    private Object invokeMethod(Object proxy, Method method, Object[] args)
             throws Throwable {
         Invocation signature = new Invocation(method, args);
 
