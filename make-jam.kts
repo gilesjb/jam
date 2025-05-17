@@ -38,7 +38,10 @@ interface KotlinJamProject : JavaProject, IvyProject {
     
     fun about() = "Jam is ready! Run ./make-jam.main.kts to build Jam ${version()}"
 
-    fun viewDocs() = java.awt.Desktop.getDesktop().browse("${File(docs().base()}/index.html").toURI())
+    fun viewDocs() {
+        System.setProperty("java.awt.headless", "false")
+        java.awt.Desktop.getDesktop().browse(File("${docs().base()}/index.html").toURI())
+    }
 }
 
 Project.run(KotlinJamProject::class.java, KotlinJamProject::release, args)
