@@ -64,6 +64,10 @@ public interface JamProject extends JavaProject, IvyProject {
         return "Jam is ready! Run ./make-jam to build Jam " + version();
     }
 
+    default void viewDocs() throws Exception {
+        java.awt.Desktop.getDesktop().browse(new File(docs().base() + "/index.html").toURI());
+    }
+
     static void main(String[] args) {
         Project.run(JamProject.class, JamProject::release, args);
     }
