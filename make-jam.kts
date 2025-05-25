@@ -26,7 +26,10 @@ interface KotlinJamProject : JavaProject, IvyProject {
 
     fun testBuild() = junit("test-report", testClasses(), testSources(), mainClasses(), testDependencies())
 
-    fun docs() = javadoc("docs", mainSources())
+    fun docs() = javadoc(
+            "-d", buildPath("docs"),
+            "-sourcepath", mainSources().base(),
+            "-subpackages", "", "-quiet")
 
     fun jarfile() = jar("jam-${version()}.jar", mainSources(), mainClasses())
 

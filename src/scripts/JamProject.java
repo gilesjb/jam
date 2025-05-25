@@ -47,7 +47,10 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset docs() {
-        return javadoc("docs", mainSources());
+        return javadoc(
+                "-sourcepath", mainSources().base(),
+                "-d", buildPath("docs"),
+                "-subpackages", "", "-quiet");
     }
 
     default File jarfile() {

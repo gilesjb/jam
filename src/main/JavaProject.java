@@ -50,7 +50,8 @@ public interface JavaProject extends BuilderProject {
         }
 
         Set<File> classFiles = Compiler.compile(sources, args).stream()
-                .map(Paths::fromURI).map(File::new)
+                .map(Paths::fromURI)
+                .map(File::new)
                 .collect(Collectors.toSet());
         return new Fileset(classFiles, base, "**.class");
     }
@@ -121,28 +122,21 @@ public interface JavaProject extends BuilderProject {
     }
 
     /**
-     * Generates JavaDoc
-     * @param outputPath the location within the build path to save the generated documents
-     * @param sources the source files to document
-     * @param packages names of packages to document
+     * Runs the JavaDoc tool. See {@code javadoc --help} for documentation of soptions.
+     * @param args the command-line arguments for the tool
      * @return a reference to the generated documentation
-     * @see #buildPath()
      */
-    default Fileset javadoc(String outputPath, Fileset sources, String... packages) {
-        Path destination = Path.of(buildPath(), outputPath);
-        try {
-            Files.createDirectories(destination);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    default Fileset javadoc(String... args) {
+        String base = null;
+
+        for (int i = 0; i < args.length - 1; i++) {
+            if (args[i].equals("-d")) {
+                base = args[i + 1];
+            }
         }
 
-        String[] args = Stream.concat(
-                Stream.of("-d", destination.toString(), "-sourcepath", sources.base(), "-quiet"),
-                packages.length > 0 ? Stream.of(packages) : sources.stream().map(File::toString)
-            ).toArray(String[]::new);
-
         Compiler.javadoc(args);
-        return Fileset.find(destination.toString(), "**");
+        return Fileset.find(base, "**");
     }
 
     /**
