@@ -24,7 +24,9 @@ interface KotlinJamProject : JavaProject, IvyProject {
             "-d", buildPath("classes/test"),
             "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()))
 
-    fun testBuild() = junit("test-report", testClasses(), testSources(), mainClasses(), testDependencies())
+    fun tests() = junit("--reports-dir=${buildPath("test-report")}",
+            "--scan-classpath", testClasses().base(),
+            "-cp", classpath(testClasses(), testSources(), mainClasses(), testDependencies()))
 
     fun docs() = javadoc(
             "-d", buildPath("docs"),
@@ -34,7 +36,7 @@ interface KotlinJamProject : JavaProject, IvyProject {
     fun jarfile() = jar("jam-${version()}.jar", mainSources(), mainClasses())
 
     fun release() : File {
-        testBuild()
+        tests()
         docs()
         return jarfile()
     }

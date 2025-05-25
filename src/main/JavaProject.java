@@ -2,7 +2,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -27,9 +26,7 @@ public interface JavaProject extends BuilderProject {
      * @param args arguments to be supplied to the Java runtime
      */
     default void java(String... args) {
-        Cmd cmd = Cmd.args("java");
-        cmd.add(args);
-        cmd.run();
+        Cmd.args("java").add(args).run();
     }
 
     /**
@@ -39,19 +36,18 @@ public interface JavaProject extends BuilderProject {
      * @return a reference to the compiled {@code .class} files
      */
     default Fileset javac(Fileset sources, String... args) {
-        String base = null;
-
-        for (int i = 0; i < args.length - 1; i++) {
-            if (args[i].equals("-d")) {
-                base = args[i + 1];
-            }
-        }
-
         Set<File> classFiles = Compiler.compile(sources, args).stream()
                 .map(Paths::fromURI)
                 .map(File::new)
                 .collect(Collectors.toSet());
-        return new Fileset(classFiles, base, "**.class");
+
+        for (int i = 0; i < args.length - 1; i++) {
+            if (args[i].equals("-d")) {
+                return new Fileset(classFiles, args[i + 1], "**.class");
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -110,37 +106,37 @@ public interface JavaProject extends BuilderProject {
     }
 
     /**
-     * Runs unit tests using the library specified by {@link #jUnitLib()}
-     * @param reportPath the build path for generated test report
-     * @param testClasses a reference to the test {@code .class} files
-     * @param classpath references to {@code .jar} or {@code .class} files
+     * Runs unit tests using the jUnit console library specified by {@link #jUnitLib()}
+     * @param args command line arguments to the jUnit console runtime
      * @return a fileset referring to the unit test report
      */
-    default Fileset junit(String reportPath, Fileset testClasses, Fileset... classpath) {
-        String destination = buildPath(reportPath);
-        executeJar(jUnitLib().stream().findFirst().get(),
-                "-cp", classpath(Stream.concat(Stream.of(testClasses), Stream.of(classpath))),
-                "--scan-class-path=" + Objects.requireNonNull(testClasses.base()),
-                "--reports-dir=" + destination);
-        return Fileset.find(destination, "**");
+    default Fileset junit(String... args) {
+        executeJar(jUnitLib().stream().findFirst().get(), args);
+
+        for (String arg : args) {
+            if (arg.startsWith("--reports-dir=")) {
+                return Fileset.find(arg.substring(arg.indexOf('=') + 1), "**");
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Runs the JavaDoc tool. See {@code javadoc --help} for documentation of soptions.
+     * Runs the JavaDoc tool. See {@code javadoc --help} for documentation of options.
      * @param args the command-line arguments for the tool
      * @return a reference to the generated documentation
      */
     default Fileset javadoc(String... args) {
-        String base = null;
+        Compiler.javadoc(args);
 
         for (int i = 0; i < args.length - 1; i++) {
             if (args[i].equals("-d")) {
-                base = args[i + 1];
+                return Fileset.find(args[i + 1], "**");
             }
         }
 
-        Compiler.javadoc(args);
-        return Fileset.find(base, "**");
+        return null;
     }
 
     /**

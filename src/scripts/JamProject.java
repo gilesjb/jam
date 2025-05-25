@@ -41,9 +41,10 @@ public interface JamProject extends JavaProject, IvyProject {
                 "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()));
     }
 
-    default Fileset unitTests() {
-        return junit("test-report", testClasses(),
-                testSources(), mainClasses(), testDependencies());
+    default Fileset tests() {
+        return junit("--scan-classpath", testClasses().base(),
+                "-cp", classpath(testClasses(), testSources(), mainClasses(), testDependencies()),
+                "--reports-dir=" + buildPath("test-report"));
     }
 
     default Fileset docs() {
@@ -58,7 +59,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default File release() {
-        unitTests();
+        tests();
         docs();
         return jarfile();
     }
