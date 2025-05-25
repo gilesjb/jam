@@ -2,8 +2,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -62,7 +60,16 @@ public interface JavaProject extends BuilderProject {
      * @return a colon-delimited list of paths
      */
     default String classpath(Fileset... filesets) {
-        return Stream.of(filesets)
+        return classpath(Stream.of(filesets));
+    }
+
+    /**
+     * Generates a classpath string suitable for the java compiler
+     * @param filesets a group of filesets
+     * @return a colon-delimited list of paths
+     */
+    default String classpath(Stream<Fileset> filesets) {
+        return filesets
                 .flatMap(Fileset::pathElements)
                 .map(File::toString)
                 .collect(Collectors.joining(":"));
@@ -110,15 +117,12 @@ public interface JavaProject extends BuilderProject {
      * @return a fileset referring to the unit test report
      */
     default Fileset junit(String reportPath, Fileset testClasses, Fileset... classpath) {
-        List<File> files = Stream.concat(Stream.of(testClasses), Stream.of(classpath))
-                .flatMap(Fileset::pathElements)
-                .collect(Collectors.toList());
-
-        Path destination = Path.of(buildPath(), reportPath);
-        executeJar(jUnitLib().stream().findFirst().get(), files,
+        String destination = buildPath(reportPath);
+        executeJar(jUnitLib().stream().findFirst().get(),
+                "-cp", classpath(Stream.concat(Stream.of(testClasses), Stream.of(classpath))),
                 "--scan-class-path=" + Objects.requireNonNull(testClasses.base()),
                 "--reports-dir=" + destination);
-        return Fileset.find(destination.toString(), "**");
+        return Fileset.find(destination, "**");
     }
 
     /**
@@ -142,15 +146,10 @@ public interface JavaProject extends BuilderProject {
     /**
      * Executes a jar file
      * @param jar the jar file
-     * @param classpath additional jar files on the classpath
      * @param args command line arguments
      */
-    default void executeJar(File jar, Collection<File> classpath, String... args) {
-        Cmd cmd = Cmd.args("java", "-jar", jar.toString());
-        if (!classpath.isEmpty()) {
-            cmd.add("-cp", classpath.stream().map(File::toString).collect(Collectors.joining(":")));
-        }
-        cmd.add(args).run();
+    default void executeJar(File jar, String... args) {
+        Cmd.args("java", "-jar", jar.toString()).add(args).run();
     }
 
     /**
