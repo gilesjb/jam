@@ -2,6 +2,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -31,23 +32,22 @@ public interface JavaProject extends BuilderProject {
 
     /**
      * Compiles Java code.
+     * @param path the directory path for class files, relative to {@link #buildPath()}
      * @param sources the source files to compile
      * @param args the command-line options to be passed to the javac compiler
      * @return a reference to the compiled {@code .class} files
      */
-    default Fileset javac(Fileset sources, String... args) {
-        Set<File> classFiles = Compiler.compile(sources, args).stream()
+    default Fileset javac(String path, Fileset sources, String... args) {
+        String dest = buildPath(path);
+
+        Set<File> classFiles = Compiler.compile(sources,
+                        Stream.concat(Stream.of("-d", dest), Arrays.stream(args)).toList())
+                .stream()
                 .map(Paths::fromURI)
                 .map(File::new)
                 .collect(Collectors.toSet());
 
-        for (int i = 0; i < args.length - 1; i++) {
-            if (args[i].equals("-d")) {
-                return new Fileset(classFiles, args[i + 1], "**.class");
-            }
-        }
-
-        return null;
+        return new Fileset(classFiles, dest, "**.class");
     }
 
     /**
@@ -56,19 +56,10 @@ public interface JavaProject extends BuilderProject {
      * @return a colon-delimited list of paths
      */
     default String classpath(Fileset... filesets) {
-        return classpath(Stream.of(filesets));
-    }
-
-    /**
-     * Generates a classpath string suitable for the java compiler
-     * @param filesets a group of filesets
-     * @return a colon-delimited list of paths
-     */
-    default String classpath(Stream<Fileset> filesets) {
-        return filesets
+        return Stream.of(filesets)
                 .flatMap(Fileset::pathElements)
                 .map(File::toString)
-                .collect(Collectors.joining(":"));
+                .collect(Collectors.joining(System.getProperty("path.separator")));
     }
 
     /**
@@ -107,36 +98,30 @@ public interface JavaProject extends BuilderProject {
 
     /**
      * Runs unit tests using the jUnit console library specified by {@link #jUnitLib()}
+     * @param reportsDir the path of generated unit test report, relative to {@link #buildPath()}
      * @param args command line arguments to the jUnit console runtime
      * @return a fileset referring to the unit test report
      */
-    default Fileset junit(String... args) {
-        executeJar(jUnitLib().stream().findFirst().get(), args);
+    default Fileset junit(String reportsDir, String... args) {
+        String output = buildPath(reportsDir);
 
-        for (String arg : args) {
-            if (arg.startsWith("--reports-dir=")) {
-                return Fileset.find(arg.substring(arg.indexOf('=') + 1), "**");
-            }
-        }
+        executeJar(jUnitLib().stream().findFirst().get(),
+                Stream.concat(Stream.of("--reports-dir=" + output),
+                        Arrays.stream(args)).toArray(String[]::new));
 
-        return null;
+        return Fileset.find(output, "**");
     }
 
     /**
      * Runs the JavaDoc tool. See {@code javadoc --help} for documentation of options.
+     * @param destination the path of generated unit test report, relative to {@link #buildPath()}
      * @param args the command-line arguments for the tool
      * @return a reference to the generated documentation
      */
-    default Fileset javadoc(String... args) {
-        Compiler.javadoc(args);
-
-        for (int i = 0; i < args.length - 1; i++) {
-            if (args[i].equals("-d")) {
-                return Fileset.find(args[i + 1], "**");
-            }
-        }
-
-        return null;
+    default Fileset javadoc(String destination, String... args) {
+        String dest = buildPath(destination);
+        Compiler.javadoc(Stream.concat(Stream.of("-d", dest), Arrays.stream(args)).toArray(String[]::new));
+        return Fileset.find(dest, "**");
     }
 
     /**

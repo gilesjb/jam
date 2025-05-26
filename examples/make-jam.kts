@@ -16,22 +16,20 @@ interface KotlinJamProject : JavaProject, IvyProject {
 
     fun mainSources() = sourceFiles("main/**.java")
 
-    fun mainClasses() = javac(mainSources(), "-d", buildPath("classes/main"))
+    fun mainClasses() = javac("classes/main", mainSources())
 
     fun testSources() = sourceFiles("test/**.java")
 
-    fun testClasses() = javac(testSources(),
-            "-d", buildPath("classes/test"),
+    fun testClasses() = javac("classes/test", testSources(),
             "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()))
 
-    fun tests() = junit("--reports-dir=${buildPath("test-report")}",
-            "--scan-classpath", testClasses().base(),
+    fun tests() = junit("test-report",
+            "--scan-classpath", classpath(testClasses()),
             "-cp", classpath(testClasses(), testSources(), mainClasses(), testDependencies()))
 
-    fun docs() = javadoc(
-            "-d", buildPath("docs"),
-            "-sourcepath", mainSources().base(),
-            "-subpackages", "", "-quiet")
+    fun docs() = javadoc("docs",
+            "-sourcepath", classpath(mainSources()),
+            "-subpackages", "")
 
     fun jarfile() = jar("jam-${version()}.jar", mainSources(), mainClasses())
 
@@ -41,11 +39,11 @@ interface KotlinJamProject : JavaProject, IvyProject {
         return jarfile()
     }
     
-    fun about() = "Jam is ready! Run ./make-jam.main.kts to build Jam ${version()}"
+    fun about() = "Jam is ready! Run ./make-jam.kts to build Jam ${version()}"
 
     fun viewDocs() {
         System.setProperty("java.awt.headless", "false")
-        java.awt.Desktop.getDesktop().browse(File("${docs().base()}/index.html").toURI())
+        java.awt.Desktop.getDesktop().browse(docs().file("index.html").toURI())
     }
 }
 

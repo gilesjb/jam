@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -107,15 +106,6 @@ public final class Fileset implements Memorizable, Iterable<File> {
     }
 
     /**
-     * Creates a Fileset consisting of a mapping of the files in this set
-     * @param fn the mapping function
-     * @return the Filest of mapped files
-     */
-    public Fileset map(Function<File, File> fn) {
-        return stream().map(fn).collect(FILES);
-    }
-
-    /**
      * Streams the files in this set
      * @return the Stream of these files
      */
@@ -150,6 +140,15 @@ public final class Fileset implements Memorizable, Iterable<File> {
     public boolean current() {
         return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
                 && files.stream().map(File::current).allMatch(Boolean.TRUE::equals);
+    }
+
+    /**
+     * Gets a file from this fileset
+     * @param path the relative path of the file
+     * @return a reference to the file
+     */
+    public File file(String path) {
+        return new File(Path.of(Objects.requireNonNull(base), path));
     }
 
     @Override public Iterator<File> iterator() {

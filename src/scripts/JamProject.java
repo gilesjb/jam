@@ -28,7 +28,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset mainClasses() {
-        return javac(mainSources(), "-d", buildPath("classes/main"));
+        return javac("classes/main", mainSources());
     }
 
     default Fileset testSources() {
@@ -36,22 +36,20 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset testClasses() {
-        return javac(testSources(),
-                "-d", buildPath("classes/test"),
+        return javac("classes/test", testSources(),
                 "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()));
     }
 
     default Fileset tests() {
-        return junit("--scan-classpath", testClasses().base(),
-                "-cp", classpath(testClasses(), testSources(), mainClasses(), testDependencies()),
-                "--reports-dir=" + buildPath("test-report"));
+        return junit("test-report",
+                "--scan-classpath", classpath(testClasses()),
+                "-cp", classpath(testClasses(), testSources(), mainClasses(), testDependencies()));
     }
 
     default Fileset docs() {
-        return javadoc(
-                "-sourcepath", mainSources().base(),
-                "-d", buildPath("docs"),
-                "-subpackages", "", "-quiet");
+        return javadoc("docs",
+                "-sourcepath", classpath(mainSources()),
+                "-subpackages", "");
     }
 
     default File jarfile() {
@@ -69,7 +67,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default void viewDocs() throws Exception {
-        java.awt.Desktop.getDesktop().browse(new File(docs().base() + "/index.html").toURI());
+        java.awt.Desktop.getDesktop().browse(docs().file("index.html").toURI());
     }
 
     static void main(String[] args) {

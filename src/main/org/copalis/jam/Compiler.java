@@ -2,7 +2,6 @@ package org.copalis.jam;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class Compiler {
      * @param options options to be passed to java
      * @return a List of URIs of the output class files
      */
-    public static List<URI> compile(Iterable<? extends File> sourceFiles, String... options) {
+    public static List<URI> compile(Iterable<? extends File> sourceFiles, Iterable<String> options) {
 
         List<URI> outputClasses = new LinkedList<>();
 
@@ -54,7 +53,7 @@ public class Compiler {
 
         if (!compiler
             .getTask(
-                    null, outputs, null, Arrays.asList(options), null,
+                    null, outputs, null, options, null,
                     fileManager.getJavaFileObjectsFromFiles(sourceFiles))
             .call()) {
             throw new RuntimeException("Compilation failed");

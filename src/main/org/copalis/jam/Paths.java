@@ -28,8 +28,7 @@ public class Paths {
      * @return the corresponding Path
      */
     public static Path fromURI(URI uri) {
-        Path path = Path.of(uri);
-        return path.startsWith(workDir) ? workDir.relativize(path) : path;
+        return relativize(Path.of(uri));
     }
 
     /**
