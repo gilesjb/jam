@@ -1,0 +1,27 @@
+#!/usr/bin/java -classpath .jam-classes --source 17
+
+public interface SimpleJava extends JavaProject {
+
+    default Fileset mainSources() {
+        return sourceFiles("main/**.java");
+    }
+
+    default Fileset mainClasses() {
+        return javac("classes/main", mainSources());
+    }
+
+    default Fileset docs() {
+        return javadoc("docs",
+                "-sourcepath", classpath(mainSources()),
+                "-subpackages", "", "-quiet");
+    }
+
+    default void all() {
+        docs();
+        mainClasses();
+    }
+
+    static void main(String[] args) {
+        Project.run(SimpleJava.class, SimpleJava::all, args);
+    }
+}
