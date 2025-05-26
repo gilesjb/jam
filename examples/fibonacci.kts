@@ -3,7 +3,8 @@
 interface FibonacciExample : Project {
     fun fib(x : Long) : Long = if (x < 2) x else fib(x - 1) + fib(x - 2)
 
+    fun fib_10() = fib(10)
     fun fib_50() = fib(50)
 }
 
-Project.run(FibonacciExample::class.java, FibonacciExample::fib_50, args)
+Project.run(FibonacciExample::class.java, FibonacciExample::fib_10, args)
