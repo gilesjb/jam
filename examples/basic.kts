@@ -1,6 +1,6 @@
 #!/usr/bin/env kotlin -Xjvm-default=all -cp .jam-classes
 
-interface SimpleKts : JavaProject {
+interface ExampleProject : JavaProject {
 
     fun mainSources() = sourceFiles("main/**.java")
 
@@ -14,4 +14,4 @@ interface SimpleKts : JavaProject {
     }
 }
 
-Project.run(SimpleKts::class.java, SimpleKts::all, args)
+Project.run(ExampleProject::class.java, ExampleProject::all, args)
