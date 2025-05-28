@@ -1,168 +1,163 @@
-# Jam - a build tool
+# Jam - a functional React-like build system
 
-## An example build script
+## What is Jam?
 
-Let's say we create a Java [script](https://openjdk.org/jeps/330) called `jam-build`:
+Jam is a Java library that allows you to write build scrips in plain Java or Kotlin code.
 
-```java
-#!/usr/bin/java -classpath jam.jar --source 14
+### Example build scripts
 
-public interface ExampleProject extends JavaProject {
-    default Fileset sources() {
-        return sourceFiles("main/**.java");
-    }
+Below are equivalent Kotlin and Java versions of a script that defines 4 build targets:
 
-    default Fileset classes() {
-        return javaCompile("classes", sources());
-    }
+* **mainSources** - returns a reference to Java source files
+* **mainClasses** - compiles the source files into class files
+* **docs** - generates JavaDocs
+* **all** - (the default target) - executes mainClasses and docs targets
 
-    default File jarfile() {
-        return jar("example.jar", classes());
-    }
-
-    static void main(String[] args) {
-        Project.make(ExampleProject.class, ExampleProject::jarfile, args);
-    }
-}
-```
-
-The first line of the script tells Java that `jam.jar` is on the classpath.
-
-The `main()` method tells Jam to execute `ExampleProject` with `ExampleProject::jarfile` as the default target method.
-
-When we run the script with no arguments Jam executes the default target,
-displaying the call graph of the methods that it calls:
-
-```console
-% ./jam-build
-[execute] jarfile
-[execute]   classes
-[execute]     sources
-[execute]       sourceFiles 'main/**.java'
-[execute]         sourcePath
-[execute]     javaCompile 'classes' src/main/**.java
-[execute]       buildPath
-[execute]       javac src/main/**.java '-d' 'build/classes'
-[execute]   jar 'example.jar' build/classes/**.class
-[current]     buildPath
-Result: build/example.jar
-COMPLETED in 365ms
-```
-This builds the file `build/example.jar`.
-
-Jam *memoizes* method calls and caches their return values.
-Notice that the second call to `buildPath()` is labeled as `[current]`.
-This means the method had already been executed, 
-so Jam used the cached value rather than executing it again. 
-
-Jam persists its cache between runs,
-as we can see if we run the build again:
-
-```console
-% ./jam-build
->[current] jarfile
-Result: build/example.jar
-COMPLETED in 50ms
-```
-
-The result of `jarfile()` was already in the cache,
-so Jam skipped its execution.
-
-If the timestamps of source files have changed Jam will invalidate the cache entries for those files
-and also the cached results of any methods that *depended on them*,
-triggering a rebuild of affected build artifacts.
-
-```console
-% touch src/main/*.java
-% ./jam-build
-[update ] jarfile
-[update ]   classes
-[update ]     sources
-[update ]       sourceFiles 'main/**.java'
-[current]         sourcePath
-[update ]     javaCompile 'classes' src/main/**.java
-[current]       buildPath
-[execute]       javac src/main/**.java '-d' 'build/classes'
-[update ]   jar 'example.jar' build/classes/**.class
-Result: build/example.jar
-COMPLETED in 332ms
-```
-
-Any method with 0 parameters is a *target* that can be specified on the command line.
-The full set of targets can be displayed by running the `targets()` method which is inherited from the parent interface:
-
-```console
-% ./jam-build targets
-[execute] targets
-Project targets
-  classes : Fileset
-  sources : Fileset
-  jarfile : File
-  clean : void
-  targets : void
-  help : void
-  buildPath : String
-  sourcePath : String
-COMPLETED in 15ms
-```
-
-Among the inherited targets is a `clean()` method that deletes the build directory and the cache:
-
-```console
-% ./jam-build clean
-[execute] clean
-[execute]   deleteBuildDir ''
-[current]     buildPath
-COMPLETED in 36ms
-```
-
-## Things to know
-
-You may have noticed that the script has no `import` statements.
-This is because types provided by Jam are declared in the default package so they don't need to be imported.
-
-Source file paths are relative to the base directory `src`,
-and the base directory for build artifacts is `build`.
-To change these override the `sourcePath()` and `buildPath()` methods.
-The Jam cache file is stored in the build directory.
-
-Jam follows these conventions:
-* `void` methods are not memoized, and should be used for logic that has side effects
-* Non-void methods with 1 or more parameters are memoized, but cannot be specified as targets
-
-Due to how Jam's memoizer is implemented, a project must follow these rules:
-* The project class must be an interface containing `default` methods
-* All parameters and return types must be primitive or serializable
-
-## Kotlin scripts
-
-Jam scripts can be written in Kotlin too.
-In fact Jam should work with any JVM language that supports default methods.
-
-Written in Kotlin, the previous script looks like this:
+<details open>
+<summary>Kotlin version of the build script</summary>
 
 ```kotlin
 #!/usr/bin/env kotlin -Xjvm-default=all -cp jam.jar
 
 interface ExampleProject : JavaProject {
 
-    def sources() = sourceFiles("main/**.java")
+    fun mainSources() = sourceFiles("main/**.java")
 
-    def classes() = javaCompile("classes", sources())
+    fun mainClasses() = javac("classes/main", mainSources())
 
-    def jarfile() = jar("example.jar", classes())
+    fun docs() = javadoc("docs", "-sourcepath", classpath(mainSources()), "-subpackages", "", "-quiet")
+
+    fun all() {
+        docs()
+        mainClasses()
+    }
 }
 
-Project.make(ExampleProject::class.java, ExampleProject::jarfile, args)
+Project.run(ExampleProject::class.java, ExampleProject::all, args)
 ```
+</details>
+<details>
+<summary>Java version of the build script</summary>
+
+```java
+#!/usr/bin/java -classpath jam.jar --source 17
+
+public interface ExampleProject extends JavaProject {
+
+    default Fileset mainSources() {
+        return sourceFiles("main/**.java");
+    }
+
+    default Fileset mainClasses() {
+        return javac("classes/main", mainSources());
+    }
+
+    default Fileset docs() {
+        return javadoc("docs",
+                "-sourcepath", classpath(mainSources()),
+                "-subpackages", "", "-quiet");
+    }
+
+    default void all() {
+        docs();
+        mainClasses();
+    }
+
+    static void main(String[] args) {
+        Project.run(ExampleProject.class, ExampleProject::all, args);
+    }
+}
+```
+</details>
+
+> Note: A Jam build script must begin with a `#!` "shebang" line that invokes the Java or Kotlin runtime, and specifies a classpath that includes the Jam jarfile or classes 
+
+To confirm which targets are defined by a build script, run it from the command line with the `--targets` option. 
+
+![Title](media/basic01.png)
+
+Here we can see that the script defines `ExampleProject`, which contains 4 target functions.
+The name and return type of each is shown.
+
+Additional build targets are inherited from parent interface `JavaProject` and its parent interface `BuilderProject`, including the `clean` target which deletes all build artifacts.
+
+> Jam introspects the project interface to find build targets. Each 0-argument function is treated as a build target.
+
+Ok, let's run this build:
+ 
+![Title](media/basic02.png)
+
+When a build script is run without any arguments, the default target is executed, which in this case is `all`.
+
+Jam displays all the function calls that occur within the project. The first few lines show that the target function `all()` calls `docs()` which calls `mainSources()` which calls `sourceFiles("main/**.java")`, etc.
+
+> Jam *memoizes* function calls.
+> This means that when a function is executed (indicated by the `[compute]` tag,) Jam stores the result value in its cache.
+> If an identical function call is made later, Jam intercepts the function call and returns the `[current]` cached value instead.
+
+The memoization cache is persisted between runs of the build script. If we look at the build targets again:
+
+![Title](media/basic03.png)
+
+The targets that were previously executed and had their results cached now have a `[fresh]` tag.
+
+> Only non-void methods are cached
+
+Let's run the build again:
+
+![Title](media/basic04.png)
+
+The `all()` function has no return value and so can't be cached but the `docs()` and `mainClasses()` are both cacheable, and since their dependencies haven't changed their output artifacts do not need to be rebuilt.
+
+## Dependency tracking
+
+Jam tracks the modification time of source files that are inputs or dependencies of the functions that it memoizes.
+
+Let's use `touch` to mark a source file as updated, and then check the status of the build targets:
+
+![Title](media/basic05.png)
+
+Three of the build targets are now marked as `[stale]`. 
+
+> How it works:
+One of the files referenced by the `Fileset` returned by `mainSources()` has been updated, which invalidates that cached result.
+Because `mainSources()` was called by both `docs()` and `mainClasses()` Jam knows they have a dependency on that result, so their results are also stale.
+
+Now if we run the build again, Jam will rebuild aka `[refresh]` the stale targets:
+ 
+![Title](media/basic06.png)
+
+## More advanced build scripts
+
+Take a look at Jam's own build script. This demonstrates more advanced functionality such as running unit tests and downloading libraries from the Maven repository.
+
+## Quirks
+
+You may have noticed that the example build scripts have no `import` statements.
+Types provided by Jam are declared in the default package so for common cases you don't need to clutter your build script with imports.
+
+Source file paths are relative to the base directory `./src`,
+and build functions like `javac()` accept paths that are relatve to the build artifacts base directory, which is `./build` by default.
+To change these, override the `sourcePath()` and `buildPath()` methods.
+
+The Jam cache file is stored in the current directory, and is given the name `.{project-interface-name}.ser`
+
+Jam follows these conventions:
+
+* `void` methods are not memoized, and should be used for logic that has side effects
+* Non-void methods with 1 or more parameters are memoized, but cannot be specified as targets
+
+Due to how Jam's memoizer is implemented, a project must follow these rules:
+
+* The project definition must be an interface rather than a class
+* The functions must be implemented as `default` methods
+* In order to be saved in the result cache, parameters and return types must be primitive or serializable
 
 ## Building the Jam library
 
-Building `jam.jar` requires JDK 14 or higher.
+Building `jam.jar` requires JDK 17 or higher to be installed.
 
 1. Compile the main classes by running `./setup`
-2. Run either `./make-jam` (Java) or `./make-jam.main.kts` (Kotlin) to compile Jam, run unit tests, and create `jam.jar`
+2. Run `./make-jam` to compile Jam, run unit tests, and create JavaDocs and `jam-<version>.jar`
+3. Alternatively, run the equivalent Kotlin build script: `./examples/make-jam.kts`
 
-## Status
-
-Jam is currently in Alpha and everything about it is subject to the whims of the author.
