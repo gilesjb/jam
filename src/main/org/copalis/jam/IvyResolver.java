@@ -59,7 +59,7 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
         for (String ident : dependencies) {
             String[] parts = ident.split(":");
             out.write(String.format("<dependency org='%s' name='%s' rev='%s'/>",
-                    parts[0], parts[1], parts[2]));
+                    parts[0], parts[parts.length - 2], parts[parts.length - 1]));
         }
         out.write("</dependencies></ivy-module>");
     }

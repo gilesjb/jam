@@ -20,7 +20,7 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset testDependencies() {
-        return resolve("commons-lang:commons-lang:2.1", "commons-cli:commons-cli:1.4");
+        return resolve("commons-lang:2.1", "commons-cli:1.4");
     }
 
     default Fileset mainSources() {

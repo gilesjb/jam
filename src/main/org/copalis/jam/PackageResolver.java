@@ -12,7 +12,8 @@ import java.util.stream.Stream;
 public interface PackageResolver extends Serializable {
     /**
      * Resolves dependencies
-     * @param dependencies dependency identifiers in the format {@code "org:name:revision"}
+     * @param dependencies dependency identifiers in the format {@code "org:name:revision"}.
+     * If org and name are the same, the format {@code "name:revision"} can be used instead.
      * @return a stream of Path objects referencing the resolved dependencies
      */
     public Stream<Path> resolve(String... dependencies);

@@ -70,7 +70,8 @@ public interface JavaProject extends BuilderProject {
 
     /**
      * Gets dependencies
-     * @param identifiers names of dependencies in the format {@code "org:name:revision"}
+     * @param identifiers names of dependencies in the format {@code "org:name:revision"}.
+     * If org and name are the same, the format {@code "name:revision"} can be used instead.
      * @return a Fileset containing references to the fetched dependencies
      */
     default Fileset resolve(String... identifiers) {

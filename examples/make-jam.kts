@@ -12,7 +12,7 @@ interface KotlinJamProject : JavaProject, IvyProject {
 
     fun version() = "0.9"
 
-    fun testDependencies() = resolve("commons-lang:commons-lang:2.1", "commons-cli:commons-cli:1.4")
+    fun testDependencies() = resolve("commons-lang:2.1", "commons-cli:1.4")
 
     fun mainSources() = sourceFiles("main/**.java")
 
