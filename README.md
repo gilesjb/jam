@@ -74,7 +74,7 @@ public interface ExampleProject extends JavaProject {
 
 To confirm which targets are defined by a build script, run it from the command line with the `--targets` option. 
 
-![Title](media/basic01.png)
+![Title](examples/media/basic01.png)
 
 Here we can see that the script defines `ExampleProject`, which contains 4 target functions.
 The name and return type of each is shown.
@@ -85,7 +85,7 @@ Additional build targets are inherited from parent interface `JavaProject` and i
 
 Ok, let's run this build:
  
-![Title](media/basic02.png)
+![Title](examples/media/basic02.png)
 
 When a build script is run without any arguments, the default target is executed, which in this case is `all`.
 
@@ -97,7 +97,7 @@ Jam displays all the function calls that occur within the project. The first few
 
 The memoization cache is persisted between runs of the build script. If we look at the build targets again:
 
-![Title](media/basic03.png)
+![Title](examples/media/basic03.png)
 
 The targets that were previously executed and had their results cached now have a `[fresh]` tag.
 
@@ -105,7 +105,7 @@ The targets that were previously executed and had their results cached now have 
 
 Let's run the build again:
 
-![Title](media/basic04.png)
+![Title](examples/media/basic04.png)
 
 The `all()` function has no return value and so can't be cached but the `docs()` and `mainClasses()` are both cacheable, and since their dependencies haven't changed their output artifacts do not need to be rebuilt.
 
@@ -115,7 +115,7 @@ Jam tracks the modification time of source files that are inputs or dependencies
 
 Let's use `touch` to mark a source file as updated, and then check the status of the build targets:
 
-![Title](media/basic05.png)
+![Title](examples/media/basic05.png)
 
 Three of the build targets are now marked as `[stale]`. 
 
@@ -125,11 +125,15 @@ Because `mainSources()` was called by both `docs()` and `mainClasses()` Jam know
 
 Now if we run the build again, Jam will rebuild aka `[refresh]` the stale targets:
  
-![Title](media/basic06.png)
+![Title](examples/media/basic06.png)
 
 ## More advanced build scripts
 
-Take a look at Jam's own build script. This demonstrates more advanced functionality such as running unit tests and downloading libraries from the Maven repository.
+Take a look at Jam's own [build script](examples/make-jam.kts). This demonstrates how to:
+
+* Download libraries from the Maven repository and use them as build dependencies
+* Run unit tests
+* Build jar files
 
 ## Quirks
 
