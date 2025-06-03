@@ -60,6 +60,7 @@ public class Cmd {
     public void run() {
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(array());
+        pb.redirectInput(Redirect.INHERIT);
         pb.redirectError(Redirect.INHERIT);
         pb.redirectOutput(Redirect.INHERIT);
         try {
