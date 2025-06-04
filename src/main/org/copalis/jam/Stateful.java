@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  * @author gilesjb
  */
-public interface Memorizable extends Serializable {
+public interface Stateful extends Serializable {
 
     /**
      * Checks if the resource has been modified since this reference was created
@@ -21,6 +21,6 @@ public interface Memorizable extends Serializable {
      * @return true if the resource has not been modified
      */
     static boolean isCurrent(Object obj) {
-        return !(obj instanceof Memorizable mem) || mem.current();
+        return !(obj instanceof Stateful mem) || mem.current();
     }
 }

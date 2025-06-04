@@ -45,8 +45,6 @@ public class MemorizerTest {
         Memorizer memo = new Memorizer();
         Fibonacci fib = memo.instantiate(Fibonacci.class);
 
-        Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> {
-            fib.foo();
-        });
+        Assertions.assertThrowsExactly(IllegalArgumentException.class, fib::foo);
     }
 }

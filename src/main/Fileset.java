@@ -12,14 +12,14 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Memorizable;
+import org.copalis.jam.Stateful;
 
 /**
  * A reference to a set of existing files
  *
  * @author gilesjb
  */
-public final class Fileset implements Memorizable, Iterable<File> {
+public final class Fileset implements Stateful, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 

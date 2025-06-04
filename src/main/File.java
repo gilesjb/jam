@@ -6,14 +6,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.jam.Memorizable;
+import org.copalis.jam.Stateful;
 
 /**
  * A reference to an existing file
  *
  * @author gilesjb
  */
-public final class File extends java.io.File implements Memorizable {
+public final class File extends java.io.File implements Stateful {
     private static final long serialVersionUID = 1L;
 
     /**

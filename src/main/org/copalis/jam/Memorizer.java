@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  */
 public class Memorizer {
 
-    private final LinkedList<Set<Memorizable>> dependencies = new LinkedList<>();
+    private final LinkedList<Set<Stateful>> dependencies = new LinkedList<>();
     private Map<Invocation, Result> cache = new LinkedHashMap<>();
     private final Observer observer;
     private final File cacheFile;
@@ -91,7 +91,7 @@ public class Memorizer {
         }
 
         boolean isCurrent() {
-            return params.stream().allMatch(Memorizable::isCurrent);
+            return params.stream().allMatch(Stateful::isCurrent);
         }
         boolean serializable() {
             return params.stream().allMatch(Memorizer::objSerializable);
@@ -108,10 +108,10 @@ public class Memorizer {
      * @param value the method call result
      * @param sources the dependencies of the method call
      */
-    public record Result(Invocation signature, Object value, Set<Memorizable> sources) implements Serializable {
+    public record Result(Invocation signature, Object value, Set<Stateful> sources) implements Serializable {
         boolean isCurrent() {
-            return signature.isCurrent() && Memorizable.isCurrent(value)
-                    && sources.stream().allMatch(Memorizable::current);
+            return signature.isCurrent() && Stateful.isCurrent(value)
+                    && sources.stream().allMatch(Stateful::current);
         }
         boolean serializable() {
             return objSerializable(value) && signature.serializable();
@@ -178,7 +178,7 @@ public class Memorizer {
      * Records a resource as being a dependency of the current method that is executing
      * @param resource the resource
      */
-    public void dependsOn(Memorizable resource) {
+    public void dependsOn(Stateful resource) {
         dependencies.peek().add(resource);
     }
 
@@ -223,7 +223,7 @@ public class Memorizer {
             }
             return value;
         } finally {
-            Set<Memorizable> used = dependencies.pop();
+            Set<Stateful> used = dependencies.pop();
             dependencies.peek().addAll(used);
         }
     }
