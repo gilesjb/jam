@@ -6,14 +6,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.jam.Stateful;
+import org.copalis.jam.Mutable;
 
 /**
  * A reference to an existing file
  *
  * @author gilesjb
  */
-public final class File extends java.io.File implements Stateful {
+public final class File extends java.io.File implements Mutable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -71,8 +71,8 @@ public final class File extends java.io.File implements Stateful {
         }
     }
 
-    public boolean current() {
-        return modified != 0L && modified == lastModified();
+    public boolean modified() {
+        return modified == 0L || modified != lastModified();
     }
 
     @Override public boolean equals(Object other) {

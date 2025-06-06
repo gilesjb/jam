@@ -222,10 +222,10 @@ public class BuildController<T> implements Memorizer.Observer {
     private void printResultStatus(Result result) {
         if (Objects.isNull(result)) {
             print("         ");
-        } else if (result.isCurrent()) {
-            color(GREEN).print("[fresh]  ");
-        } else {
+        } else if (result.modified()) {
             color(CYAN).print("[stale]  ");
+        } else {
+            color(GREEN).print("[fresh]  ");
         }
         color(RESET);
     }

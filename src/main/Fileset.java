@@ -12,14 +12,14 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Stateful;
+import org.copalis.jam.Mutable;
 
 /**
  * A reference to a set of existing files
  *
  * @author gilesjb
  */
-public final class Fileset implements Stateful, Iterable<File> {
+public final class Fileset implements Mutable, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
 
@@ -137,9 +137,9 @@ public final class Fileset implements Stateful, Iterable<File> {
         return Objects.nonNull(base) ? Stream.of(new File(base)) : stream();
     }
 
-    public boolean current() {
-        return (Objects.isNull(pattern) || Objects.equals(this, find(base, pattern)))
-                && files.stream().map(File::current).allMatch(Boolean.TRUE::equals);
+    public boolean modified() {
+        return Objects.nonNull(pattern) && !Objects.equals(this, find(base, pattern))
+                || files.stream().anyMatch(File::modified);
     }
 
     /**

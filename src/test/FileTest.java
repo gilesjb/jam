@@ -1,4 +1,4 @@
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,7 +19,7 @@ class FileTest {
 
     @Test
     public void testCurrent() {
-        assertTrue(file.current());
+        assertFalse(file.modified());
     }
 
     @Test

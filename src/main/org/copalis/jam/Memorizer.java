@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  */
 public class Memorizer {
 
-    private final LinkedList<Set<Stateful>> dependencies = new LinkedList<>();
+    private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
     private Map<Invocation, Result> cache = new LinkedHashMap<>();
     private final Observer observer;
     private final File cacheFile;
@@ -72,7 +72,7 @@ public class Memorizer {
      * @param name the name of an invoked method
      * @param params the parameters passed in the method call
      */
-    public record Invocation(String name, List<Object> params) implements Serializable {
+    public record Invocation(String name, List<Object> params) implements Mutable {
         Invocation(Method method, Object... params) {
             this(method.getName(), Objects.isNull(params) ? Collections.emptyList()
                     : method.isVarArgs() ? expandVarArgs(params) : Arrays.asList(params));
@@ -90,11 +90,12 @@ public class Memorizer {
             return result;
         }
 
-        boolean isCurrent() {
-            return params.stream().allMatch(Stateful::isCurrent);
-        }
         boolean serializable() {
             return params.stream().allMatch(Memorizer::objSerializable);
+        }
+
+        public boolean modified() {
+            return params.stream().anyMatch(Mutable::hasChanged);
         }
     }
 
@@ -108,13 +109,12 @@ public class Memorizer {
      * @param value the method call result
      * @param sources the dependencies of the method call
      */
-    public record Result(Invocation signature, Object value, Set<Stateful> sources) implements Serializable {
-        boolean isCurrent() {
-            return signature.isCurrent() && Stateful.isCurrent(value)
-                    && sources.stream().allMatch(Stateful::current);
-        }
+    public record Result(Invocation signature, Object value, Set<Mutable> sources) implements Mutable {
         boolean serializable() {
             return objSerializable(value) && signature.serializable();
+        }
+        public boolean modified() {
+            return signature.modified() || Mutable.hasChanged(value) || sources.stream().anyMatch(Mutable::hasChanged);
         }
     }
 
@@ -178,15 +178,15 @@ public class Memorizer {
      * Records a resource as being a dependency of the current method that is executing
      * @param resource the resource
      */
-    public void dependsOn(Stateful resource) {
+    public void dependsOn(Mutable resource) {
         dependencies.peek().add(resource);
     }
 
     /**
-     * Creates a memoized instance of a build interface
+     * Creates a memoized instance of an interface
      * @param <T> the build type
-     * @param t the Java class of the build interface
-     * @return the created build object
+     * @param t the Java class of the interface
+     * @return the created object
      */
     public <T> T instantiate(Class<T> t) {
         dependencies.push(new HashSet<>());
@@ -201,7 +201,7 @@ public class Memorizer {
         if (cache.containsKey(signature)) {
             Result result = cache.get(signature);
 
-            if (!result.isCurrent()) {
+            if (result.modified()) {
                 status = Status.REFRESH;
                 cache.remove(signature);
             } else {
@@ -223,7 +223,7 @@ public class Memorizer {
             }
             return value;
         } finally {
-            Set<Stateful> used = dependencies.pop();
+            Set<Mutable> used = dependencies.pop();
             dependencies.peek().addAll(used);
         }
     }

@@ -2,7 +2,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.copalis.jam.BuildController;
-import org.copalis.jam.Stateful;
+import org.copalis.jam.Mutable;
 
 /**
  * A build project that provides common file manipulation methods
@@ -29,7 +29,7 @@ public interface Project {
      * @param resource a reference to a mutable resource
      * @return the
      */
-    default <T extends Stateful> T dependsOn(T resource) {
+    default <T extends Mutable> T dependsOn(T resource) {
         using(BuildController.MEMO).dependsOn(resource);
         return resource;
     }
