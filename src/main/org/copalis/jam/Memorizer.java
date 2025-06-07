@@ -1,9 +1,5 @@
 package org.copalis.jam;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -37,23 +33,20 @@ public class Memorizer {
     private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
     private Map<Invocation, Result> cache = new LinkedHashMap<>();
     private final Observer observer;
-    private final File cacheFile;
 
     /**
      * Creates an instance
      * @param observer an invocation observer, must not be null
-     * @param cacheFile a cache file reference, may be null
      */
-    public Memorizer(Observer observer, File cacheFile) {
+    public Memorizer(Observer observer) {
         this.observer = Objects.requireNonNull(observer);
-        this.cacheFile = cacheFile;
     }
 
     /**
      * Creates an instance with no related observer or cache file
      */
     public Memorizer() {
-        this(new Observer() { }, null);
+        this(new Observer() { });
     }
 
     enum Status {
@@ -118,34 +111,18 @@ public class Memorizer {
         }
     }
 
-    /**
-     * Gets the cache file being used
-     * @return a file reference or null
-     */
-    public File cacheFile() {
-        return cacheFile;
-    }
-
-    void loadCache() throws IOException, ClassNotFoundException {
-        try (InputStream in = new FileInputStream(cacheFile)) {
-            try (ObjectInputStream obj = new ObjectInputStream(in)) {
-                @SuppressWarnings("unchecked")
-                List<Result> results = (List<Result>) obj.readObject();
-                results.forEach(result -> cache.put(result.signature(), result));
-            }
+    void load(InputStream in) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream obj = new ObjectInputStream(in)) {
+            @SuppressWarnings("unchecked")
+            List<Result> results = (List<Result>) obj.readObject();
+            results.forEach(result -> cache.put(result.signature(), result));
         }
     }
 
-    void save() throws FileNotFoundException, IOException {
-        if (cache.isEmpty()) {
-            cacheFile.delete();
-        } else {
-            try (OutputStream out = new FileOutputStream(cacheFile)) {
-                try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
-                    obj.writeObject(cache.values().stream().filter(Result::serializable)
-                            .collect(Collectors.toList()));
-                }
-            }
+    void save(OutputStream out) throws IOException {
+        try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
+            obj.writeObject(cache.values().stream().filter(Result::serializable)
+                    .collect(Collectors.toList()));
         }
     }
 
@@ -171,7 +148,6 @@ public class Memorizer {
      */
     public void forget() {
         cache = new LinkedHashMap<>();
-        cacheFile.delete();
     }
 
     /**

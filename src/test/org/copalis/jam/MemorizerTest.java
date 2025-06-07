@@ -27,7 +27,7 @@ public class MemorizerTest {
             public void startMethod(Status status, Method method, List<Object> params) {
                 calls.add(status);
             }
-        }, null);
+        });
 
         Fibonacci fib = memo.instantiate(Fibonacci.class);
 

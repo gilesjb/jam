@@ -48,7 +48,8 @@ public interface BuilderProject extends Project {
     }
 
     /**
-     * Deletes the build directory and empties the method cache
+     * Deletes the build directory specified by {@link #buildPath()}.
+     * Also: {@inheritDoc}
      */
     default void clean() {
         rmdir(buildPath());

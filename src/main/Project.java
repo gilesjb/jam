@@ -1,3 +1,5 @@
+import java.io.File;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -35,9 +37,13 @@ public interface Project {
     }
 
     /**
-     * Empties the result cache
+     * Empties the result cache and deletes the cache file, if it exists
      */
     default void clean() {
+        File cacheFile = using(BuildController.CACHE_FILE);
+        if (Objects.nonNull(cacheFile) && cacheFile.exists()) {
+            cacheFile.delete();
+        }
         using(BuildController.MEMO).forget();
     }
 

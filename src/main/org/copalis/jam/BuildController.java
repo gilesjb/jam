@@ -1,7 +1,11 @@
 package org.copalis.jam;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,6 +39,11 @@ public class BuildController<T> implements Memorizer.Observer {
         }
     };
 
+    /**
+     * A dummy File object that is replaced by a reference to the memoizer's cache file
+     */
+    public static final File CACHE_FILE = new File(".{project-name}.ser");
+
     private static final boolean colors = Objects.nonNull(System.console());
 
     private static final String
@@ -49,6 +58,7 @@ public class BuildController<T> implements Memorizer.Observer {
 
     record Call(Method method, List<Object> params) { }
 
+    private final File cacheFile;
     private final Memorizer memo;
     private final Class<T> type;
     private final Set<Call> cached = new HashSet<>();
@@ -63,7 +73,8 @@ public class BuildController<T> implements Memorizer.Observer {
      */
     public BuildController(Class<T> type) {
         this.type = type;
-        this.memo = new Memorizer(this, new File("." + type.getSimpleName() + ".ser"));
+        this.cacheFile = new File("." + type.getSimpleName() + ".ser");
+        this.memo = new Memorizer(this);
     }
 
     public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
@@ -75,7 +86,7 @@ public class BuildController<T> implements Memorizer.Observer {
             }
             print("[").print(status.name().toLowerCase());
             print(" ".repeat(7 - status.name().length()));
-            print("] ");
+            print("]  ");
             color(RESET).printMethod(method.getName(), params);
             line();
         }
@@ -87,6 +98,8 @@ public class BuildController<T> implements Memorizer.Observer {
         calls--;
         if (result == MEMO) {
             return memo;
+        } else if (result == CACHE_FILE) {
+            return cacheFile;
         } else {
             return result;
         }
@@ -138,7 +151,11 @@ public class BuildController<T> implements Memorizer.Observer {
                     }
                 } finally {
                     if (memo.entries().findAny().isPresent()) {
-                        memo.save();
+                        try (OutputStream out = new FileOutputStream(cacheFile)) {
+                            memo.save(out);
+                        }
+                    } else if (cacheFile.exists()) {
+                        cacheFile.delete();
                     }
                 }
                 color(GREEN_BRIGHT).print("COMPLETED");
@@ -162,10 +179,12 @@ public class BuildController<T> implements Memorizer.Observer {
             long scriptModified = Objects.nonNull(scriptLocation)
                     ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
 
-            if (memo.cacheFile().exists() && memo.cacheFile().lastModified() < scriptModified) {
+            if (cacheFile.exists() && cacheFile.lastModified() < scriptModified) {
                 color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").color(RESET).line();
-            } else if (memo.cacheFile().exists()) {
-                memo.loadCache();
+            } else if (cacheFile.exists()) {
+                try (InputStream in = new FileInputStream(cacheFile)) {
+                    memo.load(in);
+                }
             }
         }
 
@@ -173,7 +192,7 @@ public class BuildController<T> implements Memorizer.Observer {
     }
 
     private void printCacheContents() {
-        print("Contents of cache file ").print(memo.cacheFile()).line();
+        print("Contents of cache file ").print(cacheFile).line();
         memo.entries().forEach(e -> {
                 printResultStatus(e);
                 color(BOLD).printMethod(e.signature().name(), e.signature().params());
