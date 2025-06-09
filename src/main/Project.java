@@ -49,13 +49,13 @@ public interface Project {
 
 
     /**
-     * Executes a project
+     * Executes a project using {@link BuildController#execute(Function, String[])}
      * @param <T> the project type
-     * @param t the project class reference
+     * @param t the project interface reference
      * @param fn a consumer that calls the default build method
      * @param args command line arguments
      */
-    public static <T extends Project> void run(Class<T> t, Consumer<T> fn, String[] args) {
+    public static <T> void run(Class<T> t, Consumer<T> fn, String[] args) {
         new BuildController<>(t).execute(o -> {
             fn.accept(o);
             return null;
@@ -63,13 +63,13 @@ public interface Project {
     }
 
     /**
-     * Executes a project
+     * Executes a project using {@link BuildController#execute(Function, String[])}
      * @param <T> The project type
-     * @param t the project class reference
+     * @param t the project interface reference
      * @param fn a function that calls the default build method
      * @param args command line arguments
      */
-    public static <T extends Project> void run(Class<T> t, Function<T, ?> fn, String[] args) {
+    public static <T> void run(Class<T> t, Function<T, ?> fn, String[] args) {
         new BuildController<>(t).execute(fn, args);
     }
 }
