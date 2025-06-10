@@ -24,9 +24,25 @@ import org.copalis.jam.Memorizer.Invocation;
 import org.copalis.jam.Memorizer.Result;
 
 /**
- * Controller for the build process
- * @param <T> the build class
+ * A build process controller.
  *
+ * The controller is constructed with a reference to a build interface,
+ * which defines the build targets and logic:
+ * The controller treats each 0-argument method declared by the build interface is a target.
+ * For example, the method
+ * <pre>
+ * {@code default File jarFile() { ... }}
+ * </pre>
+ * defines a target called {@code jarFile}.
+ * <p>
+ * When the controller is constructed it creates a memoized instance of the build interface
+ * and registers itself as an observer of the memoizer so that it can intercept and log all
+ * the method calls.
+ * <p>
+ * The state of the memoizer's cache is saved to a file called {@code .<T>.ser},
+ * where {@code <T>} is the unqualified name of the build interface.
+ *
+ * @param <T> the build interface type
  * @author gilesjb
  */
 public class BuildController<T> implements Memorizer.Observer {
@@ -106,9 +122,23 @@ public class BuildController<T> implements Memorizer.Observer {
     }
 
     /**
-     * Runs the build
+     * Executes a build as specified by command-line arguments.
+     * <p>
+     * Depending on the command-line arguments supplied to this method,
+     * either target methods on the build interface are executed
+     * or information about the build or its status is displayed to the console.
+     * <p>
+     * Command-line arguments may be
+     * <dl>
+     * <dt>--help<dd>Displays help information
+     * <dt>--cache<dd>Displays the contents of the memoization cache
+     * <dt>--targets<dd>Displays the names, return types, and cache status of the target methods
+     * <dt><i>target-name</i><dd>Executes the target method with the specified name
+     * </dl>
+     * If no arguments are specified, {@code buildFn} is invoked.
+     *
      * @param buildFn a function that invokes the default build target
-     * @param args the build's command line arguments
+     * @param args the build's command line arguments.
      */
     public void execute(Function<T, ?> buildFn, String[] args) {
         long start = System.currentTimeMillis();
