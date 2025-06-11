@@ -28,19 +28,21 @@ import org.copalis.jam.Memorizer.Result;
  *
  * The controller is constructed with a reference to a build interface,
  * which defines the build targets and logic:
- * The controller treats each 0-argument method declared by the build interface is a target.
+ * The controller treats each 0-argument method declared by the build interface as a build target.
  * For example, the method
  * <pre>
  * {@code default File jarFile() { ... }}
  * </pre>
- * defines a target called {@code jarFile}.
+ * defines a build target called {@code jarFile}.
  * <p>
  * When the controller is constructed it creates a memoized instance of the build interface
- * and registers itself as an observer of the memoizer so that it can intercept and log all
+ * and registers itself as an observer so that it can intercept and log all
  * the method calls.
  * <p>
- * The state of the memoizer's cache is saved to a file called {@code .<T>.ser},
- * where {@code <T>} is the unqualified name of the build interface.
+ * The state of the memoizer's cache is saved to a file called {@code .<project>.ser},
+ * where {@code <project>} is the unqualified name of the build interface.
+ * This saved cache tracks the state of source files and ensures that derived artifacts
+ * are rebuilt when the sources change.
  *
  * @param <T> the build interface type
  * @author gilesjb

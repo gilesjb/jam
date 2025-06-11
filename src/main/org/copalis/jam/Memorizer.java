@@ -23,8 +23,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Instantiates an interface using a dynamic proxy and memoizes the method calls.
- * Memoized results can be saved to a cache file and restored later.
+ * A memoizer that can create instances of interfaces.
+ * It stores the results of calls to {@code default} methods on the instantiated interface and returns the cached
+ * results when later calls to the methods are made with the same parameter values.
+ * <p>
+ * Cache entries that implement {@link java.io.Serializable} may be saved and loaded.
+ * <p>
+ * The memoizer can also track dependencies on external mutable state such as files,
+ * and invalidate cache entries when that state changes.
  *
  * @author gilesjb
  */
@@ -144,15 +150,28 @@ public class Memorizer {
     }
 
     /**
-     * Erases all method calls from the cache and deletes the cache file
+     * Erases all method call results from the cache
      */
     public void forget() {
         cache = new LinkedHashMap<>();
     }
 
     /**
-     * Records a resource as being a dependency of the current method that is executing
-     * @param resource the resource
+     * Records a mutable resource as a data dependency.
+     * When a mutable resources's {@link Mutable#modified()} value is {@code true},
+     * the return values of all dependent methods are invalidated.
+     * <p>
+     * When this method is called,
+     * methods that may have a data dependency on the resource are recorded as dependents.
+     * The exact rule for determining dependents is:
+     * <ul>
+     * <li>The method that called {@link #dependsOn(Mutable)}
+     * <li>Any method that calls a dependent method
+     * <li>Any method that has 1 or more parameters and is called from a method
+     * that has previously called a dependent method
+     * </ul>
+     *
+     * @param resource the mutable resource
      */
     public void dependsOn(Mutable resource) {
         dependencies.peek().add(resource);
