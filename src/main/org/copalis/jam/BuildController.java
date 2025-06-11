@@ -45,7 +45,7 @@ import org.copalis.jam.Memorizer.Result;
  * @param <T> the build interface type
  * @author gilesjb
  */
-public class BuildController<T> implements Memorizer.Observer {
+public class BuildController<T> {
     /**
      * A dummy memoizer that is replaced by the real memoizer during execution of projects
      */
@@ -80,6 +80,36 @@ public class BuildController<T> implements Memorizer.Observer {
     private final Set<Call> cached = new HashSet<>();
     private final PrintStream out = System.out;
 
+    private final Memorizer.Observer observer = new Memorizer.Observer() {
+        public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
+            if (status != Memorizer.Status.CURRENT || cached.add(new Call(method, params))) {
+                switch (status) {
+                case CURRENT: color(GREEN); break;
+                case COMPUTE: color(YELLOW); break;
+                case REFRESH: color(CYAN); break;
+                }
+                print("[").print(status.name().toLowerCase());
+                print(" ".repeat(7 - status.name().length()));
+                print("]  ");
+                color(RESET).printMethod(method.getName(), params);
+                line();
+            }
+
+            calls++;
+        }
+
+        public Object endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
+            calls--;
+            if (result == MEMO) {
+                return memo;
+            } else if (result == CACHE_FILE) {
+                return cacheFile;
+            } else {
+                return result;
+            }
+        }
+    };
+
     private int calls = 0;
     private T object;
 
@@ -90,35 +120,7 @@ public class BuildController<T> implements Memorizer.Observer {
     public BuildController(Class<T> type) {
         this.type = type;
         this.cacheFile = new File("." + type.getSimpleName() + ".ser");
-        this.memo = new Memorizer(this);
-    }
-
-    public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
-        if (status != Memorizer.Status.CURRENT || cached.add(new Call(method, params))) {
-            switch (status) {
-            case CURRENT: color(GREEN); break;
-            case COMPUTE: color(YELLOW); break;
-            case REFRESH: color(CYAN); break;
-            }
-            print("[").print(status.name().toLowerCase());
-            print(" ".repeat(7 - status.name().length()));
-            print("]  ");
-            color(RESET).printMethod(method.getName(), params);
-            line();
-        }
-
-        calls++;
-    }
-
-    public Object endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
-        calls--;
-        if (result == MEMO) {
-            return memo;
-        } else if (result == CACHE_FILE) {
-            return cacheFile;
-        } else {
-            return result;
-        }
+        this.memo = new Memorizer(observer);
     }
 
     /**
@@ -130,9 +132,9 @@ public class BuildController<T> implements Memorizer.Observer {
      * <p>
      * Command-line arguments may be
      * <dl>
-     * <dt>--help<dd>Displays help information
-     * <dt>--cache<dd>Displays the contents of the memoization cache
-     * <dt>--targets<dd>Displays the names, return types, and cache status of the target methods
+     * <dt>{@code --help}<dd>Displays help information
+     * <dt>{@code --cache}<dd>Displays the contents of the memoization cache
+     * <dt>{@code --targets}<dd>Displays the names, return types, and cache status of the target methods
      * <dt><i>target-name</i><dd>Executes the target method with the specified name
      * </dl>
      * If no arguments are specified, {@code buildFn} is invoked.
