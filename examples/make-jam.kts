@@ -12,7 +12,7 @@ interface KotlinJamProject : JavaProject, IvyProject {
 
     fun version() = "0.9"
 
-    fun testDependencies() = resolve("commons-lang:2.1", "commons-cli:1.4")
+    fun testLibs() = resolve("commons-lang:2.1", "commons-cli:1.4")
 
     fun mainSources() = sourceFiles("main/**.java")
 
@@ -21,11 +21,11 @@ interface KotlinJamProject : JavaProject, IvyProject {
     fun testSources() = sourceFiles("test/**.java")
 
     fun testClasses() = javac("classes/test", testSources(),
-            "-cp", classpath(mainClasses(), jUnitLib(), testDependencies()))
+            "-cp", classpath(mainClasses(), jUnitLib(), testLibs()))
 
     fun tests() = junit("test-report",
             "--scan-classpath", classpath(testClasses()),
-            "-cp", classpath(testClasses(), testSources(), mainClasses(), testDependencies()))
+            "-cp", classpath(testClasses(), testSources(), mainClasses(), testLibs()))
 
     fun docs() = javadoc("docs",
             "-sourcepath", classpath(mainSources()),

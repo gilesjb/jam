@@ -1,8 +1,8 @@
-import org.copalis.jam.IvyResolver;
+import org.copalis.jam.util.IvyResolver;
 
 /**
- * Project mixin which provides an implementation of {@link JavaProject#packageResolver()}
- * that uses Apache Ivy
+ * Project mixin providing an implementation of {@link JavaProject#packageResolver()}
+ * which uses Apache Ivy to download packages from the Maven repository.
  *
  * @author gilesjb
  */

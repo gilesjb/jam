@@ -4,11 +4,15 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.copalis.jam.BuildController;
+import org.copalis.jam.Memorizer;
 import org.copalis.jam.Mutable;
 
 /**
- * A build project that provides common file manipulation methods
+ * A base Project interface which defines the {@code clean} build target
+ * and provides functionality to track source file dependencies,
+ * control the build process and handle command-line options.
  *
+ * @see BuildController#executeBuild(Function, String[])
  * @author gilesjb
  */
 public interface Project {
@@ -24,12 +28,17 @@ public interface Project {
     }
 
     /**
-     * Records a dependency on a mutable resource.
-     * The resource will be recorded as a dependency of all project methods currently on the call stack,
-     * and all methods it is passed to.
+     * Records a mutable resource such as a {@link File} as a dependency. If the resource changes,
+     * the cached results of all dependent methods will invalidated and build targets
+     * that depend on it will be marked as {@code [stale]}.
+     * <p>
+     * The set of methods that will be recorded as dependent on the resource is specified by
+     * {@link Memorizer#dependsOn(Mutable)}.
+     *
      * @param <T> the resource type
      * @param resource a reference to a mutable resource
-     * @return the
+     * @return the resource
+     * @see Memorizer#dependsOn(Mutable)
      */
     default <T extends Mutable> T dependsOn(T resource) {
         using(BuildController.MEMO).dependsOn(resource);
@@ -37,6 +46,7 @@ public interface Project {
     }
 
     /**
+     * The {@code clean} build target.
      * Empties the result cache and deletes the cache file, if it exists
      */
     default void clean() {
@@ -49,27 +59,27 @@ public interface Project {
 
 
     /**
-     * Executes a project using {@link BuildController#execute(Function, String[])}
+     * Executes a project using {@link BuildController#executeBuild(Function, String[])}
      * @param <T> the project type
      * @param t the project interface reference
      * @param fn a consumer that calls the default build method
      * @param args command line arguments
      */
     public static <T> void run(Class<T> t, Consumer<T> fn, String[] args) {
-        new BuildController<>(t).execute(o -> {
+        new BuildController<>(t).executeBuild(o -> {
             fn.accept(o);
             return null;
         }, args);
     }
 
     /**
-     * Executes a project using {@link BuildController#execute(Function, String[])}
+     * Executes a project using {@link BuildController#executeBuild(Function, String[])}
      * @param <T> The project type
      * @param t the project interface reference
      * @param fn a function that calls the default build method
      * @param args command line arguments
      */
     public static <T> void run(Class<T> t, Function<T, ?> fn, String[] args) {
-        new BuildController<>(t).execute(fn, args);
+        new BuildController<>(t).executeBuild(fn, args);
     }
 }

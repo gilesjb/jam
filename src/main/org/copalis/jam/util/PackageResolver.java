@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.util;
 
 import java.io.Serializable;
 import java.nio.file.Path;

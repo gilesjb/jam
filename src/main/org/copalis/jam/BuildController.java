@@ -24,7 +24,7 @@ import org.copalis.jam.Memorizer.Invocation;
 import org.copalis.jam.Memorizer.Result;
 
 /**
- * A build process controller.
+ * A build process command-line argument parser and controller.
  *
  * The controller is constructed with a reference to a build interface,
  * which defines the build targets and logic:
@@ -144,7 +144,7 @@ public class BuildController<T> {
      * @param buildFn a function that invokes the default build target
      * @param args the build's command line arguments.
      */
-    public void execute(Function<T, ?> buildFn, String[] args) {
+    public void executeBuild(Function<T, ?> buildFn, String[] args) {
         long start = System.currentTimeMillis();
         boolean exit = false;
 

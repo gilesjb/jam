@@ -2,11 +2,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.jam.Cmd;
-import org.copalis.jam.Paths;
+import org.copalis.jam.util.Cmd;
+import org.copalis.jam.util.Paths;
 
 /**
- * A project that reads and writes to the file system
+ * A base Project for scripts that create build artifacts derived from source files.
+ * All source files should be located inside the directory specified by the {@link #sourcePath()}
+ * build target, and build artifacts are written to the directory specified by {@link #buildPath()}.
+ * <p>
+ * To ensure that dependencies on source files are correctly tracked,
+ * get references to source files using {@link #sourceFile(String)} and {@link #sourceFiles(String)}.
  *
  * @author gilesjb
  */

@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;

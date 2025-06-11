@@ -10,13 +10,20 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Cmd;
-import org.copalis.jam.Compiler;
-import org.copalis.jam.PackageResolver;
-import org.copalis.jam.Paths;
+import org.copalis.jam.util.Cmd;
+import org.copalis.jam.util.Compiler;
+import org.copalis.jam.util.PackageResolver;
+import org.copalis.jam.util.Paths;
 
 /**
- * A Project with functionality for building Java code
+ * A Project with functionality for building Java code.
+ * Utility methods are provided for compiling Java code,
+ * running unit tests,
+ * generating JavaDoc,
+ * and creating jar files.
+ * <p>
+ * In order to enable dependency package downloading via the {@link #resolve(String...)} method,
+ * an interface that implements {@link #packageResolver()} must be mixed in with this interface.
  *
  * @author gilesjb
  */

@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.util;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
