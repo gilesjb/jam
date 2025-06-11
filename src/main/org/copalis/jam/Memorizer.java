@@ -187,7 +187,12 @@ public class Memorizer {
                 return result.value();
             }
         }
-        dependencies.push(new HashSet<>());
+
+        if (method.getParameterCount() > 0) {
+            dependencies.push(new HashSet<>(dependencies.peek()));
+        } else {
+            dependencies.push(new HashSet<>());
+        }
         observer.startMethod(status, method, signature.params());
 
         Object value = null;

@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -27,7 +28,7 @@ public final class Fileset implements Mutable, Iterable<File> {
      * A Collector that collects a stream of File objects into a Fileset
      */
     public static final Collector<File, Object, Fileset> FILES =
-            Collectors.collectingAndThen(Collectors.toSet(), Fileset::of);
+            Collectors.collectingAndThen(Collectors.toCollection(LinkedHashSet::new), Fileset::of);
 
     /**
      * The files that belong to this set
