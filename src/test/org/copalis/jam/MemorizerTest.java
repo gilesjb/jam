@@ -18,8 +18,6 @@ public class MemorizerTest {
         default long fib(long x) {
             return x <= 1 ? x : fib(x - 1) + fib(x - 2);
         }
-
-        void foo();
     }
 
     @Test public void testMemoization() {
@@ -33,7 +31,6 @@ public class MemorizerTest {
 
         Fibonacci fib = memo.instantiate(Fibonacci.class);
 
-
         assertEquals(3736710778780434371L, fib.fib(100));
         assertEquals(101, calls.stream().filter(Status.COMPUTE::equals).count());
         assertEquals(98, calls.stream().filter(Status.CURRENT::equals).count());
@@ -43,16 +40,20 @@ public class MemorizerTest {
         assertEquals(1, calls.size());
     }
 
+    interface Foo {
+        void foo();
+    }
+
     @Test public void testAbstractMethod() {
         Memorizer memo = new Memorizer();
-        Fibonacci fib = memo.instantiate(Fibonacci.class);
+        Foo foo = memo.instantiate(Foo.class);
 
-        assertThrowsExactly(IllegalArgumentException.class, fib::foo);
+        assertThrowsExactly(IllegalArgumentException.class, foo::foo);
     }
 
     static boolean changed = false;
 
-    static Mutable mutable = () -> changed;
+    static final Mutable mutable = () -> changed;
 
     interface Mutables {
         default String a(Memorizer m) {
