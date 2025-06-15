@@ -1,4 +1,8 @@
-# Jam - a functional React-like build system
+# Jam - Just A Memoizer & build tool
+
+A lightweight library that lets you write command-line build scripts in plain Java or Kotlin code.
+Jam provides command-line option handling, logging, and dependency tracking.
+
 
 ## What is Jam?
 
@@ -6,15 +10,14 @@ Jam is a Java library that allows you to write build scrips in plain Java or Kot
 
 ### Example build scripts
 
-Below are equivalent Kotlin and Java versions of a script that defines 4 build targets:
-
-* **mainSources** - returns a reference to Java source files
-* **mainClasses** - compiles the source files into class files
-* **docs** - generates JavaDocs
-* **all** - (the default target) - executes mainClasses and docs targets
+Below are equivalent Kotlin and Java versions of a build script.
 
 <details open>
-<summary>Kotlin version of the build script</summary>
+<summary>Kotlin</summary>
+
+File name: `basic.kts`
+
+File contents:
 
 ```kotlin
 #!/usr/bin/env kotlin -Xjvm-default=all -cp jam.jar
@@ -35,9 +38,20 @@ interface ExampleProject : JavaProject {
 
 Project.run(ExampleProject::class.java, ExampleProject::all, args)
 ```
+
+The script consists of:
+
+1. A [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) first line which invokes the Kotlin runtime to execute this script and specifies the location of `jam.jar`.
+2. A *project interface*. This defines the build targets and build logic.
+3. A final call to `Project.run(ExampleProject::class.java, ExampleProject::all, args)` which executes the build controller with the project interface, the default build target, and command-line arguments.
+ 
 </details>
 <details>
-<summary>Java version of the build script</summary>
+<summary>Java</summary>
+
+File name: `basic-java`
+
+File contents:
 
 ```java
 #!/usr/bin/java -classpath jam.jar --source 17
@@ -68,20 +82,21 @@ public interface ExampleProject extends JavaProject {
     }
 }
 ```
+Boilerplate for this script consists of:
+
+1. The [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) first line which invokes the Java runtime to execute this script and specifies the location of `jam.jar`.
+2. A *project interface*. This defines the build targets and build logic.
+3. A `main()` method which invokes the build controller by calling `Project.run(ExampleProject.class, ExampleProject::all, args)` with the project interface, default build target and command-line arguments.
+ 
 </details>
 
-> Note: A Jam build script must begin with a `#!` "shebang" line that invokes the Java or Kotlin runtime, and specifies a classpath that includes the Jam jarfile or classes 
-
-To confirm which targets are defined by a build script, run it from the command line with the `--targets` option. 
+Kotlin and Java versions of the script define the same build targets, which can by viewed by running the script with the `--targets` option. 
 
 ![Title](examples/media/basic01.png)
 
-Here we can see that the script defines `ExampleProject`, which contains 4 target functions.
-The name and return type of each is shown.
+The `all`, `mainSources`, `mainClasses` and `docs` targets correspond to the 0-argument methods defined in the `ExampleProject` interface.
 
 Additional build targets are inherited from parent interface `JavaProject` and its parent interface `BuilderProject`, including the `clean` target which deletes all build artifacts.
-
-> Jam introspects the project interface to find build targets. Each 0-argument function is treated as a build target.
 
 Ok, let's run this build:
  
@@ -131,11 +146,11 @@ Now if we run the build again, Jam will rebuild aka `[refresh]` the stale target
 
 Take a look at Jam's own [build script](examples/make-jam.kts). This demonstrates how to:
 
-* Download libraries from the Maven repository and use them as build dependencies
-* Run unit tests
+* Use `resolve()` to download libraries from the Maven repository and use them as build dependencies
+* Run unit tests with the `junit()` method
 * Build jar files
 
-## Quirks
+## Tips
 
 You may have noticed that the example build scripts have no `import` statements.
 Types provided by Jam are declared in the default package so for common cases you don't need to clutter your build script with imports.
