@@ -4,9 +4,16 @@ A lightweight library that lets you write command-line build scripts in plain Ja
 Jam provides command-line option handling, logging, and dependency tracking.
 
 
-## What is Jam?
+## How does it work?
 
-Jam is a Java library that allows you to write build scrips in plain Java or Kotlin code.
+Jam is fundamentally a memoizer: It intercepts method calls and caches the return values so that subsequent calls to the same method with the same parameters can be served from the cache rather than executing them again.
+The cache is also saved to disk so that 
+
+During the initial execution of uncached methods, Jam also records the methods' dependencies on external mutable resources like source files. If those resources change, Jam knows that the cached method result is now stale.
+
+>Jam's memoizer has a `dependsOn()` method which is conceptually similar to `useState()` in React
+
+Jam also provides console logging of all the instrumented methods, and standard handling for command-line options like `--help`.
 
 ### Example build scripts
 
@@ -16,8 +23,6 @@ Below are equivalent Kotlin and Java versions of a build script.
 <summary>Kotlin</summary>
 
 File name: `basic.kts`
-
-File contents:
 
 ```kotlin
 #!/usr/bin/env kotlin -Xjvm-default=all -cp jam.jar
@@ -51,8 +56,6 @@ The script consists of:
 
 File name: `basic-java`
 
-File contents:
-
 ```java
 #!/usr/bin/java -classpath jam.jar --source 17
 
@@ -82,7 +85,7 @@ public interface ExampleProject extends JavaProject {
     }
 }
 ```
-Boilerplate for this script consists of:
+This script consists of:
 
 1. The [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) first line which invokes the Java runtime to execute this script and specifies the location of `jam.jar`.
 2. A *project interface*. This defines the build targets and build logic.
@@ -90,7 +93,9 @@ Boilerplate for this script consists of:
  
 </details>
 
-Kotlin and Java versions of the script define the same build targets, which can by viewed by running the script with the `--targets` option. 
+To run a build script, invoke it by name from the command line, eg `./my-build-script.kts`.
+You can also specify build targets or options as command-line arguments.
+For example, `--targets` displays the build targets defined by the script. 
 
 ![Title](examples/media/basic01.png)
 
@@ -104,29 +109,28 @@ Ok, let's run this build:
 
 When a build script is run without any arguments, the default target is executed, which in this case is `all`.
 
-Jam displays all the function calls that occur within the project. The first few lines show that the target function `all()` calls `docs()` which calls `mainSources()` which calls `sourceFiles("main/**.java")`, etc.
+Jam displays all the function calls that occur within the project.
+The first few lines show that the target function `all()` called `docs()` which called `mainSources()` which called `sourceFiles("main/**.java")`, etc.
 
-> Jam *memoizes* function calls.
-> This means that when a function is executed (indicated by the `[compute]` tag,) Jam stores the result value in its cache.
-> If an identical function call is made later, Jam intercepts the function call and returns the `[current]` cached value instead.
+Note that `sourceFiles()` calls `dependsOn()`. Like `useState()` in React, `dependsOn()` records a dependency on some external state. If that state changes, it means that any derived results or build artifacts are stale.
 
 The memoization cache is persisted between runs of the build script. If we look at the build targets again:
 
 ![Title](examples/media/basic03.png)
 
 The targets that were previously executed and had their results cached now have a `[fresh]` tag.
+When the cached values are fresh, that means that build artifacts they refer to are also up to date.
 
-> Only non-void methods are cached
+Note: `void` methods are not cached.
 
-Let's run the build again:
+If we run the build again:
 
 ![Title](examples/media/basic04.png)
 
-The `all()` function has no return value and so can't be cached but the `docs()` and `mainClasses()` are both cacheable, and since their dependencies haven't changed their output artifacts do not need to be rebuilt.
+The `all()` function is executed again because it's uncacheable,
+but `docs()` and `mainClasses()` are both fresh and so do not have to be executed again.
 
 ## Dependency tracking
-
-Jam tracks the modification time of source files that are inputs or dependencies of the functions that it memoizes.
 
 Let's use `touch` to mark a source file as updated, and then check the status of the build targets:
 
