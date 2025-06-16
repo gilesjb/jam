@@ -1,4 +1,4 @@
-# Jam - Just A Memoizer & build tool
+# Jam - A build tool that's Just a Memoizer
 
 A lightweight library that lets you write command-line build scripts in plain Java or Kotlin code.
 Jam provides command-line option handling, logging, and dependency tracking.
