@@ -7,7 +7,7 @@ Jam provides command-line option handling, logging, and dependency tracking.
 ## How does it work?
 
 Jam is fundamentally a memoizer: It intercepts method calls and caches the return values so that subsequent calls to the same method with the same parameters can be served from the cache rather than executing them again.
-The cache is also saved to disk so that 
+The cache is also saved to disk so that Jam can remember the project state between runs of the build script.
 
 During the initial execution of uncached methods, Jam also records the methods' dependencies on external mutable resources like source files. If those resources change, Jam knows that the cached method result is now stale.
 
