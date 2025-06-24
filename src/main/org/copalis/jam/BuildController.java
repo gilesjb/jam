@@ -238,15 +238,11 @@ public class BuildController<T> {
     private void printBuildTargets(Function<T, ?> buildFn) {
         color(RESET).printTargets(type, new HashSet<>());
 
-        Object proxy = Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
-            throw new UnsupportedOperationException(m.getName());
-        });
-
-        try {
-            if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(proxy));
-        } catch (UnsupportedOperationException e) {
-            print("Default target is: ").color(BOLD).print(e.getMessage()).line();
-        }
+        if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(
+                Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
+                    print("Default target is: ").color(BOLD).print(m.getName()).line();
+                    return null;
+        })));
     }
 
     private void printTargets(Class<?> t, Set<String> visited) {
