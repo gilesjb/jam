@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.copalis.jam.util.Cmd;
+import org.copalis.jam.util.Args;
 import org.copalis.jam.util.Paths;
 
 /**
@@ -98,7 +98,7 @@ public interface BuilderProject extends Project {
      * @param command the command and arguments
      */
     default void exec(String... command) {
-        Cmd.args(command).run();
+        Args.of(command).run();
     }
 
     /**

@@ -46,6 +46,16 @@ public interface JamProject extends JavaProject, IvyProject {
                 "-cp", classpath(testClasses(), testSources(), mainClasses(), testLibs()));
     }
 
+//    default File coverage() {
+//        String report = buildPath("test-coverage");
+//        java("-jar", resolve("org.jacoco:org.jacoco.cli:0.8.9#nodeps").toString(),
+//                "report", tests().file("jacoco.exe").getPath(),
+//                "--classfiles", mainClasses().base(),
+//                "--sourcefiles", mainSources().base(),
+//                "--html", report);
+//        return new File(report + "/index.html");
+//    }
+
     default Fileset docs() {
         return javadoc("docs",
                 "-sourcepath", classpath(mainSources()),

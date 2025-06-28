@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -33,50 +32,40 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
         return path;
     }
 
-    /**
-     * Invokes the Ivy runtime
-     * @param cacheFile the file which will contain the paths of all resolved dependencies
-     * @param ivyFile the ixy.xml file
-     */
-    private void execute(File cacheFile, File ivyFile) {
-        Cmd args = Cmd.args("java", "-jar", ivyJar().toString(), "-cache", cacheDir);
-
-        if (Objects.nonNull(cacheFile)) {
-            args.add("-cachepath", cacheFile.toString());
-        }
-
-        if (Objects.nonNull(ivyFile)) {
-            args.add("-ivy", ivyFile.toString());
-        }
-
-        args.run();
-    }
-
-    private void writeXML(Writer out, String... dependencies) throws IOException {
-        out.write("<ivy-module version='2.0'>");
-        out.write("<info organisation='org' module='module'/>");
-        out.write("<dependencies defaultconf='*->default'>");
-        for (String ident : dependencies) {
-            String[] parts = ident.split(":");
-            out.write(String.format("<dependency org='%s' name='%s' rev='%s'/>",
-                    parts[0], parts[parts.length - 2], parts[parts.length - 1]));
-        }
-        out.write("</dependencies></ivy-module>");
-    }
-
     @Override public Stream<Path> resolve(String... dependencies) {
         try {
             File ivyFile = File.createTempFile("ivy-", ".xml");
             ivyFile.deleteOnExit();
 
             try (Writer out = new FileWriter(ivyFile)) {
-                writeXML(out, dependencies);
+                out.write("<ivy-module version='2.0' xmlns:m='http://ant.apache.org/ivy/maven'>");
+                out.write("<info organisation='org' module='module'/>");
+                out.write("<dependencies defaultconf='*->default'>");
+
+                for (String ident : dependencies) {
+                    int pound = ident.indexOf('#');
+                    if (pound >= 0) {
+                        String[] parts = ident.substring(0, pound).split(":");
+                        out.write(String.format("<dependency org='%s' name='%s' rev='%s' m:classifier='%s'/>",
+                                parts[0], parts[parts.length - 2], parts[parts.length - 1], ident.substring(pound + 1)));
+                    } else {
+                        String[] parts = ident.split(":");
+                        out.write(String.format("<dependency org='%s' name='%s' rev='%s' />",
+                                parts[0], parts[parts.length - 2], parts[parts.length - 1]));
+
+                    }
+                }
+                out.write("</dependencies></ivy-module>");
             }
 
             File cacheFile = File.createTempFile("classpath-", null);
             cacheFile.deleteOnExit();
 
-            execute(cacheFile, ivyFile);
+            Args.of("java", "-jar", ivyJar().toString(),
+                    "-cache", cacheDir,
+                    "-cachepath", cacheFile.toString(),
+                    "-ivy", ivyFile.toString()).run();
+
             return Stream.of(Files.readString(cacheFile.toPath()).trim().split(":"))
                     .map(Path::of);
         } catch (IOException e) {

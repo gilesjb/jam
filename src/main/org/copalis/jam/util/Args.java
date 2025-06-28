@@ -3,25 +3,24 @@ package org.copalis.jam.util;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * A utility class for constructing vararg parameter lists.
  *
  * @author gilesjb
  */
-public class Cmd {
-    private final List<String> list = new LinkedList<>();
+public class Args {
+    private final LinkedList<String> list = new LinkedList<>();
 
-    private Cmd() { }
+    private Args() { }
 
     /**
      * Creates a new list with the supplied arguments
      * @param args an arbitrary number of arguments
      * @return the new list
      */
-    public static Cmd args(String... args) {
-        return new Cmd().add(args);
+    public static Args of(String... args) {
+        return new Args().and(args);
     }
 
     /**
@@ -29,7 +28,7 @@ public class Cmd {
      * @param args an arbitrary number of arguments
      * @return the current list
      */
-    public Cmd add(String... args) {
+    public Args and(String... args) {
         for (String arg : args) {
             list.add(arg);
         }
@@ -41,7 +40,7 @@ public class Cmd {
      * @param other another args
      * @return the current list
      */
-    public Cmd add(Cmd other) {
+    public Args add(Args other) {
         list.addAll(other.list);
         return this;
     }

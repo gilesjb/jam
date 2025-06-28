@@ -10,7 +10,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.util.Cmd;
+import org.copalis.jam.util.Args;
 import org.copalis.jam.util.Compiler;
 import org.copalis.jam.util.PackageResolver;
 import org.copalis.jam.util.Paths;
@@ -34,7 +34,7 @@ public interface JavaProject extends BuilderProject {
      * @param args arguments to be supplied to the Java runtime
      */
     default void java(String... args) {
-        Cmd.args("java").add(args).run();
+        Args.of("java").and(args).run();
     }
 
     /**
@@ -113,9 +113,12 @@ public interface JavaProject extends BuilderProject {
     default Fileset junit(String reportsDir, String... args) {
         String output = buildPath(reportsDir);
 
-        executeJar(jUnitLib().stream().findFirst().get(),
-                Stream.concat(Stream.of("--reports-dir=" + output),
-                        Arrays.stream(args)).toArray(String[]::new));
+        java(Args
+//                .of("-javaagent:" + resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime")
+//                        + "=destfile=" + output + "/jacoco.exe")
+            .of("-jar", jUnitLib().toString(), "--reports-dir=" + output)
+            .and(args)
+            .array());
 
         return Fileset.find(output, "**");
     }
@@ -128,17 +131,8 @@ public interface JavaProject extends BuilderProject {
      */
     default Fileset javadoc(String destination, String... args) {
         String dest = buildPath(destination);
-        Compiler.javadoc(Stream.concat(Stream.of("-d", dest), Arrays.stream(args)).toArray(String[]::new));
+        Compiler.javadoc(Args.of("-d", dest).and(args).array());
         return Fileset.find(dest, "**");
-    }
-
-    /**
-     * Executes a jar file
-     * @param jar the jar file
-     * @param args command line arguments
-     */
-    default void executeJar(File jar, String... args) {
-        Cmd.args("java", "-jar", jar.toString()).add(args).run();
     }
 
     /**
