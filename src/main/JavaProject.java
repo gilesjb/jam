@@ -32,6 +32,7 @@ public interface JavaProject extends BuilderProject {
     /**
      * Runs a Java process. The output of this process will not be tracked as a dependency.
      * @param args arguments to be supplied to the Java runtime
+     * @see <a href="https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html">Java command documentation</a>
      */
     default void java(String... args) {
         Args.of("java").and(args).run();
@@ -43,6 +44,7 @@ public interface JavaProject extends BuilderProject {
      * @param sources the source files to compile
      * @param args the command-line options to be passed to the javac compiler
      * @return a reference to the compiled {@code .class} files
+     * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javac.html">javac</a>
      */
     default Fileset javac(String path, Fileset sources, String... args) {
         String dest = buildPath(path);
@@ -109,6 +111,7 @@ public interface JavaProject extends BuilderProject {
      * @param reportsDir the path of generated unit test report, relative to {@link #buildPath()}
      * @param args command line arguments to the jUnit console runtime
      * @return a fileset referring to the unit test report
+     * @see <a href="https://docs.junit.org/current/user-guide/#running-tests-console-launcher">JUnit console documentation</a>
      */
     default Fileset junit(String reportsDir, String... args) {
         String output = buildPath(reportsDir);
@@ -124,10 +127,11 @@ public interface JavaProject extends BuilderProject {
     }
 
     /**
-     * Runs the JavaDoc tool. See {@code javadoc --help} for documentation of options.
+     * Runs the JavaDoc tool
      * @param destination the path of generated unit test report, relative to {@link #buildPath()}
      * @param args the command-line arguments for the tool
      * @return a reference to the generated documentation
+     * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html">Javadoc</a>
      */
     default Fileset javadoc(String destination, String... args) {
         String dest = buildPath(destination);
