@@ -1,7 +1,6 @@
 package org.copalis.jam.util;
 
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.util.LinkedList;
 
 /**
@@ -59,9 +58,7 @@ public class Args {
     public void run() {
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(array());
-        pb.redirectInput(Redirect.INHERIT);
-        pb.redirectError(Redirect.INHERIT);
-        pb.redirectOutput(Redirect.INHERIT);
+        pb.inheritIO();
         try {
             Process proc = pb.start();
             int status = proc.waitFor();
