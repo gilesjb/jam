@@ -6,14 +6,17 @@ Jam provides command-line option handling, logging, and dependency tracking.
 
 ## How does it work?
 
-Jam is fundamentally a memoizer: It intercepts method calls and caches the return values so that subsequent calls to the same method with the same parameters can be served from the cache rather than executing them again.
-The cache is also saved to disk so that Jam can remember the project state between runs of the build script.
+The core of Jam is a *memoizer*, which intercepts all call to methods on a Project interface and caches their return values so that subsequent calls to the same method with the same parameters can be served from cache.
 
-During the initial execution of uncached methods, Jam also records the methods' dependencies on external mutable resources like source files. If those resources change, Jam knows that the cached method result is now stale.
+The memoizer has two additional features that are needed for a build system: 
+
+1. The cache contents can be persisted to disk so that project state is maintained between build executions.
+
+2. The memoizer records methods' dependencies on mutable resources like source files, and if those resources change the memoizer knows that derived results - and build artifacts they reference - are now stale.
 
 >Jam's memoizer has a `dependsOn()` method which is conceptually similar to `useState()` in React
 
-Jam also provides console logging of all the instrumented methods, and standard handling for command-line options like `--help`.
+Jam also provides a Build Controller which initializes the memoizer, executes build targets, and handles command-line options like `--help`.
 
 ### Example build scripts
 
