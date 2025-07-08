@@ -115,12 +115,21 @@ public interface JavaProject extends BuilderProject {
      */
     default Fileset junit(String reportsDir, String... args) {
         String output = buildPath(reportsDir);
+        Args vmArgs = Args.of();
+        Args junitArgs = Args.of();
 
-        java(Args
-//                .of("-javaagent:" + resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime")
-//                        + "=destfile=" + output + "/jacoco.exe")
-            .of("-jar", jUnitLib().toString(), "--reports-dir=" + output)
-            .and(args)
+        for (String arg : args) {
+            if (arg.startsWith("-javaagent")) {
+                vmArgs = vmArgs.and(arg);
+            } else {
+                junitArgs = junitArgs.and(arg);
+            }
+        }
+
+        java(Args.of()
+            .andAll(vmArgs)
+            .and("-jar", jUnitLib().toString(), "--reports-dir=" + output)
+            .andAll(junitArgs)
             .array());
 
         return Fileset.find(output, "**");
@@ -150,7 +159,7 @@ public interface JavaProject extends BuilderProject {
         try (FileOutputStream stream = new FileOutputStream(path)) {
             try (JarOutputStream out = new JarOutputStream(stream, new Manifest())) {
                 for (Fileset fs : contents) {
-                    Path base = Path.of(fs.base);
+                    Path base = Path.of(fs.root);
                     for (File file : fs) {
                         JarEntry entry = new JarEntry(base.relativize(file.toPath()).toString());
                         entry.setTime(file.lastModified());

@@ -42,24 +42,27 @@ public interface JamProject extends JavaProject, IvyProject {
 
     default Fileset tests() {
         return junit("test-report",
+                "-javaagent:" + resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime")
+                        + "=destfile=" + buildPath("test-report") + "/jacoco.exec",
                 "--scan-classpath", classpath(testClasses()),
                 "-cp", classpath(testClasses(), testSources(), mainClasses(), testLibs()));
     }
 
-//    default File coverage() {
-//        String report = buildPath("test-coverage");
-//        java("-jar", resolve("org.jacoco:org.jacoco.cli:0.8.9#nodeps").toString(),
-//                "report", tests().file("jacoco.exe").getPath(),
-//                "--classfiles", mainClasses().base(),
-//                "--sourcefiles", mainSources().base(),
-//                "--html", report);
-//        return new File(report + "/index.html");
-//    }
+    default File coverageReport() {
+        String report = buildPath("test-coverage");
+        java("-jar", resolve("org.jacoco:org.jacoco.cli:0.8.9#nodeps").toString(),
+                "report", tests().file("jacoco.exec").getPath(),
+                "--classfiles", classpath(mainClasses()),
+                "--sourcefiles", classpath(mainSources()),
+                "--html", report);
+        return new File(report + "/index.html");
+    }
 
     default Fileset docs() {
         return javadoc("docs",
                 "-sourcepath", classpath(mainSources()),
-                "-subpackages", "");
+                "-subpackages", "",
+                "-quiet");
     }
 
     default File jarfile() {
@@ -74,6 +77,10 @@ public interface JamProject extends JavaProject, IvyProject {
 
     default String about() {
         return "Jam is ready! Run ./make-jam to build Jam " + version();
+    }
+
+    default void viewTestCoverage() throws Exception {
+        java.awt.Desktop.getDesktop().browse(coverageReport().toURI());
     }
 
     default void viewDocs() throws Exception {

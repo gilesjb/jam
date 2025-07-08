@@ -37,7 +37,7 @@ public final class Fileset implements Mutable, Iterable<File> {
     /**
      * The base directory that all the files are under
      */
-    final String base;
+    final String root;
     /**
      * The glob pattern that all the files match
      */
@@ -69,7 +69,7 @@ public final class Fileset implements Mutable, Iterable<File> {
      */
     public Fileset(Set<File> files, String base, String pattern) {
         this.files = files;
-        this.base = base;
+        this.root = base;
         this.pattern = pattern;
     }
 
@@ -118,8 +118,8 @@ public final class Fileset implements Mutable, Iterable<File> {
      * Gets the base path of the files in this set, if there is one
      * @return The base path of this set, or null
      */
-    public String base() {
-        return base;
+    public String rootPath() {
+        return root;
     }
 
     /**
@@ -135,11 +135,11 @@ public final class Fileset implements Mutable, Iterable<File> {
      * @return a stream containing either the files or the base directory
      */
     public Stream<File> pathElements() {
-        return Objects.nonNull(base) ? Stream.of(new File(base)) : stream();
+        return Objects.nonNull(root) ? Stream.of(new File(root)) : stream();
     }
 
     public boolean modified() {
-        return Objects.nonNull(pattern) && !Objects.equals(this, find(base, pattern))
+        return Objects.nonNull(pattern) && !Objects.equals(this, find(root, pattern))
                 || files.stream().anyMatch(File::modified);
     }
 
@@ -149,7 +149,7 @@ public final class Fileset implements Mutable, Iterable<File> {
      * @return a reference to the file
      */
     public File file(String path) {
-        return new File(Path.of(Objects.requireNonNull(base), path));
+        return new File(Path.of(Objects.requireNonNull(root), path));
     }
 
     @Override public Iterator<File> iterator() {
@@ -158,7 +158,7 @@ public final class Fileset implements Mutable, Iterable<File> {
 
     @Override public String toString() {
         if (Objects.nonNull(pattern)) {
-            return base + '/' + pattern;
+            return root + '/' + pattern;
         }
         return files.stream().map(File::toString).collect(Collectors.joining(":"));
     }
@@ -169,7 +169,7 @@ public final class Fileset implements Mutable, Iterable<File> {
 
     @Override public boolean equals(Object obj) {
         return !(obj instanceof Fileset other) || Objects.equals(files, other.files)
-                && Objects.equals(base, other.base)
+                && Objects.equals(root, other.root)
                 && Objects.equals(pattern, other.pattern);
     }
 }

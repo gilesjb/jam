@@ -39,7 +39,7 @@ public class Args {
      * @param other another args
      * @return the current list
      */
-    public Args add(Args other) {
+    public Args andAll(Args other) {
         list.addAll(other.list);
         return this;
     }
