@@ -17,9 +17,4 @@ public interface PackageResolver extends Serializable {
      * @return a stream of Path objects referencing the resolved dependencies
      */
     public Stream<Path> resolve(String... dependencies);
-
-    /**
-     * Deletes the package cache
-     */
-    public void cleanCache();
 }

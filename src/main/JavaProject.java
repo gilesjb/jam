@@ -92,10 +92,18 @@ public interface JavaProject extends BuilderProject {
     }
 
     /**
+     * Gets the location of the package cache
+     * @return the path of the package cache directory
+     */
+    default String pkgCachePath() {
+        return ".package-cache";
+    }
+
+    /**
      * Deletes the package resolver's cache
      */
     default void cleanPkgCache() {
-        packageResolver().cleanCache();
+        Paths.rmDir(Path.of(pkgCachePath()));
     }
 
     /**

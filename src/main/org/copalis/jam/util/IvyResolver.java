@@ -72,8 +72,4 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
             throw new RuntimeException(e);
         }
     }
-
-    @Override public void cleanCache() {
-        Paths.rmDir(Path.of(cacheDir));
-    }
 }

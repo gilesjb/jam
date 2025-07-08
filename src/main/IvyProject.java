@@ -15,6 +15,6 @@ public interface IvyProject extends JavaProject {
      * @return an instance of IvyResolver
      */
     @Override default IvyResolver packageResolver() {
-        return new IvyResolver(IvyResolver.VER2_5_1_URL, ".package-cache");
+        return new IvyResolver(IvyResolver.VER2_5_1_URL, pkgCachePath());
     }
 }
