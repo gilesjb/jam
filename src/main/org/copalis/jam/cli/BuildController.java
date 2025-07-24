@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.cli;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,15 +13,19 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Memorizer.Invocation;
-import org.copalis.jam.Memorizer.Result;
+import org.copalis.jam.memo.Invocation;
+import org.copalis.jam.memo.Memorizer;
+import org.copalis.jam.memo.Memorizer.Result;
+import org.copalis.jam.memo.Observer;
 
 /**
  * A build process command-line argument parser and controller.
@@ -60,7 +64,7 @@ public class BuildController<T> {
     /**
      * A dummy File object that is replaced by a reference to the memoizer's cache file
      */
-    public static final File CACHE_FILE = new File(".{project-name}.ser");
+    public static final File CACHE_FILE = new File("*cache*");
 
     private static final boolean colors = Objects.nonNull(System.console());
 
@@ -80,11 +84,12 @@ public class BuildController<T> {
     private final Memorizer memo;
     private final Class<T> type;
     private final Set<Call> cached = new HashSet<>();
+    private final Map<Object, Object> injected = new IdentityHashMap<>();
     private final PrintStream out = System.out;
 
-    private final Memorizer.Observer observer = new Memorizer.Observer() {
-        public void startMethod(Memorizer.Status status, Method method, List<Object> params) {
-            if (status != Memorizer.Status.CURRENT || cached.add(new Call(method, params))) {
+    private final Observer observer = new Observer() {
+        public void startMethod(Observer.Status status, Method method, List<Object> params) {
+            if (status != Observer.Status.CURRENT || cached.add(new Call(method, params))) {
                 switch (status) {
                 case CURRENT: color(GREEN); break;
                 case COMPUTE: color(YELLOW); break;
@@ -100,15 +105,9 @@ public class BuildController<T> {
             calls++;
         }
 
-        public Object endMethod(Memorizer.Status status, Method method, List<Object> params, Object result) {
+        public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
             calls--;
-            if (result == MEMO) {
-                return memo;
-            } else if (result == CACHE_FILE) {
-                return cacheFile;
-            } else {
-                return result;
-            }
+            return injected.getOrDefault(result, result);
         }
     };
 
@@ -123,6 +122,8 @@ public class BuildController<T> {
         this.type = type;
         this.cacheFile = new File("." + type.getSimpleName() + ".ser");
         this.memo = new Memorizer(observer);
+        injected.put(MEMO, memo);
+        injected.put(CACHE_FILE, cacheFile);
     }
 
     /**
@@ -314,7 +315,7 @@ public class BuildController<T> {
         }
     }
 
-    private void  printValue(Object val) {
+    private void printValue(Object val) {
         if (val instanceof String) print("'");
         out.print(val);
         if (val instanceof String) print("'");

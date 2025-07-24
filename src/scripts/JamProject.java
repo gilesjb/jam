@@ -41,15 +41,15 @@ public interface JamProject extends JavaProject, IvyProject {
     }
 
     default Fileset tests() {
-        return junit("test-report",
+        return junit("tests/report",
                 "-javaagent:" + resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime")
-                        + "=destfile=" + buildPath("test-report") + "/jacoco.exec",
+                        + "=destfile=" + buildPath("tests/report") + "/jacoco.exec",
                 "--scan-classpath", classpath(testClasses()),
                 "-cp", classpath(testClasses(), testSources(), mainClasses(), testLibs()));
     }
 
     default File coverageReport() {
-        String report = buildPath("test-coverage");
+        String report = buildPath("tests/coverage");
         java("-jar", resolve("org.jacoco:org.jacoco.cli:0.8.9#nodeps").toString(),
                 "report", tests().file("jacoco.exec").getPath(),
                 "--classfiles", classpath(mainClasses()),

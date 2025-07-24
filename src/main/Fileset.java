@@ -13,7 +13,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.copalis.jam.Mutable;
+import org.copalis.jam.memo.Mutable;
 
 /**
  * A reference to a set of existing files

@@ -1,7 +1,7 @@
 import java.net.URI;
 import java.nio.file.Path;
 
-import org.copalis.jam.Mutable;
+import org.copalis.jam.memo.Mutable;
 
 /**
  * A reference to an existing file

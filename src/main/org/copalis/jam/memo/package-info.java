@@ -3,4 +3,4 @@
  *
  * @author gilesjb
  */
-package org.copalis.jam;
+package org.copalis.jam.memo;

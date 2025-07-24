@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.memo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -8,8 +8,10 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.copalis.jam.Memorizer.Result;
-import org.copalis.jam.Memorizer.Status;
+import org.copalis.jam.memo.Memorizer;
+import org.copalis.jam.memo.Mutable;
+import org.copalis.jam.memo.Observer.Status;
+import org.copalis.jam.memo.Memorizer.Result;
 import org.junit.jupiter.api.Test;
 
 public class MemorizerTest {
@@ -21,10 +23,10 @@ public class MemorizerTest {
     }
 
     @Test public void testMemoization() {
-        List<Status> calls = new LinkedList<>();
+        List<Observer.Status> calls = new LinkedList<>();
 
-        Memorizer memo = new Memorizer(new Memorizer.Observer() {
-            public void startMethod(Status status, Method method, List<Object> params) {
+        Memorizer memo = new Memorizer(new Observer() {
+            public void startMethod(Observer.Status status, Method method, List<Object> params) {
                 calls.add(status);
             }
         });
@@ -32,8 +34,8 @@ public class MemorizerTest {
         Fibonacci fib = memo.instantiate(Fibonacci.class);
 
         assertEquals(3736710778780434371L, fib.fib(100));
-        assertEquals(101, calls.stream().filter(Status.COMPUTE::equals).count());
-        assertEquals(98, calls.stream().filter(Status.CURRENT::equals).count());
+        assertEquals(101, calls.stream().filter(Observer.Status.COMPUTE::equals).count());
+        assertEquals(98, calls.stream().filter(Observer.Status.CURRENT::equals).count());
 
         calls.clear();
         assertEquals(3736710778780434371L, fib.fib(100));
@@ -85,9 +87,9 @@ public class MemorizerTest {
     @Test synchronized public void testMutation() {
         List<String> called = new LinkedList<>();
 
-        Memorizer memo = new Memorizer(new Memorizer.Observer() {
-            public void startMethod(Status status, Method method, List<Object> params) {
-                if (status == Status.COMPUTE || status == Status.REFRESH) {
+        Memorizer memo = new Memorizer(new Observer() {
+            public void startMethod(Observer.Status status, Method method, List<Object> params) {
+                if (status == Observer.Status.COMPUTE || status == Observer.Status.REFRESH) {
                     called.add(method.getName());
                 }
             }

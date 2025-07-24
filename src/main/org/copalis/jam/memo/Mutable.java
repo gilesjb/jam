@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.memo;
 
 import java.io.Serializable;
 

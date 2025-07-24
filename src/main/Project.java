@@ -3,9 +3,9 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.copalis.jam.BuildController;
-import org.copalis.jam.Memorizer;
-import org.copalis.jam.Mutable;
+import org.copalis.jam.cli.BuildController;
+import org.copalis.jam.memo.Memorizer;
+import org.copalis.jam.memo.Mutable;
 
 /**
  * A base Project interface which defines the {@code clean} build target

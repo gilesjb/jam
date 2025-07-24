@@ -1,4 +1,4 @@
-package org.copalis.jam;
+package org.copalis.jam.memo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,12 +6,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -55,50 +52,7 @@ public class Memorizer {
         this(new Observer() { });
     }
 
-    enum Status {
-        COMPUTE, REFRESH, CURRENT
-    }
-
-    interface Observer {
-        default void startMethod(Status status, Method method, List<Object> params) { };
-        default Object endMethod(Status status, Method method, List<Object> params, Object result) {
-            return result;
-        }
-    }
-
-    /**
-     * The signature of a method call
-     * @param name the name of an invoked method
-     * @param params the parameters passed in the method call
-     */
-    public record Invocation(String name, List<Object> params) implements Mutable {
-        Invocation(Method method, Object... params) {
-            this(method.getName(), Objects.isNull(params) ? Collections.emptyList()
-                    : method.isVarArgs() ? expandVarArgs(params) : Arrays.asList(params));
-        }
-
-        private static List<Object> expandVarArgs(Object[] params) {
-            List<Object> result = new LinkedList<>();
-            for (int i = 0; i < params.length - 1; i++) {
-                result.add(params[i]);
-            }
-            Object var = params[params.length - 1];
-            for (int i = 0; i < Array.getLength(var); i++) {
-                result.add(Array.get(var, i));
-            }
-            return result;
-        }
-
-        boolean serializable() {
-            return params.stream().allMatch(Memorizer::objSerializable);
-        }
-
-        public boolean modified() {
-            return params.stream().anyMatch(Mutable::hasChanged);
-        }
-    }
-
-    private static boolean objSerializable(Object obj) {
+    static boolean objSerializable(Object obj) {
         return Objects.isNull(obj) || obj instanceof Serializable;
     }
 
@@ -117,7 +71,13 @@ public class Memorizer {
         }
     }
 
-    void load(InputStream in) throws IOException, ClassNotFoundException {
+    /**
+     * Loads the cache
+     * @param in an input stream the serialized cache contents will be read from
+     * @throws IOException if an IO exception occurs
+     * @throws ClassNotFoundException if a serialized class cannot be found
+     */
+    public void load(InputStream in) throws IOException, ClassNotFoundException {
         try (ObjectInputStream obj = new ObjectInputStream(in)) {
             @SuppressWarnings("unchecked")
             List<Result> results = (List<Result>) obj.readObject();
@@ -125,7 +85,12 @@ public class Memorizer {
         }
     }
 
-    void save(OutputStream out) throws IOException {
+    /**
+     * Saves the cache
+     * @param out an output stream the serialized cache contents will be written to
+     * @throws IOException if an IO exception occurs
+     */
+    public void save(OutputStream out) throws IOException {
         try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
             obj.writeObject(cache.values().stream().filter(Result::serializable)
                     .collect(Collectors.toList()));
@@ -192,17 +157,17 @@ public class Memorizer {
             throws Throwable {
         Invocation signature = new Invocation(method, args);
 
-        Status status = Status.COMPUTE;
+        Observer.Status status = Observer.Status.COMPUTE;
         if (cache.containsKey(signature)) {
             Result result = cache.get(signature);
 
             if (result.modified()) {
-                status = Status.REFRESH;
+                status = Observer.Status.REFRESH;
                 cache.remove(signature);
             } else {
-                observer.startMethod(Status.CURRENT, method, signature.params());
+                observer.startMethod(Observer.Status.CURRENT, method, signature.params());
                 dependencies.peek().addAll(result.sources());
-                observer.endMethod(Status.CURRENT, method, signature.params(), result.value());
+                observer.endMethod(Observer.Status.CURRENT, method, signature.params(), result.value());
                 return result.value();
             }
         }
