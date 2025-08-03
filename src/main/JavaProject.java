@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -165,7 +164,7 @@ public interface JavaProject extends BuilderProject {
     default File jar(String jarPath, Fileset... contents) {
         String path = buildPath() + '/' + jarPath;
         try (FileOutputStream stream = new FileOutputStream(path)) {
-            try (JarOutputStream out = new JarOutputStream(stream, new Manifest())) {
+            try (JarOutputStream out = new JarOutputStream(stream)) {
                 for (Fileset fs : contents) {
                     Path base = Path.of(fs.root);
                     for (File file : fs) {
