@@ -99,6 +99,7 @@ public final class Fileset implements Mutable, Iterable<File> {
             TreeSet<File> matches = Files.walk(path)
                 .filter(p -> matcher.matches(path.relativize(p)))
                 .map(File::new)
+                .filter(File::isFile)
                 .collect(Collectors.toCollection(TreeSet::new));
             return new Fileset(matches, base, pattern);
         } catch (IOException e) {
