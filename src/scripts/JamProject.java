@@ -65,14 +65,19 @@ public interface JamProject extends JavaProject, IvyProject {
                 "-quiet");
     }
 
-    default File jarfile() {
-        return jar("jam-" + version() + ".jar", mainSources(), mainClasses());
+    default File jarfile(String post, Fileset... contents) {
+        String name = "jam-" + version() + post + ".jar";
+        File jarFile = jar(name, contents);
+        write(name + ".md5", jarFile.digest("MD5"));
+        write(name + ".sha1", jarFile.digest("SHA1"));
+        return jarFile;
     }
 
     default File release() {
         tests();
-        docs();
-        return jarfile();
+        jarfile("-javadoc", docs());
+        jarfile("-sources", mainSources());
+        return jarfile("", mainClasses());
     }
 
     default String about() {
