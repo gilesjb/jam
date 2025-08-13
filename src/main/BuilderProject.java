@@ -102,6 +102,19 @@ public interface BuilderProject extends Project {
     }
 
     /**
+     * Reads the contents of a text source file
+     * @param name the name of the source file
+     * @return the file's contents as a String
+     */
+    default String read(String name) {
+        try {
+            return Files.readString(sourceFile(name).toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Creates a file and writes content to it
      * @param name a file path within {@link #buildPath()}
      * @param content the content to write into the file

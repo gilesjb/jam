@@ -231,7 +231,7 @@ public class BuildController<T> {
         memo.entries().forEach(e -> {
                 printResultStatus(e);
                 color(BOLD).printMethod(e.signature().name(), e.signature().params());
-                color(RESET).print(" = ").print(e.value());
+                color(RESET).print(" = ").printValue(e.value());
                 line();
             });
     }
@@ -317,7 +317,15 @@ public class BuildController<T> {
 
     private void printValue(Object val) {
         if (val instanceof String) print("'");
-        out.print(val);
+        String str = val.toString();
+        if (str.length() > 200) {
+            str = str.substring(0, 200) + "...";
+        }
+        int nl = str.indexOf('\n');
+        if (nl > 10) {
+            str = str.substring(0, nl) + "...";
+        }
+        out.print(str);
         if (val instanceof String) print("'");
     }
 
