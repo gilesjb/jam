@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.memo.Invocation;
 import org.copalis.jam.memo.Memorizer;
-import org.copalis.jam.memo.Memorizer.Result;
 import org.copalis.jam.memo.Observer;
+import org.copalis.jam.memo.Result;
 
 /**
  * A build process command-line argument parser and controller.

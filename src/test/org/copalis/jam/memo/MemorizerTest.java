@@ -8,7 +8,6 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.copalis.jam.memo.Memorizer.Result;
 import org.junit.jupiter.api.Test;
 
 public class MemorizerTest {

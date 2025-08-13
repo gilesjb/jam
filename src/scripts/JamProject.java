@@ -73,11 +73,15 @@ public interface JamProject extends JavaProject, IvyProject {
         return jarFile;
     }
 
-    default File release() {
-        tests();
+    default File jars() {
         jarfile("-javadoc", docs());
         jarfile("-sources", mainSources());
         return jarfile("", mainClasses());
+    }
+
+    default File release() {
+        tests();
+        return jars();
     }
 
     default String about() {

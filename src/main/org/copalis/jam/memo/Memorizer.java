@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -54,21 +55,6 @@ public class Memorizer {
 
     static boolean objSerializable(Object obj) {
         return Objects.isNull(obj) || obj instanceof Serializable;
-    }
-
-    /**
-     * The result of a method call
-     * @param signature the method call signature
-     * @param value the method call result
-     * @param sources the dependencies of the method call
-     */
-    public record Result(Invocation signature, Object value, Set<Mutable> sources) implements Mutable {
-        boolean serializable() {
-            return objSerializable(value) && signature.serializable();
-        }
-        public boolean modified() {
-            return signature.modified() || Mutable.hasChanged(value) || sources.stream().anyMatch(Mutable::hasChanged);
-        }
     }
 
     /**
@@ -172,10 +158,10 @@ public class Memorizer {
             }
         }
 
-        if (method.getParameterCount() > 0) {
-            dependencies.push(new HashSet<>(dependencies.peek()));
-        } else {
+        if (Arrays.stream(method.getParameterTypes()).allMatch(Mutable.class::isAssignableFrom)) {
             dependencies.push(new HashSet<>());
+        } else { // propagate dependencies to invoked method if it has params without version info
+            dependencies.push(new HashSet<>(dependencies.peek()));
         }
         observer.startMethod(status, method, signature.params());
 
