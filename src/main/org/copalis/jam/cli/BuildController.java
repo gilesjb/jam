@@ -210,11 +210,7 @@ public class BuildController<T> {
         if (Objects.isNull(object)) {
             object = memo.instantiate(type);
 
-            URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
-            long scriptModified = Objects.nonNull(scriptLocation)
-                    ? new File(scriptLocation.getPath()).lastModified() : Long.MIN_VALUE;
-
-            if (cacheFile.exists() && cacheFile.lastModified() < scriptModified) {
+            if (cacheFile.exists() && cacheFile.lastModified() < scriptLastModified()) {
                 color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").color(RESET).line();
             } else if (cacheFile.exists()) {
                 try (InputStream in = new FileInputStream(cacheFile)) {
@@ -224,6 +220,24 @@ public class BuildController<T> {
         }
 
         return object;
+    }
+
+    private long scriptLastModified() {
+        URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
+        if (Objects.nonNull(scriptLocation)) {
+            return new File(scriptLocation.getPath()).lastModified();
+        }
+        // otherwise look at exception stack trace for source file name
+        try {
+            throw new RuntimeException();
+        } catch (RuntimeException ex) {
+            for (StackTraceElement elem : ex.getStackTrace()) {
+                if (!elem.getFileName().endsWith(".java")) {
+                    return new File(elem.getFileName()).lastModified();
+                }
+            }
+        }
+        return Long.MIN_VALUE;
     }
 
     private void printCacheContents() {
