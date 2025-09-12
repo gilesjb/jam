@@ -1,17 +1,21 @@
-# Jam - A build tool that's Just a Memoizer
+# Jam build tool
 
-A lightweight library that lets you write command-line build scripts in plain Java or Kotlin code.
+Jam is a library for use in build scripts written in a JVM language like Java or Kotlin.
+In addition to utility functions for compiling Java code,
 Jam provides command-line option handling, logging, and dependency tracking.
 
 
-## How does it work?
+## Build scripts are programs
 
-The core of Jam is a *memoizer*, which intercepts all call to methods on a Project interface and caches their return values so that subsequent calls to the same method with the same parameters can be served from cache.
+Jam has a similar philosophy to [tools.build](https://clojure.org/guides/tools_build):
+"your project build is inherently a program".
+A Jam build script is just Java or Kotlin code, preferably packaged as an executable [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) file so it can be run directly from the command line.
+
+The core of Jam is a *memoizer*, which intercepts method calls and caches their return values so that subsequent calls to the same method with the same parameters can be served from cache.
 
 The memoizer has two additional features that are needed for a build system: 
 
 1. The cache contents can be persisted to disk so that project state is maintained between build executions.
-
 2. The memoizer records methods' dependencies on mutable resources like source files, and if those resources change the memoizer knows that derived results - and build artifacts they reference - are now stale.
 
 >Jam's memoizer has a `dependsOn()` method which is conceptually similar to `useState()` in React
@@ -50,7 +54,7 @@ Project.run(ExampleProject::class.java, ExampleProject::all, args)
 The script consists of:
 
 1. A [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) first line which invokes the Kotlin runtime to execute this script and specifies the location of `jam.jar`.
-2. A *project interface*. This defines the build targets and build logic.
+2. A *project interface* defining build targets and build logic. The project can have any name you want.
 3. A final call to `Project.run(ExampleProject::class.java, ExampleProject::all, args)` which executes the build controller with the project interface, the default build target, and command-line arguments.
  
 </details>
@@ -177,13 +181,12 @@ Due to how Jam's memoizer is implemented, a project must follow these rules:
 
 * The project definition must be an interface rather than a class
 * The functions must be implemented as `default` methods
-* In order to be saved in the result cache, parameters and return types must be primitive or serializable
+* In order for a method call to be saved to the cache, its parameters and return type must be serializable
 
 ## Building the Jam library
 
 Building `jam.jar` requires JDK 17 or higher to be installed.
 
-1. Compile the main classes by running `./setup`
-2. Run `./make-jam` to compile Jam, run unit tests, and create JavaDocs and `jam-<version>.jar`
-3. Alternatively, run the equivalent Kotlin build script: `./examples/make-jam.kts`
+1. Run `./setup` to compile Jam's main classes
+2. Run `./make-jam` which uses Jam to compile itself, run unit tests, create JavaDocs and jarfiles
 
