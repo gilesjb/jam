@@ -168,9 +168,9 @@ public class BuildController<T> {
                     print("Usage:").line();
                     print(path).print("              Build the default target").line();
                     print(path).print(" <targets>    Build specified targets").line();
-                    print(path).print(" --targets    Display available build targets").line();
-                    print(path).print(" --cache      Display cache contents").line();
-                    print(path).print(" --help       Display this help message").line();
+                    print(path).print(" --targets    Print available build targets").line();
+                    print(path).print(" --cache      Print cache contents").line();
+                    print(path).print(" --help       Print this help message").line();
                 }
                 exit = true;
             }
