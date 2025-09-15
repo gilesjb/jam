@@ -94,6 +94,15 @@ public interface BuilderProject extends Project {
     }
 
     /**
+     * Gets a fileset referencing built files
+     * @param pattern a file glob pattern relative to {@link #buildPath()}
+     * @return a fileset referencing the specified files
+     */
+    default Fileset builtFiles(String pattern) {
+        return Fileset.find(buildPath() + '/' + pattern);
+    }
+
+    /**
      * Executes an external process
      * @param command the command and arguments
      */

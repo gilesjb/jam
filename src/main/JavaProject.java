@@ -139,7 +139,7 @@ public interface JavaProject extends BuilderProject {
             .andAll(junitArgs)
             .array());
 
-        return Fileset.find(output, "**");
+        return builtFiles(reportsDir + "/**");
     }
 
     /**
@@ -152,7 +152,7 @@ public interface JavaProject extends BuilderProject {
     default Fileset javadoc(String destination, String... args) {
         String dest = buildPath(destination);
         Compiler.javadoc(Args.of("-d", dest).and(args).array());
-        return Fileset.find(dest, "**");
+        return Fileset.find(dest +  "/**");
     }
 
     /**

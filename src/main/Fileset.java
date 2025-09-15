@@ -80,7 +80,11 @@ public final class Fileset implements Mutable, Iterable<File> {
      */
     public static Fileset find(String selector) {
         int split = selector.lastIndexOf('/');
-        return find(selector.substring(0, split), selector.substring(split + 1));
+        if (split < 0) {
+            return find("", selector);
+        } else {
+            return find(selector.substring(0, split), selector.substring(split + 1));
+        }
     }
 
     /**

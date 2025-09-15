@@ -65,21 +65,21 @@ public interface JamProject extends JavaProject, IvyProject {
                 "-quiet");
     }
 
-    default File jarfile(String post, Fileset... contents) {
-        String name = "jam-" + version() + post + ".jar";
+    default void jarfile(Fileset contents, String suffix) {
+        String name = "jam-" + version() + suffix + ".jar";
         File jarFile = jar(name, contents);
         write(name + ".md5", jarFile.digest("MD5"));
         write(name + ".sha1", jarFile.digest("SHA1"));
-        return jarFile;
     }
 
-    default File jars() {
-        jarfile("-javadoc", docs());
-        jarfile("-sources", mainSources());
-        return jarfile("", mainClasses());
+    default Fileset jars() {
+        jarfile(docs(), "-javadoc");
+        jarfile(mainSources(), "-sources");
+        jarfile(mainClasses(), "");
+        return builtFiles("*.jar");
     }
 
-    default File release() {
+    default Fileset release() {
         tests();
         return jars();
     }
