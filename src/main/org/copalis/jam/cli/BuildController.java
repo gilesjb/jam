@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -147,30 +146,31 @@ public class BuildController<T> {
      */
     public void executeBuild(Function<T, ?> buildFn, String[] args) {
         long start = System.currentTimeMillis();
+        String script = ProcessHandle.current().info().arguments()
+                .map(a -> a[a.length - args.length - 1]).orElse("");
         boolean exit = false;
 
         try {
             for (int opt = 0; opt < args.length && args[opt].startsWith("-"); opt++) {
-                color(BOLD);
                 switch (args[opt]) {
                 case "--cache":
-                    load();
+                    load(script);
                     printCacheContents();
                     break;
                 case "--targets":
-                    load();
+                    load(script);
                     printBuildTargets(buildFn);
                     break;
                 default:
-                    color(RED_BRIGHT).print("Illegal option: ").print(args[opt]).color(BOLD).line();
+                    color(RED_BRIGHT).print("Illegal option: ").color(RESET).print(args[opt]).line();
                 case "--help":
-                    print("Jam build tool").line();
-                    print("Options ").line();
-                    print("    --help             display this help message").line();
-                    print("    --targets          display the available build targets").line();
-                    print("    --cache            display the cache contents").line();
-                    print("    <target-name>...   builds the specified targets").line();
-                    print("Running the build with no arguments builds the default target").line();
+                    String path = new File(script).exists() ? "    " + script : "    <script>";
+                    print("Usage:").line();
+                    print(path).print("              Build the default target").line();
+                    print(path).print(" <targets>    Build specified targets").line();
+                    print(path).print(" --targets    Display available build targets").line();
+                    print(path).print(" --cache      Display cache contents").line();
+                    print(path).print(" --help       Display this help message").line();
                 }
                 exit = true;
             }
@@ -178,10 +178,10 @@ public class BuildController<T> {
             if (!exit) {
                 try {
                     if (args.length == 0) {
-                        printResult(buildFn.apply(load()));
+                        printResult(buildFn.apply(load(script)));
                     } else {
                         for (String arg : args) {
-                            printResult(type.getMethod(arg).invoke(load()));
+                            printResult(type.getMethod(arg).invoke(load(script)));
                         }
                     }
                 } finally {
@@ -202,15 +202,16 @@ public class BuildController<T> {
             printStackTrace(e);
             color(RED_BRIGHT).print("FAILED");
         } finally {
-            if (!exit) print(String.format(" in %dms", System.currentTimeMillis() - start)).line();
+            if (!exit) print(String.format(" in %dms", System.currentTimeMillis() - start)).color(RESET).line();
         }
     }
 
-    private T load() throws ClassNotFoundException, IOException {
+    private T load(String script) throws ClassNotFoundException, IOException {
         if (Objects.isNull(object)) {
             object = memo.instantiate(type);
+            File scriptFile = new File(script);
 
-            if (cacheFile.exists() && cacheFile.lastModified() < scriptLastModified()) {
+            if (cacheFile.exists() && cacheFile.lastModified() < scriptFile.lastModified()) {
                 color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").color(RESET).line();
             } else if (cacheFile.exists()) {
                 try (InputStream in = new FileInputStream(cacheFile)) {
@@ -222,25 +223,7 @@ public class BuildController<T> {
         return object;
     }
 
-    private long scriptLastModified() {
-        URL scriptLocation = type.getProtectionDomain().getCodeSource().getLocation();
-        if (Objects.nonNull(scriptLocation)) {
-            return new File(scriptLocation.getPath()).lastModified();
-        }
-        // otherwise look at exception stack trace for source file name
-        try {
-            throw new RuntimeException();
-        } catch (RuntimeException ex) {
-            for (StackTraceElement elem : ex.getStackTrace()) {
-                if (!elem.getFileName().endsWith(".java")) {
-                    return new File(elem.getFileName()).lastModified();
-                }
-            }
-        }
-        return Long.MIN_VALUE;
-    }
-
-    private void printCacheContents() {
+     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
         memo.entries().forEach(e -> {
                 printResultStatus(e);
@@ -255,7 +238,7 @@ public class BuildController<T> {
 
         if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(
                 Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
-                    print("Default target is: ").color(BOLD).print(m.getName()).line();
+                    print("Default target: ").color(BOLD).print(m.getName()).line();
                     return null;
         })));
     }
@@ -268,10 +251,11 @@ public class BuildController<T> {
                 .collect(Collectors.toList());
 
         if (!targets.isEmpty()) {
-            color(BOLD).print(t.getSimpleName()).color(RESET).line();
+            String name = t.getSimpleName();
+            print(t == type? name + " targets" : "from " + name).line();
             for (Method m : targets) {
                 printResultStatus(memo.lookup(new Invocation(m)));
-                print(m.getName()).print(" : ");
+                color(BOLD).print(m.getName()).color(RESET).print(" : ");
                 print(m.getReturnType().getSimpleName()).line();
                 visited.add(m.getName());
             }
@@ -317,6 +301,7 @@ public class BuildController<T> {
                     continue;
                 }
                 System.err.println("\tat " + el);
+                if (!el.getFileName().endsWith(".java")) break;
             }
         }
     }
