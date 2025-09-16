@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.util.Args;
 import org.copalis.jam.util.Compiler;
+import org.copalis.jam.util.IvyResolver;
 import org.copalis.jam.util.PackageResolver;
 import org.copalis.jam.util.Paths;
 
@@ -26,7 +27,7 @@ import org.copalis.jam.util.Paths;
  *
  * @author gilesjb
  */
-public interface JavaProject extends BuilderProject {
+public interface JavaProject extends FileProject {
 
     /**
      * Runs a Java process. The output of this process will not be tracked as a dependency.
@@ -72,9 +73,12 @@ public interface JavaProject extends BuilderProject {
 
     /**
      * Gets the package dependency resolver.
+     * The default implementation uses Apache Ivy to download packages from the Maven repository.
      * @return the package resolver
      */
-    PackageResolver packageResolver();
+    default PackageResolver packageResolver() {
+        return new IvyResolver(IvyResolver.VER2_5_1_URL, pkgCachePath());
+    }
 
     /**
      * Gets dependencies

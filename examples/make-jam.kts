@@ -8,7 +8,7 @@
  * #!/usr/bin/env kotlin -Xjvm-default=all -cp <path of Jam jar>
  */
 
-interface KotlinJamProject : JavaProject, IvyProject {
+interface KotlinJamProject : JavaProject {
 
     fun version() = "0.9"
 

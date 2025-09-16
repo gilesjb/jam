@@ -15,7 +15,7 @@ import org.copalis.jam.util.Paths;
  *
  * @author gilesjb
  */
-public interface BuilderProject extends Project {
+public interface FileProject extends Project {
 
     /**
      * Gets the root directory for the project's source code.

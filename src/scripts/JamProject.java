@@ -13,7 +13,7 @@
  *
  * @author gilesjb
  */
-public interface JamProject extends JavaProject, IvyProject {
+public interface JamProject extends JavaProject {
 
     default String version() {
         return "0.9";
