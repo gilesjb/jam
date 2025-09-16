@@ -223,7 +223,7 @@ public class BuildController<T> {
         return object;
     }
 
-     private void printCacheContents() {
+    private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
         memo.entries().forEach(e -> {
                 printResultStatus(e);
@@ -251,8 +251,7 @@ public class BuildController<T> {
                 .collect(Collectors.toList());
 
         if (!targets.isEmpty()) {
-            String name = t.getSimpleName();
-            print(t == type? name + " targets" : "from " + name).line();
+            print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
                 printResultStatus(memo.lookup(new Invocation(m)));
                 color(BOLD).print(m.getName()).color(RESET).print(" : ");
@@ -307,7 +306,7 @@ public class BuildController<T> {
     }
 
     private void printMethod(String method, List<Object> params) {
-        print(" ".repeat(calls * 2)).print(method);
+        print("  ".repeat(calls)).print(method);
         for (Object param : params) {
             print(" ");
             printValue(param);
