@@ -235,12 +235,13 @@ public class BuildController<T> {
 
     private void printBuildTargets(Function<T, ?> buildFn) {
         color(RESET).printTargets(type, new HashSet<>());
-
-        if (Objects.nonNull(buildFn)) buildFn.apply(type.cast(
-                Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (p, m, a) -> {
-                    print("Default target: ").color(BOLD).print(m.getName()).line();
-                    return null;
-        })));
+        try {
+            buildFn.apply(
+                    type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, (p, m, a) -> {
+                        print("Default target: ").color(BOLD).print(m.getName()).line();
+                        return null;
+                    })));
+        } catch (NullPointerException e) { } // thrown if buildFn has primitive return type
     }
 
     private void printTargets(Class<?> t, Set<String> visited) {
