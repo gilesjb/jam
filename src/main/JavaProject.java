@@ -173,7 +173,7 @@ public interface JavaProject extends FileProject {
                     Path base = Path.of(fs.root);
                     for (File file : fs) {
                         JarEntry entry = new JarEntry(base.relativize(file.toPath()).toString());
-                        entry.setTime(file.lastModified());
+                        entry.setTime(0);
                         out.putNextEntry(entry);
                         Files.copy(file.toPath(), out);
                         out.closeEntry();

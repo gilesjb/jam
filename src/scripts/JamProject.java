@@ -62,7 +62,8 @@ public interface JamProject extends JavaProject {
         return javadoc("docs",
                 "-sourcepath", classpath(mainSources()),
                 "-subpackages", "",
-                "-quiet");
+                "-quiet",
+                "-notimestamp");
     }
 
     default void jarfile(Fileset contents, String suffix) {
