@@ -164,7 +164,7 @@ public class BuildController<T> {
                 default:
                     color(RED_BRIGHT).print("Illegal option: ").color(RESET).print(args[opt]).line();
                 case "--help":
-                    String path = new File(script).exists() ? "    " + script : "    <script>";
+                    String path = "   " + (new File(script).exists() ? script : "<script>");
                     print("Usage:").line();
                     print(path).print("              Build the default target").line();
                     print(path).print(" <targets>    Build specified targets").line();
