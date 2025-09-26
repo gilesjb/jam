@@ -19,10 +19,6 @@ public interface JamProject extends JavaProject {
         return "0.9";
     }
 
-    default Fileset testLibs() {
-        return resolve("commons-lang:2.1", "commons-cli:1.4");
-    }
-
     default Fileset mainSources() {
         return sourceFiles("main/**.java");
     }
@@ -37,15 +33,15 @@ public interface JamProject extends JavaProject {
 
     default Fileset testClasses() {
         return javac("classes/test", testSources(),
-                "-cp", classpath(mainClasses(), jUnitLib(), testLibs()));
+                "-cp", classpath(mainClasses(), jUnitLib()));
     }
 
     default Fileset tests() {
+        Fileset agent = resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime");
         return junit("tests/report",
-                "-javaagent:" + resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime")
-                        + "=destfile=" + buildPath("tests/report") + "/jacoco.exec",
+                "-javaagent:" + agent + "=destfile=" + buildPath("tests/report") + "/jacoco.exec",
                 "--scan-classpath", classpath(testClasses()),
-                "-cp", classpath(testClasses(), testSources(), mainClasses(), testLibs()));
+                "-cp", classpath(testClasses(), testSources(), mainClasses()));
     }
 
     default File coverageReport() {
@@ -66,27 +62,13 @@ public interface JamProject extends JavaProject {
                 "-notimestamp");
     }
 
-    default void jarfile(Fileset contents, String suffix) {
-        String name = "jam-" + version() + suffix + ".jar";
-        File jarFile = jar(name, contents);
-        write(name + ".md5", jarFile.digest("MD5"));
-        write(name + ".sha1", jarFile.digest("SHA1"));
+    default File jarfile() {
+        return jar("jam-" + version() + ".jar", mainClasses(), mainSources());
     }
 
-    default Fileset jars() {
-        jarfile(docs(), "-javadoc");
-        jarfile(mainSources(), "-sources");
-        jarfile(mainClasses(), "");
-        return builtFiles("*.jar");
-    }
-
-    default Fileset release() {
+    default File release() {
         tests();
-        return jars();
-    }
-
-    default String about() {
-        return "Jam is ready! Run ./make-jam to build Jam " + version();
+        return jarfile();
     }
 
     default void viewTestCoverage() throws Exception {
@@ -95,6 +77,13 @@ public interface JamProject extends JavaProject {
 
     default void viewDocs() throws Exception {
         java.awt.Desktop.getDesktop().browse(docs().file("index.html").toURI());
+    }
+
+    default void publish() {
+        exec("mvn", "install:install-file", "-DgroupId=org.copalis", "-DartifactId=jam",
+                "-Dversion=" + version(), "-Dfile=" + release(),
+                "-Dpackaging=jar", "-DgeneratePom=true", "-DlocalRepositoryPath=../jam-repo",
+                "-DcreateChecksum=true");
     }
 
     static void main(String[] args) {
