@@ -66,20 +66,6 @@ public interface Project {
      * @param args command line arguments
      */
     public static <T> void run(Class<T> t, Consumer<T> fn, String[] args) {
-        new BuildController<>(t).executeBuild(o -> {
-            fn.accept(o);
-            return null;
-        }, args);
-    }
-
-    /**
-     * Executes a project using {@link BuildController#executeBuild(Function, String[])}
-     * @param <T> The project type
-     * @param t the project interface reference
-     * @param fn a function that calls the default build method
-     * @param args command line arguments
-     */
-    public static <T> void run(Class<T> t, Function<T, ?> fn, String[] args) {
         new BuildController<>(t).executeBuild(fn, args);
     }
 }

@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,12 +106,14 @@ public class BuildController<T> {
 
         public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
             calls--;
-            return injected.getOrDefault(result, result);
+            lastResult = injected.getOrDefault(result, result);
+            return lastResult;
         }
     };
 
     private int calls = 0;
     private T object;
+    private Object lastResult;
 
     /**
      * Creates a build controller instance
@@ -141,10 +143,10 @@ public class BuildController<T> {
      * </dl>
      * If no arguments are specified, {@code buildFn} is invoked.
      *
-     * @param buildFn a function that invokes the default build target
+     * @param buildFn a consumer that invokes the default build target
      * @param args the build's command line arguments.
      */
-    public void executeBuild(Function<T, ?> buildFn, String[] args) {
+    public void executeBuild(Consumer<T> buildFn, String[] args) {
         long start = System.currentTimeMillis();
         String script = ProcessHandle.current().info().arguments()
                 .map(a -> a[a.length - args.length - 1]).orElse("");
@@ -178,12 +180,17 @@ public class BuildController<T> {
             if (!exit) {
                 try {
                     if (args.length == 0) {
-                        printResult(buildFn.apply(load(script)));
+                        buildFn.accept(load(script));
                     } else {
                         for (String arg : args) {
-                            printResult(type.getMethod(arg).invoke(load(script)));
+                            type.getMethod(arg).invoke(load(script));
                         }
                     }
+                    if (Objects.nonNull(lastResult)) {
+                        color(BOLD).print("Result: ").printValue(lastResult);
+                        line();
+                    }
+
                 } finally {
                     if (memo.entries().findAny().isPresent()) {
                         try (OutputStream out = new FileOutputStream(cacheFile)) {
@@ -233,10 +240,10 @@ public class BuildController<T> {
             });
     }
 
-    private void printBuildTargets(Function<T, ?> buildFn) {
+    private void printBuildTargets(Consumer<T> buildFn) {
         color(RESET).printTargets(type, new HashSet<>());
         try {
-            buildFn.apply(
+            buildFn.accept(
                     type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, (p, m, a) -> {
                         print("Default target: ").color(BOLD).print(m.getName()).line();
                         return null;
@@ -276,13 +283,6 @@ public class BuildController<T> {
             color(GREEN).print("[fresh]  ");
         }
         color(RESET);
-    }
-
-    private void printResult(Object result) {
-        if (Objects.nonNull(result)) {
-            color(BOLD).print("Result: ").printValue(result);
-            line();
-        }
     }
 
     /**

@@ -37,7 +37,7 @@ public interface JamProject extends JavaProject {
     }
 
     default Fileset tests() {
-        Fileset agent = resolve("org.jacoco:org.jacoco.agent:0.8.9#runtime");
+        Fileset agent = resolve("org.jacoco:org.jacoco.agent:0.8.13#runtime");
         return junit("tests/report",
                 "-javaagent:" + agent + "=destfile=" + buildPath("tests/report") + "/jacoco.exec",
                 "--scan-classpath", classpath(testClasses()),
@@ -46,7 +46,7 @@ public interface JamProject extends JavaProject {
 
     default File coverageReport() {
         String report = buildPath("tests/coverage");
-        java("-jar", resolve("org.jacoco:org.jacoco.cli:0.8.9#nodeps").toString(),
+        java("-jar", resolve("org.jacoco:org.jacoco.cli:0.8.13#nodeps").toString(),
                 "report", tests().file("jacoco.exec").getPath(),
                 "--classfiles", classpath(mainClasses()),
                 "--sourcefiles", classpath(mainSources()),
