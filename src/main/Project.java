@@ -12,7 +12,7 @@ import org.copalis.jam.memo.Mutable;
  * and provides functionality to track source file dependencies,
  * control the build process and handle command-line options.
  *
- * @see BuildController#executeBuild(Function, String[])
+ * @see BuildController#executeBuild(Consumer, String[])
  * @author gilesjb
  */
 public interface Project {
@@ -59,7 +59,7 @@ public interface Project {
 
 
     /**
-     * Executes a project using {@link BuildController#executeBuild(Function, String[])}
+     * Executes a project using {@link BuildController#executeBuild(Consumer, String[])}
      * @param <T> the project type
      * @param t the project interface reference
      * @param fn a consumer that calls the default build method
