@@ -69,7 +69,8 @@ public class BuildController<T> {
 
     private static final String
         RESET =         "\033[0m",
-        BOLD =          "\033[0;1m",
+        BOLD =          "\033[1m",
+        ITALIC =        "\033[3m",
         RED_BRIGHT =    "\033[0;91m",
         GREEN =         "\033[0;32m",
         GREEN_BRIGHT =  "\033[0;92m",
@@ -168,11 +169,11 @@ public class BuildController<T> {
                 case "--help":
                     String path = "   " + (new File(script).exists() ? script : "<script>");
                     print("Usage:").line();
-                    print(path).print("              Build the default target").line();
-                    print(path).print(" <targets>    Build specified targets").line();
-                    print(path).print(" --targets    Print available build targets").line();
-                    print(path).print(" --cache      Print cache contents").line();
-                    print(path).print(" --help       Print this help message").line();
+                    print(path).print("                    Build the default target").line();
+                    print(path).print(" ").color(ITALIC).print("<target-name>...").color(RESET).print("   Build specified target(s)").line();
+                    print(path).print(" --targets          Print available build targets").line();
+                    print(path).print(" --cache            Print cache contents").line();
+                    print(path).print(" --help             Print this help message").line();
                 }
                 exit = true;
             }
@@ -241,11 +242,11 @@ public class BuildController<T> {
     }
 
     private void printBuildTargets(Consumer<T> buildFn) {
-        color(RESET).printTargets(type, new HashSet<>());
+        printTargets(type, new HashSet<>());
         try {
             buildFn.accept(
                     type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, (p, m, a) -> {
-                        print("Default target: ").color(BOLD).print(m.getName()).line();
+                        color(ITALIC).print("Default target: ").color(RESET, BOLD).print(m.getName()).line();
                         return null;
                     })));
         } catch (NullPointerException e) { } // thrown if buildFn has primitive return type
@@ -259,7 +260,7 @@ public class BuildController<T> {
                 .collect(Collectors.toList());
 
         if (!targets.isEmpty()) {
-            print(t.getSimpleName() + " targets").line();
+            color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
                 printResultStatus(memo.lookup(new Invocation(m)));
                 color(BOLD).print(m.getName()).color(RESET).print(" : ");
@@ -328,9 +329,11 @@ public class BuildController<T> {
         if (val instanceof String) print("'");
     }
 
-    private BuildController<T> color(String str) {
+    private BuildController<T> color(String... strs) {
         if (colors) {
-            out.print(str);
+            for (String str : strs) {
+                out.print(str);
+            }
         }
         return this;
     }
