@@ -75,8 +75,7 @@ public class BuildController<T> {
         GREEN =         "\033[0;32m",
         GREEN_BRIGHT =  "\033[0;92m",
         YELLOW =        "\033[0;33m",
-        CYAN =          "\033[0;36m",
-        CYAN_BRIGHT =   "\033[0;96m";
+        CYAN =          "\033[0;36m";
 
     record Call(Method method, List<Object> params) { }
 
@@ -220,7 +219,7 @@ public class BuildController<T> {
             File scriptFile = new File(script);
 
             if (cacheFile.exists() && cacheFile.lastModified() < scriptFile.lastModified()) {
-                color(CYAN_BRIGHT).print("Build script has been modified; Using new method cache.").color(RESET).line();
+                print("Build script has been modified; Using new method cache.").line();
             } else if (cacheFile.exists()) {
                 try (InputStream in = new FileInputStream(cacheFile)) {
                     memo.load(in);

@@ -68,6 +68,7 @@ public interface JamProject extends JavaProject {
 
     default File release() {
         tests();
+        docs();
         return jarfile();
     }
 
