@@ -152,7 +152,7 @@ public class Memorizer {
                 cache.remove(signature);
             } else {
                 observer.startMethod(Observer.Status.CURRENT, method, signature.params());
-                dependencies.peek().addAll(result.sources());
+                dependencies.peek().addAll(result.dependencies());
                 observer.endMethod(Observer.Status.CURRENT, method, signature.params(), result.value());
                 return result.value();
             }
