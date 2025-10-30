@@ -108,27 +108,6 @@ public class Memorizer {
     }
 
     /**
-     * Records a mutable resource as a data dependency.
-     * When a mutable resources's {@link Mutable#modified()} value is {@code true},
-     * the return values of all dependent methods are invalidated.
-     * <p>
-     * When this method is called,
-     * methods that may have a data dependency on the resource are recorded as dependents.
-     * The exact rule for determining dependents is:
-     * <ul>
-     * <li>The method that called {@link #dependsOn(Mutable)}
-     * <li>Any method that calls a dependent method
-     * <li>Any method that has 1 or more parameters and is called from a method
-     * that has previously called a dependent method
-     * </ul>
-     *
-     * @param resource the mutable resource
-     */
-    public void dependsOn(Mutable resource) {
-        dependencies.peek().add(resource);
-    }
-
-    /**
      * Creates a memoized instance of an interface
      * @param <T> the build type
      * @param t the Java class of the interface
@@ -171,6 +150,9 @@ public class Memorizer {
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (method.getReturnType() != Void.TYPE) {
                 cache.put(signature, new Result(signature, value, dependencies.peek()));
+            }
+            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
+                dependencies.peek().add((Mutable) value);
             }
             return value;
         } finally {

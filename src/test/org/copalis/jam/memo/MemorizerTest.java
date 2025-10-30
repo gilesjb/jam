@@ -54,29 +54,33 @@ public class MemorizerTest {
     static final Mutable mutable = () -> changed;
 
     interface Mutables {
-        default String a(Memorizer m) {
-            String aa = aa();  // no prior dependencies or parameters
-            String ab = ab(m); // records a dependency
-            String ac = ac();  // no parameters, so can't be affected by ab's dependency
-            String ad = ad(m); // one parameter, so could be affected by ab's dependency
-            return aa + ab + ac + ad;
+        default String a() {
+            aa();       // no prior dependencies or parameters
+            ab("foo");  // records a dependency
+            ac();       // no parameters, so can't be affected by ab's dependency
+            ad("foo");  // one parameter, so could be affected by ab's dependency
+            ae(() -> false);
+            return "Done";
         }
 
         default String aa() {
-            return "aa";
+            return "";
         }
 
-        default String ab(Memorizer m) {
-            m.dependsOn(mutable);
-            return "ab";
+        default Mutable ab(String foo) {
+            return mutable;
         }
 
         default String ac() {
-            return "ac";
+            return "";
         }
 
-        default String ad(Memorizer m) {
-            return "ad";
+        default String ad(String foo) {
+            return "";
+        }
+
+        default String ae(Mutable m) {
+            return "";
         }
     }
 
@@ -94,12 +98,12 @@ public class MemorizerTest {
         changed = false;
 
         Mutables t = memo.instantiate(Mutables.class);
-        assertEquals("aaabacad", t.a(memo));
-        assertEquals(List.of("a", "aa", "ab", "ac", "ad"), called);
+        t.a();
+        assertEquals(List.of("a", "aa", "ab", "ac", "ad", "ae"), called);
         assertTrue(memo.entries().noneMatch(Result::modified));
 
         called.clear();
-        assertEquals("aaabacad", t.a(memo));
+        t.a();
         assertEquals(List.of(), called);
         assertTrue(memo.entries().noneMatch(Result::modified));
 
@@ -107,7 +111,7 @@ public class MemorizerTest {
         assertTrue(memo.entries().anyMatch(Result::modified));
 
         called.clear();
-        assertEquals("aaabacad", t.a(memo));
+        t.a();
         assertEquals(List.of("a", "ab", "ad"), called);
     }
 }

@@ -316,7 +316,7 @@ public class BuildController<T> {
 
     private void printValue(Object val) {
         if (val instanceof String) print("'");
-        String str = val.toString();
+        String str = Objects.toString(val);
         if (str.length() > 200) {
             str = str.substring(0, 200) + "...";
         }

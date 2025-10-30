@@ -80,7 +80,7 @@ public interface FileProject extends Project {
      * @return a fileset of the matching files
      */
     default Fileset sourceFiles(String pattern) {
-        return dependsOn(Fileset.find(sourcePath() + '/' + pattern));
+        return Fileset.find(sourcePath() + '/' + pattern);
     }
 
     /**
@@ -90,7 +90,7 @@ public interface FileProject extends Project {
      * @return a File object referencing the specified path
      */
     default File sourceFile(String name) {
-        return dependsOn(new File(Path.of(sourcePath(), name)));
+        return new File(Path.of(sourcePath(), name));
     }
 
     /**
