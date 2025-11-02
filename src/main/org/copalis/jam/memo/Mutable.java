@@ -10,6 +10,11 @@ import java.io.Serializable;
 public interface Mutable extends Serializable {
 
     /**
+     * A Mutable instance that always returns true from {@link #modified()}
+     */
+    static final Mutable CHANGED = () -> true;
+
+    /**
      * Checks if the resource has been modified since this reference was created
      * @return true if the resource has been modified
      */

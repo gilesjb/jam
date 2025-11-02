@@ -49,9 +49,7 @@ public class MemorizerTest {
         assertThrowsExactly(IllegalArgumentException.class, foo::foo);
     }
 
-    static boolean changed = false;
-
-    static final Mutable mutable = () -> changed;
+    static Mutable mutable;
 
     interface Mutables {
         default String a() {
@@ -84,7 +82,7 @@ public class MemorizerTest {
         }
     }
 
-    @Test synchronized public void testMutation() {
+    @Test synchronized public void testMutableChange() {
         List<String> called = new LinkedList<>();
 
         Memorizer memo = new Memorizer(new Observer() {
@@ -95,7 +93,8 @@ public class MemorizerTest {
             }
         });
 
-        changed = false;
+        boolean[] changed = new boolean[] {false};
+        mutable = () -> changed[0];
 
         Mutables t = memo.instantiate(Mutables.class);
         t.a();
@@ -107,11 +106,26 @@ public class MemorizerTest {
         assertEquals(List.of(), called);
         assertTrue(memo.entries().noneMatch(Result::modified));
 
-        changed = true;
+        changed[0] = true;
         assertTrue(memo.entries().anyMatch(Result::modified));
 
         called.clear();
         t.a();
         assertEquals(List.of("a", "ab", "ad"), called);
+
+        mutable = null;
+        called.clear();
+        t.a();
+        assertEquals(List.of("a", "ab", "ad"), called);
+
+        mutable = () -> false;
+        called.clear();
+        t.a();
+        assertEquals(List.of("a", "ab", "ad"), called);
+
+        called.clear();
+        t.a();
+        assertEquals(List.of(), called);
+        assertTrue(memo.entries().noneMatch(Result::modified));
     }
 }

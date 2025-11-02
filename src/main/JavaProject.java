@@ -30,7 +30,7 @@ import org.copalis.jam.util.Paths;
 public interface JavaProject extends FileProject {
 
     /**
-     * Runs a Java process. The output of this process will not be tracked as a dependency.
+     * Runs a Java process.
      * @param args arguments to be supplied to the Java runtime
      * @see <a href="https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html">Java command documentation</a>
      */

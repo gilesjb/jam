@@ -75,7 +75,6 @@ public interface FileProject extends Project {
 
     /**
      * Gets source files matching a pattern.
-     * The matching files will be recorded as dependencies of all methods on the call stack.
      * @param pattern a glob pattern to search files within {@link #sourcePath()}
      * @return a fileset of the matching files
      */
@@ -85,7 +84,6 @@ public interface FileProject extends Project {
 
     /**
      * Gets a file with a specific path.
-     * The file will be recorded as a dependency of all methods on the call stack.
      * @param name a file path within {@link #sourcePath()}
      * @return a File object referencing the specified path
      */

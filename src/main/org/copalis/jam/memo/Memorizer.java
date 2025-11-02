@@ -152,7 +152,7 @@ public class Memorizer {
                 cache.put(signature, new Result(signature, value, dependencies.peek()));
             }
             if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-                dependencies.peek().add((Mutable) value);
+                dependencies.peek().add((Mutable) Objects.requireNonNullElse(value, Mutable.CHANGED));
             }
             return value;
         } finally {
