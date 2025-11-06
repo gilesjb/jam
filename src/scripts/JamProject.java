@@ -24,7 +24,8 @@ public interface JamProject extends JavaProject {
     }
 
     default Fileset mainClasses() {
-        return javac("classes/main", mainSources());
+        return javac("classes/main", mainSources(),
+                "--release", "17");
     }
 
     default Fileset testSources() {
