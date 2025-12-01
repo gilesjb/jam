@@ -1,13 +1,25 @@
 
 # Jam build tool
 
-**Jam** is a library designed to be used in Java or Kotlin command-line scripts,
-especially scripts for build automation.
+**Jam** is a build automation library.
+It lets you write build scripts in plain Kotlin or Java.
+
+* Build *targets* are just methods/functions
+* *Dependencies* between targets are inferred by Jam's dynamic method proxy, which monitors method parameters and return values for references to source files.
 
 There are 3 parts to Jam:
-1. A dependency-aware method memoizer
-2. A script controller that handles command-line arguments
+
+1. A build controller that handles command-line arguments
+2. A dynamic method proxy that memoizes result values and tracks dependencies
 3. A library of utility functions for compiling code
+
+## How does it work?
+
+Jam's memoizer intercepts method calls and caches return values, including references to build artifacts. 
+Later method calls with the same parameters are served from cache instead of the method being executed again.
+The cache is also persisted to disk so that Jam can remember the project state between builds.
+Jam also records methods' dependencies on external mutable resources like source files;
+If those resources change, Jam knows that build artifacts derived from them are stale and marks cache entries referring to them as stale.
 
 ## Jam in action
 
