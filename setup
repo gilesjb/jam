@@ -1,9 +1,12 @@
 #!/bin/bash
 CLASSES=.jam-classes
-tail +2 src/scripts/JamProject.java > make-jam
+JAM_JAVA=src/scripts/JamProject.java
+if [[ $JAM_JAVA -nt make-jam ]]; then
+  tail +2 $JAM_JAVA > make-jam
+fi
 chmod +x make-jam
 set -x
 rm -r $CLASSES
 javac -sourcepath src/main -d $CLASSES src/main/**.java || exit 1
 
-./make-jam --help
+./make-jam
