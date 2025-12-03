@@ -121,3 +121,12 @@ But if there are modifications to source files,
 
 then Jam will recompile the classes.
 <img src='docs/pics/13.png' width='1000'>
+
+## Building Jam
+
+The only build dependency of Jam is JDK17 or later.
+
+* Clone the Jam repo
+* Running `./setup` creates a build script called `make-jam` and builds the project
+* `./make-jam viewDocs` will display the JavaDocs
+
