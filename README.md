@@ -11,7 +11,7 @@ There are 3 parts to Jam:
 
 1. A build controller that handles command-line arguments
 2. A dynamic method proxy that memoizes result values and tracks dependencies
-3. A library of utility functions for compiling code
+3. A library of predefined build targets and functions for compiling code
 
 ## How does it work?
 
@@ -122,11 +122,25 @@ But if there are modifications to source files,
 then Jam will recompile the classes.
 <img src='docs/pics/13.png' width='1000'>
 
+## Status
+
+Jam is a work in progress but its Project libraries provide all the functions you need to
+
+* Compile Java code
+* Download Maven packages
+* Run unit tests
+* Generate JavaDoc
+
+In fact, Jam is able to build itself - see [Jam's own build script](src/scripts/JamProject.java).
+
 ## Building Jam
 
-The only build dependency of Jam is JDK17 or later.
+The only build dependency of Jam is a JDK version 17 or later.
 
-* Clone the Jam repo
-* Running `./setup` creates a build script called `make-jam` and builds the project
-* `./make-jam viewDocs` will display the JavaDocs
+1. Clone the Jam repo
+2. Type `./setup`
+
+The `setup` shell script creates a copy of the build script called `make-jam` which it uses to build the project.
+
+To view the JavaDocs type `./make-jam viewDocs`.
 
