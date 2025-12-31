@@ -88,6 +88,13 @@ public interface JamProject extends JavaProject {
                 "-DcreateChecksum=true");
     }
 
+    default void examples() {
+        jarfile();
+        ProcessBuilder pb = new ProcessBuilder().directory(new File("examples")).inheritIO();
+        exec(pb, "./fibonacci.kts");
+        exec(pb, "./fibonacci.kts", "clean");
+    }
+
     static void main(String[] args) {
         Project.run(JamProject.class, JamProject::release, args);
     }
