@@ -109,6 +109,15 @@ public interface FileProject extends Project {
     }
 
     /**
+     * Executes an external process using a supplied {@link ProcessBuilder}
+     * @param pb the process builder
+     * @param command the command and arguments
+     */
+    default void exec(ProcessBuilder pb, String... command) {
+        Args.of(command).run(pb);
+    }
+
+    /**
      * Reads the contents of a text source file
      * @param name the name of the source file
      * @return the file's contents as a String

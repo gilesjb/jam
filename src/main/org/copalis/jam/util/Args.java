@@ -56,11 +56,16 @@ public class Args {
      * Executes an external process using these arguments
      */
     public void run() {
-        ProcessBuilder pb = new ProcessBuilder();
-        pb.command(array());
-        pb.inheritIO();
+        run(new ProcessBuilder().inheritIO());
+    }
+
+    /**
+     * Executes an external process using these arguments
+     * @param pb the process builder used to execute the process
+     */
+    public void run(ProcessBuilder pb) {
         try {
-            Process proc = pb.start();
+            Process proc = pb.command(array()).start();
             int status = proc.waitFor();
             if (status != 0) {
                 throw new RuntimeException("Process exited with status code: " + status);
