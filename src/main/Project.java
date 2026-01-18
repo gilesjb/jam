@@ -3,6 +3,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.copalis.jam.cli.BuildContext;
 import org.copalis.jam.cli.BuildController;
 
 /**
@@ -27,14 +28,11 @@ public interface Project {
     }
 
     /**
-     * Returns the value passed to it
-     * so that the build controller can perform return value replacement on the value.
-     * @param <T> the type of value
-     * @param val an arbitrary value
-     * @return val
+     * Gets the current build context
+     * @return the current build context
      */
-    default <T> T using(T val) {
-        return val;
+    default BuildContext context() {
+        return BuildContext.REFERENCE;
     }
 
     /**
@@ -42,13 +40,14 @@ public interface Project {
      * Empties the result cache and deletes the cache file, if it exists
      */
     default void clean() {
-        File cacheFile = using(BuildController.CACHE_FILE);
+        BuildContext context = context();
+
+        File cacheFile = context.cacheFile();
         if (Objects.nonNull(cacheFile) && cacheFile.exists()) {
             cacheFile.delete();
         }
-        using(BuildController.MEMO).forget();
+        context.memo().forget();
     }
-
 
     /**
      * Executes a project using {@link BuildController#executeBuild(Consumer, String[])}

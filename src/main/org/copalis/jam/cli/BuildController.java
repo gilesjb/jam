@@ -12,9 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,19 +49,6 @@ import org.copalis.jam.memo.Result;
  * @author gilesjb
  */
 public class BuildController<T> {
-    /**
-     * A dummy memoizer that is replaced by the real memoizer during execution of projects
-     */
-    public static final Memorizer MEMO = new Memorizer() {
-        @Override public String toString() {
-            return Memorizer.class.getSimpleName();
-        }
-    };
-
-    /**
-     * A dummy File object that is replaced by a reference to the memoizer's cache file
-     */
-    public static final File CACHE_FILE = new File("*cache*");
 
     private static final boolean colors = Objects.nonNull(System.console());
 
@@ -83,7 +68,6 @@ public class BuildController<T> {
     private final Memorizer memo;
     private final Class<T> type;
     private final Set<Call> cached = new HashSet<>();
-    private final Map<Object, Object> injected = new IdentityHashMap<>();
     private final PrintStream out = System.out;
 
     private final Observer observer = new Observer() {
@@ -106,7 +90,10 @@ public class BuildController<T> {
 
         public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
             calls--;
-            lastResult = injected.getOrDefault(result, result);
+            if (result == BuildContext.REFERENCE)
+                lastResult = new BuildContext(cacheFile, memo);
+            else
+                lastResult = result;
             return lastResult;
         }
     };
@@ -123,8 +110,6 @@ public class BuildController<T> {
         this.type = type;
         this.cacheFile = new File("." + type.getSimpleName() + ".ser");
         this.memo = new Memorizer(observer);
-        injected.put(MEMO, memo);
-        injected.put(CACHE_FILE, cacheFile);
     }
 
     /**
