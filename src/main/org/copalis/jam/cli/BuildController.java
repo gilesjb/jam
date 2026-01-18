@@ -91,7 +91,7 @@ public class BuildController<T> {
         public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
             calls--;
             if (result == BuildContext.REFERENCE)
-                lastResult = new BuildContext(cacheFile, memo);
+                lastResult = new BuildContext(memo, cacheFile);
             else
                 lastResult = result;
             return lastResult;

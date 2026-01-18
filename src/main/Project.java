@@ -46,7 +46,7 @@ public interface Project {
         if (Objects.nonNull(cacheFile) && cacheFile.exists()) {
             cacheFile.delete();
         }
-        context.memo().forget();
+        context.memoizer().forget();
     }
 
     /**

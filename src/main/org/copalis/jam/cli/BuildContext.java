@@ -6,12 +6,12 @@ import org.copalis.jam.memo.Memorizer;
 
 /**
  * Represents the build state
+ * @param memoizer the memoizer instance
  * @param cacheFile the file used to persist the cache
- * @param memo the memoizer instance
  *
  * @author giles
  */
-public record BuildContext(File cacheFile, Memorizer memo) {
+public record BuildContext(Memorizer memoizer, File cacheFile) {
 
     /**
      * A sentinel object that, when used as the return value of a proxied method,
