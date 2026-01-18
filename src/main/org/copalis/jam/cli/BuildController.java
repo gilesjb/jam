@@ -279,6 +279,7 @@ public class BuildController<T> {
             color(RED_BRIGHT);
             System.err.println(ex);
             color(RESET);
+            boolean last = false;
             for (StackTraceElement el : ex.getStackTrace()) {
                 if (el.getClassName().contains(".reflect.")
                         || el.getClassName().equals(Memorizer.class.getName())
@@ -286,7 +287,8 @@ public class BuildController<T> {
                     continue;
                 }
                 System.err.println("\tat " + el);
-                if (!el.getFileName().endsWith(".java")) break;
+                if (last) break;
+                last = last || el.getClassName().equals(BuildController.class.getName());
             }
         }
     }
