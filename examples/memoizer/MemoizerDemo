@@ -1,0 +1,17 @@
+#!/usr/bin/java -classpath ../../build/jam-0.9.1.jar --source 17
+
+import org.copalis.jam.memo.Memorizer;
+
+public interface MemoizerDemo {
+
+    default long fib(long x) {
+        return x < 2 ? x : fib(x - 1) + fib(x - 2);
+    }
+
+    public static void main(String... args) {
+        MemoizerDemo instance = new Memorizer().instantiate(MemoizerDemo.class);
+
+        System.out.println("Computing fib(100). Hopefully the computation is memoized or it will take a very long time...");
+        System.out.println("fib(100) = " + instance.fib(100));
+    }
+}

@@ -90,8 +90,11 @@ public interface JamProject extends JavaProject {
 
     default void examples() {
         jarfile();
-        ProcessBuilder pb = new ProcessBuilder().directory(new File("examples")).inheritIO();
-        exec(pb, "./fibonacci.kts");
+        ProcessBuilder pb = new ProcessBuilder().directory(new File("examples/memoizer")).inheritIO();
+        exec(pb, "./MemoizerDemo");
+
+        pb.directory(new File("examples/project"));
+        exec(pb, "./fibonacci.kts", "fib50");
         exec(pb, "./fibonacci.kts", "clean");
     }
 
