@@ -9,11 +9,11 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.copalis.jam.memo.Mutable;
+import org.copalis.jam.util.Paths;
 
 /**
  * A reference to a set of existing files
@@ -23,12 +23,6 @@ import org.copalis.jam.memo.Mutable;
 public final class Fileset implements Mutable, Iterable<File> {
 
     private static final long serialVersionUID = -6221550505534926198L;
-
-    /**
-     * A Collector that collects a stream of File objects into a Fileset
-     */
-    public static final Collector<File, Object, Fileset> FILES =
-            Collectors.collectingAndThen(Collectors.toCollection(LinkedHashSet::new), Fileset::of);
 
     /**
      * The files that belong to this set
@@ -50,6 +44,18 @@ public final class Fileset implements Mutable, Iterable<File> {
      */
     public static Fileset of(File... files) {
         return new Fileset(new TreeSet<>(Arrays.asList(files)), null, null);
+    }
+
+    /**
+     * Creates a Fileset from a stream of paths
+     * @param paths the Path objects
+     * @return a new Fileset
+     */
+    public static Fileset of(Stream<Path> paths) {
+        return new Fileset(paths
+                .map(Paths::relativize)
+                .map(File::new)
+                .collect(Collectors.toCollection(LinkedHashSet::new)), null, null);
     }
 
     /**

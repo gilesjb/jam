@@ -87,11 +87,7 @@ public interface JavaProject extends FileProject {
      * @return a Fileset containing references to the fetched dependencies
      */
     default Fileset resolve(String... identifiers) {
-        return packageResolver()
-                .resolve(identifiers)
-                .map(Paths::relativize)
-                .map(File::new)
-                .collect(Fileset.FILES);
+        return Fileset.of(packageResolver().resolve(identifiers));
     }
 
     /**
