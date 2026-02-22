@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"<Unnamed>"},{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.copalis.jam.cli"},{"l":"org.copalis.jam.memo"},{"l":"org.copalis.jam.util"}];updateSearchResults();
