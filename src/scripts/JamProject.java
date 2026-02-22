@@ -1,5 +1,5 @@
 /* Delete this line when using as command line script
-#!/usr/bin/java -classpath .jam-classes --source 17
+#!/usr/bin/env -S java -classpath .jam-classes --source 23
 /*
  * The #! command in this file specifies -classpath .jam-classes
  * because it uses classes bootstrapped by the ./setup script.
