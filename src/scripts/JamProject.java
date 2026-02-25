@@ -78,7 +78,7 @@ public interface JamProject extends JavaProject {
         return "release/org/copalis/jam/" + version() + "/jam-" + version() + type;
     }
 
-    default void releaseArtifacts() {
+    default String releaseArtifacts() {
         jar(releasePath(".jar"), mainClasses(), mainSources());
         jar(releasePath("-sources.jar"), mainSources());
         jar(releasePath("-javadoc.jar"), docs());
@@ -86,6 +86,7 @@ public interface JamProject extends JavaProject {
                 read("release/pom.xml").replace("{version}", version()));
         write("jreleaser.yml",
                 read("release/jreleaser.yml").replace("{version}", version()));
+        return "Publish using: jreleaser deploy -g";
     }
 
     default void viewTestCoverage() throws Exception {
