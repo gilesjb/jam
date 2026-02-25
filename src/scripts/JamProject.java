@@ -67,10 +67,25 @@ public interface JamProject extends JavaProject {
         return jar("jam-" + version() + ".jar", mainClasses(), mainSources());
     }
 
-    default File release() {
+    default File build() {
         tests();
         docs();
         return jarfile();
+    }
+
+    default String releasePath(String type) {
+        buildPath("release/org/copalis/jam/" + version());
+        return "release/org/copalis/jam/" + version() + "/jam-" + version() + type;
+    }
+
+    default void releaseArtifacts() {
+        jar(releasePath(".jar"), mainClasses(), mainSources());
+        jar(releasePath("-sources.jar"), mainSources());
+        jar(releasePath("-javadoc.jar"), docs());
+        write(releasePath(".pom"),
+                read("release/pom.xml").replace("{version}", version()));
+        write("jreleaser.yml",
+                read("release/jreleaser.yml").replace("{version}", version()));
     }
 
     default void viewTestCoverage() throws Exception {
@@ -81,24 +96,7 @@ public interface JamProject extends JavaProject {
         java.awt.Desktop.getDesktop().browse(docs().file("index.html").toURI());
     }
 
-    default void publish() {
-        exec("mvn", "install:install-file", "-DgroupId=org.copalis", "-DartifactId=jam",
-                "-Dversion=" + version(), "-Dfile=" + release(),
-                "-Dpackaging=jar", "-DgeneratePom=true", "-DlocalRepositoryPath=../jam-repo",
-                "-DcreateChecksum=true");
-    }
-
-    default void examples() {
-        jarfile();
-        ProcessBuilder pb = new ProcessBuilder().directory(new File("examples/memoizer")).inheritIO();
-        exec(pb, "./MemoizerDemo");
-
-        pb.directory(new File("examples/project"));
-        exec(pb, "./fibonacci.kts", "fib50");
-        exec(pb, "./fibonacci.kts", "clean");
-    }
-
     static void main(String[] args) {
-        Project.run(JamProject.class, JamProject::release, args);
+        Project.run(JamProject.class, JamProject::build, args);
     }
 }

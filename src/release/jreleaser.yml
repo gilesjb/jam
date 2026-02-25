@@ -1,0 +1,25 @@
+project:
+  name: jam
+  version: {version}
+  description: Memoizer and build tool
+  inceptionYear: 2024
+  authors:
+    - Giles Burgess
+  license: Apache-2.0
+  links:
+    homepage: https://github.com/gilesjb/jam
+  java:
+    groupId: org.copalis
+
+signing:
+  active: ALWAYS
+  armored: true
+
+deploy:
+  maven:
+    mavenCentral:
+      sonatype:
+        active: ALWAYS
+        url: https://central.sonatype.com/api/v1/publisher
+        stagingRepositories:
+          - release
