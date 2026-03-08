@@ -1,146 +1,193 @@
 
 # Jam build tool
 
-**Jam** is a build automation library.
-It lets you write build scripts in plain Kotlin or Java.
+Jam is a JVM build tool which lets you write build scripts in plain Kotlin or Java. 
+Build targets are just methods. 
+Jam uses a dependency-tracking dynamic proxy to memoize method calls, giving you incremental builds automatically — no explicit dependency declarations required.
+Jam supports incremental builds by memoizing (caching) method calls with a dependency-tracking dynamic proxy.
 
-* Build *targets* are just methods/functions
-* *Dependencies* between targets are inferred by Jam's dynamic method proxy, which monitors method parameters and return values for references to source files.
+## An example Jam script
 
-There are 3 parts to Jam:
-
-1. A build controller that handles command-line arguments
-2. A dynamic method proxy that memoizes result values and tracks dependencies
-3. A library of predefined build targets and functions for compiling code
-
-## How does it work?
-
-Jam's memoizer intercepts method calls and caches return values, including references to build artifacts. 
-Later method calls with the same parameters are served from cache instead of the method being executed again.
-The cache is also persisted to disk so that Jam can remember the project state between builds.
-Jam also records methods' dependencies on external mutable resources like source files;
-If those resources change, Jam knows that build artifacts derived from them are stale and marks cache entries referring to them as stale.
-
-## Jam in action
-
-### Jam scripts
-
-Here is an example build script written in Kotlin. Kotlin scripts must have names that end with `.main.kts`.
-This file is called `hello.main.kts`.
+This is what a Jam build script for a simple Java project looks like:
 
 ```kotlin
-#!/usr/bin/env kotlin -Xjvm-default=all
-@file:Repository("https://raw.githubusercontent.com/gilesjb/jam-repo/refs/heads/main")
+#!/usr/bin/env -S kotlin -Xjvm-default=all
+
 @file:DependsOn("org.copalis:jam:0.9.1")
 
-interface HelloWorld : JavaProject {
+interface DemoProject : JavaProject {
 
-    fun worldStr() = "World"
+    fun dependencies() = resolve("com.google.code.gson:gson:2.10.1")
 
-    fun worldName() = read("world.txt")
+    fun mainSources() = sourceFiles("main/**.java")
 
-    fun greet(place : String) = println("Hello, ${place}!")
+    fun mainClasses() = javac("classes/main", mainSources(), "-cp", classpath(dependencies()))
 
-    fun helloJava() = sourceFiles("HelloWorld.java")
+    fun testSources() = sourceFiles("test/**.java")
 
-    fun helloClasses() = classpath(javac("classes", helloJava()))
+    fun testClasses() = javac("classes/test", testSources(),
+            "-cp", classpath(mainClasses(), jUnitLib(), dependencies()))
 
-    fun runHello() {
-        java("-cp", helloClasses(), "HelloWorld")
-    }
+    fun tests() = junit("test/report",
+            "--scan-classpath", classpath(testClasses()),
+            "-cp", classpath(testClasses(), testSources(), mainClasses(), dependencies()))
 
-    fun printHellos() {
-        greet(worldStr())
-        greet(worldName())
-        runHello()
+    fun docs() = javadoc("docs", "-Xdoclint:none",
+            "-sourcepath", classpath(mainSources()),
+            "-cp", classpath(dependencies()),
+            "-subpackages", "org.copalis")
+
+    fun jarfile() = jar("jam-demo.jar", mainClasses())
+
+    fun build() : File {
+        tests()
+        docs()
+        return jarfile()
     }
 }
 
-Project.run(HelloWorld::class.java, HelloWorld::printHellos, args)
+Project.run(DemoProject::class.java, DemoProject::build, args)
 
 ```
 
-The script can be run directly from the command line.
-It just requires Kotlin to be installed; the Jam library will be downloaded automatically.
+Some things to note:
 
-Passing the `--help` option displays options:
+- **The shebang line** — `#!/usr/bin/env -S kotlin -Xjvm-default=all` means the script can be executed directly from the command line like a shell script. The `-Xjvm-default=all` flag is required for Jam's proxy mechanism to work with interface default methods.
+- **`@file:DependsOn`** — uses Kotlin's built-in scripting mechanism for declaring dependencies to trigger an automatic download of the Jam library, so no manual installation is needed.
+- **`DemoProject`** — the user-defined project, which must be an interface so that Jam can proxy its methods.
+- **`JavaProject`** — a built-in Jam interface that provides standard methods for Java builds: `javac`, `junit`, `javadoc`, `jar`, `sourceFiles`, `classpath`, and Maven dependency resolution via `resolve`.
+- **`dependencies()`** — a zero-parameter method, which makes it a *target* — something that can be invoked directly from the command line.
+- **`testClasses()` being called twice in `tests()`** — this does *not* cause double compilation, because the second call is served from Jam's memoization cache.
+- **`build()`** — the default target passed to `Project.run`, but any other target can be invoked by name from the command line.
+- **`Project.run`** — this is where the script calls into Jam's build controller, which creates a proxied implementation of the project interface.
+
+The build controller also handles command-line arguments like `--help`
+
 <img src='docs/pics/00.png' width='1000'>
 
-### Build targets
+## Try Jam out
 
-Specifying `--targets` shows the build targets
+If you have Kotlin installed you can easily try out this script.
+
+```kotlin
+#!/usr/bin/env -S kotlin -Xjvm-default=all
+
+@file:DependsOn("org.copalis:jam:0.9.1")
+
+interface Fibonacci : Project {
+
+    fun fib(x : Long) : Long = if (x < 2) x else fib(x - 1) + fib(x - 2)
+
+    fun fib10() = fib(10)
+    fun fib50() = fib(50)
+}
+
+Project.run(Fibonacci::class.java, Fibonacci::fib10, args)
+
+```
+
+Save the code to a file called `fibonacci.main.kts` and make it executable with `chmod +x fibonacci.main.kts`.
+
+Then type `./fibonacci.main.kts --targets` to see what build targets it exposes.
+
 <img src='docs/pics/01.png' width='1000'>
-Targets are just project methods that have 0 arguments.
-The target listing shows method defined by the script's `HelloWorld` interface and inherited from its parent interfaces.
 
-Let's run the `worldStr` target:
+Note that the `fib` method is *not* listed as a target.
+Jam project interfaces can contain methods with parameters, but only methods with 0 parameters are targets.
+
+The default target is `fib10`. Let's run that.
+
 <img src='docs/pics/02.png' width='1000'>
-The output log shows that `worldStr()` was executed and returned the value "World".
- 
-Another target is `worldName`
+
+The console log shows the method call tree
+
+* `[compute]` means a method was executed
+* `[current]` means a cached return value was reused
+
+Because of the method memoization `fib` was only executed 11 times.
+
+Let's see what happens if we run the script again.
+
 <img src='docs/pics/03.png' width='1000'>
-Now the output log shows that `worldName()` was executed, and it in turn called `read("world.text")`
 
-### Result caching
+This time no methods were executed because Jam reused the memoizer cache.
+We can examine the contents of the cache by using the `--cache` option.
 
-If we look at the targets again we can see that both `worldStr` and `worldName` targets are tagged as **fresh**.
-This means that their results are cached and up to date.
 <img src='docs/pics/04.png' width='1000'>
 
-The cache contents can be viewed with the `--cache` option.
+Try the other command-line options,
+and also see what happens when you execute the `fib50` target.
+
+## Mutable resources
+
+We've seen how Jam caches return values across runs.
+If a return value is is reference to a mutable resource like a file,
+Jam can detect if the resource has been modified since the last run and mark the cached value as *stale*.
+The next time a build target that depends on that resource is executed, 
+Jam will re-execute the functions that depend on it.
+
+This feature gives Jam build scripts the ability to automatically detect when source files have been changed,
+and rebuild the artifacts that depend on them.
+
+Let's see it in action. Here's a script that scans for Markdown files in the source directory (`src` by default)
+and writes their HTML equivalents to the build directory:
+
+```kotlin
+#!/usr/bin/env kotlin -Xjvm-default=all
+
+@file:DependsOn("org.copalis:jam:0.9.1")
+@file:DependsOn("org.commonmark:commonmark:0.22.0")
+
+interface MarkdownBuild : FileProject {
+    
+    fun markdownFiles() = sourceFiles("*.md")
+    
+    fun convertFile(input: File): File {
+        val parser = org.commonmark.parser.Parser.builder().build()
+        val renderer = org.commonmark.renderer.html.HtmlRenderer.builder().build()
+        
+        val dest = input.relativeTo(File(sourcePath())).path.replace(".md", ".html")
+        return write(dest, renderer.render(parser.parse(input.readText())))
+    }
+
+    fun htmlFiles() = markdownFiles().map { convertFile(it) }
+}
+
+Project.run(MarkdownBuild::class.java, MarkdownBuild::htmlFiles, args)
+
+```
+
+Running a clean build
 <img src='docs/pics/05.png' width='1000'>
-(Notice that the results cache is stored in a hidden file, and its name is derived from the project name.)
 
-Because its result is cached, if we run `worldName` again the result will be fetched from cache.
+Running the build again
 <img src='docs/pics/06.png' width='1000'>
+As expected, the build target is shown as `[current]`.
 
-### Dependency tracking
-
-Jam is able to infer that the result of `worldName` depends on the contents of the file `src/world.txt`.
-This means that if the last-modified time of that file changes, the cached result will be invalidated.
-
+Let's simulate modifying one of the source files using the `touch` command
 <img src='docs/pics/07.png' width='1000'>
 
-Now the `worldName` target is shown as stale.
+and run the build again
 <img src='docs/pics/08.png' width='1000'>
+This time, the build target is shown as `[refresh]`.
 
-Executing the target again it will be rebuilt.
-<img src='docs/pics/09.png' width='1000'>
+* `[refresh]` means a method was executed because it depended on a resource that was modified since the last run
 
-### Compiling code
+The log shows that `convertFile` was executed just for the file that was modified.
 
-The `JavaProject` interface provides a variety of methods for building and executing Java code.
-This is demonstrated by the `runHello` target:
-<img src='docs/pics/10.png' width='1000'>
+## More about Jam
 
-Jam stores references to the compiled classes.
-<img src='docs/pics/11.png' width='1000'>
-
-But if there are modifications to source files,
-<img src='docs/pics/12.png' width='1000'>
-
-then Jam will recompile the classes.
-<img src='docs/pics/13.png' width='1000'>
-
-## Status
-
-Jam is a work in progress but its Project libraries provide all the functions you need to
-
-* Compile Java code
-* Download Maven packages
-* Run unit tests
-* Generate JavaDoc
-
-In fact, Jam is able to build itself - see [Jam's own build script](src/scripts/JamProject.java).
+If you want to write your own Jam scripts,
+check out the [Project JavaDocs](https://gilesjb.github.io/jam/package-summary.html).
 
 ## Building Jam
 
-The only build dependency of Jam is a JDK version 17 or later.
+Jam is able to build itself - see [Jam's own build script](src/scripts/JamProject.java),
+depending only on JDK version 17 or later.
 
 1. Clone the Jam repo
 2. Type `./setup`
 
-The `setup` shell script creates a copy of the build script called `make-jam` which it uses to build the project.
+The built Jam jar will be in the `build` directory.
 
 To view the JavaDocs type `./make-jam viewDocs`.
-
