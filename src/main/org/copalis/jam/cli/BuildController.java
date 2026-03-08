@@ -47,7 +47,6 @@ import org.copalis.jam.memo.Result;
  *
  * @param <T> the build interface type
  * @author gilesjb
- * @see {@link Memorizer}
  */
 public class BuildController<T> {
 
