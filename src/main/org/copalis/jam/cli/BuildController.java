@@ -36,7 +36,7 @@ import org.copalis.jam.memo.Result;
  * </pre>
  * defines a build target called {@code jarFile}.
  * <p>
- * When the controller is constructed it creates a memoized instance of the build interface
+ * When the controller is constructed it use {@link Memorizer} to create a memoized instance of the build interface
  * and registers itself as an observer so that it can intercept and log all
  * the method calls.
  * <p>
@@ -47,6 +47,7 @@ import org.copalis.jam.memo.Result;
  *
  * @param <T> the build interface type
  * @author gilesjb
+ * @see {@link Memorizer}
  */
 public class BuildController<T> {
 

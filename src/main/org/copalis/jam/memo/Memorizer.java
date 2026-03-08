@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 /**
  * A memoizer that can create instances of interfaces.
+ * <p>
  * It stores the results of calls to {@code default} methods on the instantiated interface and returns the cached
  * results when later calls to the methods are made with the same parameter values.
  * <p>
