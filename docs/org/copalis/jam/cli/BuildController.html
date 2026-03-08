@@ -102,7 +102,7 @@ loadScripts(document, 'script');</script>
  </pre>
  defines a build target called <code>jarFile</code>.
  <p>
- When the controller is constructed it creates a memoized instance of the build interface
+ When the controller is constructed it use <a href="../memo/Memorizer.html" title="class in org.copalis.jam.memo"><code>Memorizer</code></a> to create a memoized instance of the build interface
  and registers itself as an observer so that it can intercept and log all
  the method calls.
  <p>
