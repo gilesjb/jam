@@ -59,7 +59,12 @@ loadScripts(document, 'script');</script>
 </div>
 <button class="hide-sidebar"><span>Hide sidebar&nbsp;</span>&#10094;</button><button class="show-sidebar">&#10095;<span>&nbsp;Show sidebar</span></button>
 <ol class="toc-list">
-<li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#" tabindex="0">Description</a>
+<ol class="toc-list">
+<li><a href="#cache-eligibility-heading" tabindex="0">Cache eligibility</a></li>
+<li><a href="#staleness-checking-heading" tabindex="0">Staleness checking</a></li>
+</ol>
+</li>
 <li><a href="#constructor-summary" tabindex="0">Constructor Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
@@ -93,14 +98,42 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">Memorizer</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">A memoizer that can create instances of interfaces.
- It stores the results of calls to <code>default</code> methods on the instantiated interface and returns the cached
- results when later calls to the methods are made with the same parameter values.
+<div class="block">A method memoizer that can also determine when methods need to be re-executed as a result of
+ changes to external resources.
  <p>
- Cache entries that implement <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link"><code>Serializable</code></a> may be saved and loaded.
+ The Memorizer creates instances of interfaces and instruments them with a method handler which
+ intercepts calls to <code>default</code> methods.
+ <ul>
+ <li>If a cache entry exists for a method call, the result of that earlier call is returned.
+ <li>If there is no cache entry for a method call the method is executed,
+ and its result is stored in the memoizer's cache if it is eligible to be cached
+ </ul>
  <p>
- The memoizer can also track dependencies on external mutable state such as files,
- and invalidate cache entries when that state changes.</div>
+ The state of the cache can also be saved and loaded,
+ excluding method calls non-<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link"><code>Serializable</code></a> parameters or return value.
+
+ <h2 id="cache-eligibility-heading">Cache eligibility</h2>
+ <ul>
+ <li>Methods that do not have return type <code>void</code> are cacheable, and should only perform idempotent actions
+ <li>Methods with <code>void</code> return type are not cacheable, and may be used for logic with side-effects
+ </ul>
+
+ <h2 id="staleness-checking-heading">Staleness checking</h2>
+ The method handler performs <i>staleness checking</i> on cached method calls which return or depend on
+ references to mutable resources such as files.
+ To enable staleness checking, objects which reference resources must implement <a href="Mutable.html" title="interface in org.copalis.jam.memo"><code>Mutable</code></a>.
+ A resource reference object is <i>modified</i> if <a href="Mutable.html#modified()"><code>Mutable.modified()</code></a> is true.
+<p>
+ A cached method call is <i>stale</i> if any of these conditions are met:
+ <ul>
+ <li>Its returned value is modified
+ <li>It made a method call which is stale
+ <li>One or more of its parameters are modified
+ <li>It has one or more non-<a href="Mutable.html" title="interface in org.copalis.jam.memo"><code>Mutable</code></a> parameters
+ AND a previous call within the scope of the method calling it returned a modified value
+ </ul>
+
+ If a cache entry is stale, the method invocation will be executed as though it was not cached.</div>
 </div>
 </section>
 <section class="summary">
@@ -148,7 +181,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiate(java.lang.Class)" class="member-name-link">instantiate</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;t)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Creates a memoized instance of an interface</div>
+<div class="block">Creates a memoized instance of an interface.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#load(java.io.InputStream)" class="member-name-link">load</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;in)</code></div>
@@ -163,7 +196,8 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#save(java.io.OutputStream)" class="member-name-link">save</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;out)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Saves the cache</div>
+<div class="block">Writes the contents of the method call cache to an output stream,
+ excluding method calls which are not serializable.</div>
 </div>
 </div>
 </div>
@@ -236,7 +270,8 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">save</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;out)</span>
           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">Saves the cache</div>
+<div class="block">Writes the contents of the method call cache to an output stream,
+ excluding method calls which are not serializable.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>out</code> - an output stream the serialized cache contents will be written to</dd>
@@ -288,14 +323,15 @@ loadScripts(document, 'script');</script>
 <h3>instantiate</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">instantiate</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;t)</span></div>
-<div class="block">Creates a memoized instance of an interface</div>
+<div class="block">Creates a memoized instance of an interface.
+ The methods declared by the interface must all have a <code>default</code> implementation.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><code>T</code> - the build type</dd>
+<dd><code>T</code> - the interface type to instantiate</dd>
 <dt>Parameters:</dt>
 <dd><code>t</code> - the Java class of the interface</dd>
 <dt>Returns:</dt>
-<dd>the created object</dd>
+<dd>an instance of the interface</dd>
 </dl>
 </div>
 </section>
