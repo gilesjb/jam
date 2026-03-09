@@ -14,7 +14,7 @@ jobs:
       - name: Build Javadoc
         run: |
           ./setup
-          ./make-jam docs
+          ./make-jam clean docs
       - name: List build output
         run: find build -type f
       - name: Deploy to GitHub Pages
