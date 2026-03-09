@@ -3,7 +3,7 @@
 /*
  * The #! command in this file specifies -classpath .jam-classes
  * because it uses classes bootstrapped by the ./setup script.
- * A build script using a prebuilt Jam library should use a line like:
+ * A Java build script using a prebuilt Jam library should use a line like:
  *
  * #!/usr/bin/java -classpath <path of Jam jar> --source 17
  */
