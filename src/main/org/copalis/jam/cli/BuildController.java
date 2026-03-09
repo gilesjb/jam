@@ -27,26 +27,42 @@ import org.copalis.jam.memo.Result;
 /**
  * A build process command-line argument parser and controller.
  *
- * The controller is constructed with a reference to a build interface,
- * which defines the build targets and logic:
- * The controller treats each 0-argument method declared by the build interface as a build target.
+ * The controller is constructed with a reference to a project interface
+ * which defines the build targets and logic.
+ * <p>
+ * When the controller is constructed it uses {@link Memorizer} to create a memoized instance of the project interface
+ * and registers itself as an observer so that it can intercept and log all method calls.
+ *
+ * <h2>Targets</h2>
+ * A method is exposed as a <i>build target</i> if it has 0 parameters.
  * For example, the method
  * <pre>
  * {@code default File jarFile() { ... }}
  * </pre>
  * defines a build target called {@code jarFile}.
  * <p>
- * When the controller is constructed it use {@link Memorizer} to create a memoized instance of the build interface
- * and registers itself as an observer so that it can intercept and log all
- * the method calls.
+ * Build targets, and they methods they call, should generally be idempotent and return a reference to
+ * files they retrieve or create.
+ * Return values which implement the {@link org.copalis.jam.memo.Mutable} interface allow for file modification
+ * to be detected and enable incremental builds.
  * <p>
- * The state of the memoizer's cache is saved to a file called {@code .<project>.ser},
- * where {@code <project>} is the unqualified name of the build interface.
- * This saved cache tracks the state of source files and ensures that derived artifacts
- * are rebuilt when the sources change.
+ * Build targets with <code>void</code> return type are a special case;
+ * they are not cached, and may be used for side-effects.
+ * For example
+ * <pre>
+ * {@code default void clean() { ... }}
+ * </pre>
+ * <h2>Incremental builds</h2>
+ * At the end of a build the state of the memoizer's cache is saved to a file called {@code .<project>.ser},
+ * where {@code <project>} is the unqualified name of the project interface.
+ * Subsequent builds load the previous build's cache and check for modifications to mutable dependencies
+ * so that target executions only rebuild artifacts which are stale.
+
  *
- * @param <T> the build interface type
+ * @param <T> the project interface type
  * @author gilesjb
+ * @see #executeBuild(Consumer, String[]) Command-line options
+ * @see Memorizer Details of caching behavior
  */
 public class BuildController<T> {
 
@@ -104,7 +120,7 @@ public class BuildController<T> {
 
     /**
      * Creates a build controller instance
-     * @param type the build class
+     * @param type the project interface
      */
     public BuildController(Class<T> type) {
         this.type = type;
@@ -116,13 +132,13 @@ public class BuildController<T> {
      * Executes a build as specified by command-line arguments.
      * <p>
      * Depending on the command-line arguments supplied to this method,
-     * either target methods on the build interface are executed
+     * either target methods on the project interface are executed
      * or information about the build or its status is displayed to the console.
      * <p>
      * Command-line arguments may be
      * <dl>
      * <dt>{@code --help}<dd>Displays help information
-     * <dt>{@code --cache}<dd>Displays the contents of the memoization cache
+     * <dt>{@code --cache}<dd>Displays the contents of the memoizer cache
      * <dt>{@code --targets}<dd>Displays the names, return types, and cache status of the target methods
      * <dt><i>target-name</i><dd>Executes the target method with the specified name
      * </dl>

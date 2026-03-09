@@ -21,15 +21,42 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A memoizer that can create instances of interfaces.
+ * A method memoizer that can also determine when methods need to be re-executed as a result of
+ * changes to external resources.
  * <p>
- * It stores the results of calls to {@code default} methods on the instantiated interface and returns the cached
- * results when later calls to the methods are made with the same parameter values.
+ * The Memorizer creates instances of interfaces and instruments them with a method handler which
+ * intercepts calls to <code>default</code> methods.
+ * <ul>
+ * <li>If a cache entry exists for a method call, the result of that earlier call is returned.
+ * <li>If there is no cache entry for a method call the method is executed,
+ * and its result is stored in the memoizer's cache if it is eligible to be cached
+ * </ul>
  * <p>
- * Cache entries that implement {@link java.io.Serializable} may be saved and loaded.
- * <p>
- * The memoizer can also track dependencies on external mutable state such as files,
- * and invalidate cache entries when that state changes.
+ * The state of the cache can also be saved and loaded,
+ * excluding method calls non-{@link java.io.Serializable} parameters or return value.
+ *
+ * <h2>Cache eligibility</h2>
+ * <ul>
+ * <li>Methods that do not have return type <code>void</code> are cacheable, and should only perform idempotent actions
+ * <li>Methods with <code>void</code> return type are not cacheable, and may be used for logic with side-effects
+ * </ul>
+ *
+ * <h2>Staleness checking</h2>
+ * The method handler performs <i>staleness checking</i> on cached method calls which return or depend on
+ * references to mutable resources such as files.
+ * To enable staleness checking, objects which reference resources must implement {@link Mutable}.
+ * A resource reference object is <i>modified</i> if {@link Mutable#modified} is true.
+ *<p>
+ * A cached method call is <i>stale</i> if any of these conditions are met:
+ * <ul>
+ * <li>Its returned value is modified
+ * <li>It made a method call which is stale
+ * <li>One or more of its parameters are modified
+ * <li>It has one or more non-{@link Mutable} parameters
+ * AND a previous call within the scope of the method calling it returned a modified value
+ * </ul>
+ *
+ * If a cache entry is stale, the method invocation will be executed as though it was not cached.
  *
  * @author gilesjb
  */
@@ -73,7 +100,9 @@ public class Memorizer {
     }
 
     /**
-     * Saves the cache
+     * Writes the contents of the method call cache to an output stream,
+     * excluding method calls which are not serializable.
+     *
      * @param out an output stream the serialized cache contents will be written to
      * @throws IOException if an IO exception occurs
      */
@@ -109,10 +138,11 @@ public class Memorizer {
     }
 
     /**
-     * Creates a memoized instance of an interface
-     * @param <T> the build type
+     * Creates a memoized instance of an interface.
+     * The methods declared by the interface must all have a <code>default</code> implementation.
+     * @param <T> the interface type to instantiate
      * @param t the Java class of the interface
-     * @return the created object
+     * @return an instance of the interface
      */
     public <T> T instantiate(Class<T> t) {
         dependencies.push(new HashSet<>());

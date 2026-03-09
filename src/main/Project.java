@@ -11,7 +11,7 @@ import org.copalis.jam.cli.BuildController;
  * and provides functionality to track source file dependencies,
  * control the build process and handle command-line options.
  *
- * @see BuildController#executeBuild(Consumer, String[])
+ * @see BuildController
  * @author gilesjb
  */
 public interface Project {
