@@ -335,7 +335,7 @@ public class BuildController<T> {
             str = str.substring(0, 200) + "...";
         }
         int nl = str.indexOf('\n');
-        if (nl > 10) {
+        if (nl >= 0) {
             str = str.substring(0, nl) + "...";
         }
         out.print(str);
