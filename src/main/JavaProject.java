@@ -16,14 +16,16 @@ import org.copalis.jam.util.PackageResolver;
 import org.copalis.jam.util.Paths;
 
 /**
- * A Project with functionality for building Java code.
- * Utility methods are provided for compiling Java code,
- * running unit tests,
- * generating JavaDoc,
- * and creating jar files.
+ * A Project with functionality for building Java applications and libraries.
  * <p>
- * In order to enable dependency package downloading via the {@link #resolve(String...)} method,
- * an interface that implements {@link #packageResolver()} must be mixed in with this interface.
+ * Utility methods are provided for
+ * <ul>
+ * <li>{@link #javac(String, Fileset, String...) compiling} Java code
+ * <li>running {@link #junit(String, String...) unit tests}
+ * <li>generating {@link #javadoc(String, String...) JavaDoc}
+ * <li>downloading {@link #resolve(String...) dependencies} from the Maven repository
+ * <li>creating {@link #jar(String, Fileset...) jar files}
+ * </ul>
  *
  * @author gilesjb
  */

@@ -46,7 +46,7 @@ import org.copalis.jam.memo.Result;
  * Return values which implement the {@link org.copalis.jam.memo.Mutable} interface allow for file modification
  * to be detected and enable incremental builds.
  * <p>
- * Build targets with <code>void</code> return type are a special case;
+ * Build targets with {@code void} return type are a special case;
  * they are not cached, and may be used for side-effects.
  * For example
  * <pre>
@@ -60,9 +60,9 @@ import org.copalis.jam.memo.Result;
 
  *
  * @param <T> the project interface type
- * @author gilesjb
  * @see #executeBuild(Consumer, String[]) Command-line options
  * @see Memorizer Details of caching behavior
+ * @author gilesjb
  */
 public class BuildController<T> {
 

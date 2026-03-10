@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * changes to external resources.
  * <p>
  * The Memorizer creates instances of interfaces and instruments them with a method handler which
- * intercepts calls to <code>default</code> methods.
+ * intercepts calls to {@code default} methods.
  * <ul>
  * <li>If a cache entry exists for a method call, the result of that earlier call is returned.
  * <li>If there is no cache entry for a method call the method is executed,
@@ -37,8 +37,8 @@ import java.util.stream.Stream;
  *
  * <h2>Cache eligibility</h2>
  * <ul>
- * <li>Methods that do not have return type <code>void</code> are cacheable, and should only perform idempotent actions
- * <li>Methods with <code>void</code> return type are not cacheable, and may be used for logic with side-effects
+ * <li>Methods that do not have return type {@code void} are cacheable, and should only perform idempotent actions
+ * <li>Methods with {@code void} return type are not cacheable, and may be used for logic with side-effects
  * </ul>
  *
  * <h2>Staleness checking</h2>
