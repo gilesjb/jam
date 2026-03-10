@@ -1,5 +1,6 @@
 package org.copalis.jam.cli;
 
+import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -66,7 +67,17 @@ import org.copalis.jam.memo.Result;
  */
 public class BuildController<T> {
 
-    private static final boolean colors = Objects.nonNull(System.console());
+    private static final boolean colors = isTerminal();
+
+    private static boolean isTerminal() {
+        Console console = System.console();
+
+        try {
+            return Objects.nonNull(console) && console.getClass().getMethod("isTerminal").invoke(console) == Boolean.TRUE;
+        } catch (Exception e) {
+            return true;
+        }
+    }
 
     private static final String
         RESET =         "\033[0m",
