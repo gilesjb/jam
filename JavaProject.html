@@ -92,14 +92,16 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">JavaProject</span><span class="extends-implements">
 extends <a href="FileProject.html" title="interface in Unnamed Package">FileProject</a></span></div>
-<div class="block">A Project with functionality for building Java code.
- Utility methods are provided for compiling Java code,
- running unit tests,
- generating JavaDoc,
- and creating jar files.
+<div class="block">A Project with functionality for building Java applications and libraries.
  <p>
- In order to enable dependency package downloading via the <a href="#resolve(java.lang.String...)"><code>resolve(String...)</code></a> method,
- an interface that implements <a href="#packageResolver()"><code>packageResolver()</code></a> must be mixed in with this interface.</div>
+ Utility methods are provided for
+ <ul>
+ <li><a href="#javac(java.lang.String,Fileset,java.lang.String...)"><code>compiling</code></a> Java code
+ <li>running <a href="#junit(java.lang.String,java.lang.String...)"><code>unit tests</code></a>
+ <li>generating <a href="#javadoc(java.lang.String,java.lang.String...)"><code>JavaDoc</code></a>
+ <li>downloading <a href="#resolve(java.lang.String...)"><code>dependencies</code></a> from the Maven repository
+ <li>creating <a href="#jar(java.lang.String,Fileset...)"><code>jar files</code></a>
+ </ul></div>
 </div>
 </section>
 <section class="summary">
