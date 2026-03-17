@@ -80,7 +80,7 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="FileProject.html" title="interface in Unnamed Package">FileProject</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
-<div class="block">A base Project for scripts that create build artifacts derived from source files.</div>
+<div class="block">Extends <a href="Project.html" title="interface in Unnamed Package"><code>Project</code></a> with common functionality for creating build artifacts derived from source files.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="Fileset.html" title="class in Unnamed Package">Fileset</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
@@ -96,41 +96,45 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="JavaProject.html" title="interface in Unnamed Package">JavaProject</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
-<div class="block">A Project with functionality for building Java applications and libraries.</div>
+<div class="block">Extends @link FileProject} with functionality for building Java applications and libraries.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="block">Extends <a href="JavaProject.html" title="interface in Unnamed Package"><code>JavaProject</code></a> with functionality for building Kotlin applications and libraries.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">A method memoizer that can also determine when methods need to be re-executed as a result of
  changes to external resources.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="org/copalis/jam/memo/Mutable.html" title="interface in org.copalis.jam.memo">Mutable</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="org/copalis/jam/memo/Mutable.html" title="interface in org.copalis.jam.memo">Mutable</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
 <div class="block">A reference to one or more resources that might have been modified since the reference was created</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="org/copalis/jam/memo/Observer.html" title="interface in org.copalis.jam.memo">Observer</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="org/copalis/jam/memo/Observer.html" title="interface in org.copalis.jam.memo">Observer</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">A method invocation observer that is allowed to modify return values</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab3"><a href="org/copalis/jam/memo/Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab3">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="org/copalis/jam/memo/Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
 <div class="block">Represents the cache status for a method invocation</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="org/copalis/jam/util/PackageResolver.html" title="interface in org.copalis.jam.util">PackageResolver</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="org/copalis/jam/util/PackageResolver.html" title="interface in org.copalis.jam.util">PackageResolver</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">A package dependency resolver which fetches packages from a repository</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/copalis/jam/util/Paths.html" title="class in org.copalis.jam.util">Paths</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/copalis/jam/util/Paths.html" title="class in org.copalis.jam.util">Paths</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Utility methods for paths</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="Project.html" title="interface in Unnamed Package">Project</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="Project.html" title="interface in Unnamed Package">Project</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">The base Project interface which defines the <code>clean</code> build target
  and provides functionality to track source file dependencies,
  control the build process and handle command-line options.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab4"><a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab4">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab4"><a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab4">
 <div class="block">The result of a method call</div>
 </div>
 </div>

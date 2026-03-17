@@ -52,7 +52,7 @@ loadScripts(document, 'script');</script>
 <div class="header">
 <h1>Index</h1>
 </div>
-<a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:H">H</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:M">M</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="allpackages-index.html">All&nbsp;Packages</a><span class="vertical-separator">|</span><a href="constant-values.html">Constant&nbsp;Field&nbsp;Values</a><span class="vertical-separator">|</span><a href="serialized-form.html">Serialized&nbsp;Form</a>
+<a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:H">H</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:K">K</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:M">M</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="allpackages-index.html">All&nbsp;Packages</a><span class="vertical-separator">|</span><a href="constant-values.html">Constant&nbsp;Field&nbsp;Values</a><span class="vertical-separator">|</span><a href="serialized-form.html">Serialized&nbsp;Form</a>
 <h2 class="title" id="I:A">A</h2>
 <dl class="index">
 <dt><a href="org/copalis/jam/util/Args.html#and(java.lang.String...)" class="member-name-link">and(String...)</a> - Method in class org.copalis.jam.util.<a href="org/copalis/jam/util/Args.html" title="class in org.copalis.jam.util">Args</a></dt>
@@ -170,6 +170,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Generates a digest of the file's contents</div>
 </dd>
+<dt><a href="KotlinProject.html#dokka(java.lang.String,java.lang.String...)" class="member-name-link">dokka(String, String...)</a> - Method in interface <a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></dt>
+<dd>
+<div class="block">Generates Dokka documentation for Kotlin (and Java) sources.</div>
+</dd>
 <dt><a href="org/copalis/jam/util/Paths.html#download(java.nio.file.Path,java.lang.String)" class="member-name-link">download(Path, String)</a> - Static method in class org.copalis.jam.util.<a href="org/copalis/jam/util/Paths.html" title="class in org.copalis.jam.util">Paths</a></dt>
 <dd>
 <div class="block">Downloads a resource</div>
@@ -242,7 +246,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="FileProject.html" class="type-name-link" title="interface in Unnamed Package">FileProject</a> - Interface in <a href="package-summary.html">Unnamed Package</a></dt>
 <dd>
-<div class="block">A base Project for scripts that create build artifacts derived from source files.</div>
+<div class="block">Extends <a href="Project.html" title="interface in Unnamed Package"><code>Project</code></a> with common functionality for creating build artifacts derived from source files.</div>
 </dd>
 <dt><a href="Fileset.html" class="type-name-link" title="class in Unnamed Package">Fileset</a> - Class in <a href="package-summary.html">Unnamed Package</a></dt>
 <dd>
@@ -349,7 +353,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="JavaProject.html" class="type-name-link" title="interface in Unnamed Package">JavaProject</a> - Interface in <a href="package-summary.html">Unnamed Package</a></dt>
 <dd>
-<div class="block">A Project with functionality for building Java applications and libraries.</div>
+<div class="block">Extends @link FileProject} with functionality for building Java applications and libraries.</div>
 </dd>
 <dt><a href="JavaProject.html#junit(java.lang.String,java.lang.String...)" class="member-name-link">junit(String, String...)</a> - Method in interface <a href="JavaProject.html" title="interface in Unnamed Package">JavaProject</a></dt>
 <dd>
@@ -358,6 +362,30 @@ loadScripts(document, 'script');</script>
 <dt><a href="JavaProject.html#jUnitLib()" class="member-name-link">jUnitLib()</a> - Method in interface <a href="JavaProject.html" title="interface in Unnamed Package">JavaProject</a></dt>
 <dd>
 <div class="block">Specifies the jUnit console and runtime libraries.</div>
+</dd>
+</dl>
+<h2 class="title" id="I:K">K</h2>
+<dl class="index">
+<dt><a href="KotlinProject.html#kotlin(java.lang.String...)" class="member-name-link">kotlin(String...)</a> - Method in interface <a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></dt>
+<dd>
+<div class="block">Runs a Kotlin program.</div>
+</dd>
+<dt><a href="KotlinProject.html#kotlinc(java.lang.String,Fileset,java.lang.String...)" class="member-name-link">kotlinc(String, Fileset, String...)</a> - Method in interface <a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></dt>
+<dd>
+<div class="block">Compiles Kotlin code.</div>
+</dd>
+<dt><a href="KotlinProject.html#kotlincJar(java.lang.String,Fileset,java.lang.String...)" class="member-name-link">kotlincJar(String, Fileset, String...)</a> - Method in interface <a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></dt>
+<dd>
+<div class="block">Compiles Kotlin code directly to a self-contained <code>.jar</code> archive,
+ bundling the Kotlin runtime with <code>-include-runtime</code>.</div>
+</dd>
+<dt><a href="KotlinProject.html#kotlincJava(java.lang.String,Fileset,Fileset,java.lang.String...)" class="member-name-link">kotlincJava(String, Fileset, Fileset, String...)</a> - Method in interface <a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></dt>
+<dd>
+<div class="block">Compiles mixed Kotlin and Java sources.</div>
+</dd>
+<dt><a href="KotlinProject.html" class="type-name-link" title="interface in Unnamed Package">KotlinProject</a> - Interface in <a href="package-summary.html">Unnamed Package</a></dt>
+<dd>
+<div class="block">Extends <a href="JavaProject.html" title="interface in Unnamed Package"><code>JavaProject</code></a> with functionality for building Kotlin applications and libraries.</div>
 </dd>
 </dl>
 <h2 class="title" id="I:L">L</h2>
@@ -648,7 +676,7 @@ the order they are declared.</div>
 <div class="block">Creates a file and writes content to it</div>
 </dd>
 </dl>
-<a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:H">H</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:M">M</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="allpackages-index.html">All&nbsp;Packages</a><span class="vertical-separator">|</span><a href="constant-values.html">Constant&nbsp;Field&nbsp;Values</a><span class="vertical-separator">|</span><a href="serialized-form.html">Serialized&nbsp;Form</a></main>
+<a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:H">H</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:K">K</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:M">M</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="allpackages-index.html">All&nbsp;Packages</a><span class="vertical-separator">|</span><a href="constant-values.html">Constant&nbsp;Field&nbsp;Values</a><span class="vertical-separator">|</span><a href="serialized-form.html">Serialized&nbsp;Form</a></main>
 </div>
 </body>
 </html>

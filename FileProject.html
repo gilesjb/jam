@@ -92,12 +92,12 @@ loadScripts(document, 'script');</script>
 </dl>
 <dl class="notes">
 <dt>All Known Subinterfaces:</dt>
-<dd><code><a href="JavaProject.html" title="interface in Unnamed Package">JavaProject</a></code></dd>
+<dd><code><a href="JavaProject.html" title="interface in Unnamed Package">JavaProject</a></code>, <code><a href="KotlinProject.html" title="interface in Unnamed Package">KotlinProject</a></code></dd>
 </dl>
 <hr>
 <div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">FileProject</span><span class="extends-implements">
 extends <a href="Project.html" title="interface in Unnamed Package">Project</a></span></div>
-<div class="block">A base Project for scripts that create build artifacts derived from source files.
+<div class="block">Extends <a href="Project.html" title="interface in Unnamed Package"><code>Project</code></a> with common functionality for creating build artifacts derived from source files.
  All source files should be located inside the directory specified by the <a href="#sourcePath()"><code>sourcePath()</code></a>
  build target, and build artifacts are written to the directory specified by <a href="#buildPath()"><code>buildPath()</code></a>.
  <p>
