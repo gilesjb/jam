@@ -6,7 +6,7 @@ import org.copalis.jam.util.Args;
 import org.copalis.jam.util.Paths;
 
 /**
- * A base Project for scripts that create build artifacts derived from source files.
+ * Extends {@link Project} with common functionality for creating build artifacts derived from source files.
  * All source files should be located inside the directory specified by the {@link #sourcePath()}
  * build target, and build artifacts are written to the directory specified by {@link #buildPath()}.
  * <p>

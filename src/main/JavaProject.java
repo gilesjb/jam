@@ -16,7 +16,7 @@ import org.copalis.jam.util.PackageResolver;
 import org.copalis.jam.util.Paths;
 
 /**
- * A Project with functionality for building Java applications and libraries.
+ * Extends @link FileProject} with functionality for building Java applications and libraries.
  * <p>
  * Utility methods are provided for
  * <ul>
