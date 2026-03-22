@@ -8,8 +8,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'javac -sourcepath src/main -d classes src/main/**.java || exit 1'
-                sh 'java -classpath classes src/scripts/JamProject.java clean build || exit 1'
+                sh './setup || exit 1'
             }
         }
         stage('Archive') {
