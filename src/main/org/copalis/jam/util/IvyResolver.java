@@ -3,9 +3,11 @@ package org.copalis.jam.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -13,17 +15,18 @@ import java.util.stream.Stream;
  *
  * @param url the URL of the Ivy jar file
  * @param cacheDir the path where the Ivy cache directory should be created
+ * @param settingsFile a specific file to use for Ivy settings
  *
  * @see <a href="https://ant.apache.org/ivy/history/2.5.0/standalone.html">Ivy standalone</a>
  * @author giles
  */
-public record IvyResolver(String url, String cacheDir) implements PackageResolver {
+public record IvyResolver(String url, String cacheDir, File settingsFile) implements PackageResolver, Serializable {
     /**
      * The default URL of the Ivy runtime jar
      */
     public static final String VER2_5_1_URL = "https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.5.1/ivy-2.5.1.jar";
 
-    private Path ivyJar() {
+    public Path ivyJar() {
         Path path = Path.of(cacheDir, url.substring(url.lastIndexOf('/') + 1));
         if (!path.toFile().exists()) {
             System.out.print("Downloading " + url + "... ");
@@ -58,18 +61,31 @@ public record IvyResolver(String url, String cacheDir) implements PackageResolve
                 out.write("</dependencies></ivy-module>");
             }
 
-            File cacheFile = File.createTempFile("classpath-", null);
-            cacheFile.deleteOnExit();
-
-            Args.of("java", "-jar", ivyJar().toString(),
-                    "-cache", cacheDir,
-                    "-cachepath", cacheFile.toString(),
-                    "-ivy", ivyFile.toString()).run();
+            File cacheFile = runIvy(ivyFile, settingsFile);
 
             return Stream.of(Files.readString(cacheFile.toPath()).trim().split(":"))
                     .map(Path::of);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public File runIvy(File ivyFile, File settingsFile) throws IOException {
+        File cacheFile = File.createTempFile("classpath-", null);
+        cacheFile.deleteOnExit();
+
+        Args cmd = Args.of("java", "-jar", ivyJar().toString(),
+                "-cache", cacheDir,
+                "-cachepath", cacheFile.toString());
+
+        if (Objects.nonNull(ivyFile)) {
+            cmd.and("-ivy", ivyFile.toString());
+        }
+
+        if (Objects.nonNull(settingsFile)) {
+            cmd.and("-settings", settingsFile.toString());
+        }
+        cmd.run();
+        return cacheFile;
     }
 }

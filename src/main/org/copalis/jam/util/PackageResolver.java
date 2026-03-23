@@ -1,6 +1,5 @@
 package org.copalis.jam.util;
 
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -9,7 +8,7 @@ import java.util.stream.Stream;
  *
  * @author giles
  */
-public interface PackageResolver extends Serializable {
+public interface PackageResolver {
     /**
      * Resolves dependencies
      * @param dependencies dependency identifiers in the format {@code "org:name:revision"}.

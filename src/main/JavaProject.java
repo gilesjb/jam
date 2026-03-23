@@ -79,7 +79,7 @@ public interface JavaProject extends FileProject {
      * @return the package resolver
      */
     default PackageResolver packageResolver() {
-        return new IvyResolver(IvyResolver.VER2_5_1_URL, pkgCachePath());
+        return new IvyResolver(IvyResolver.VER2_5_1_URL, pkgCachePath(), null);
     }
 
     /**
