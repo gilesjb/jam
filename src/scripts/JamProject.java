@@ -1,5 +1,5 @@
 /* Delete this line when using as command line script
-#!/usr/bin/env -S java -classpath .jam-classes --source 23
+#!/usr/bin/env -S java -ea -classpath .jam-classes --source 23
 /*
  * The #! command in this file specifies -classpath .jam-classes
  * because it uses classes bootstrapped by the ./setup script.
@@ -73,20 +73,41 @@ public interface JamProject extends JavaProject {
         return jarfile();
     }
 
-    default String releasePath(String type) {
-        buildPath("release/org/copalis/jam/" + version());
-        return "release/org/copalis/jam/" + version() + "/jam-" + version() + type;
+    default String releasePath() {
+        return "release/org/copalis/jam/" + version();
+    }
+
+    default String releaseArtifact(String type) {
+        return releasePath() + "/jam-" + version() + type;
+    }
+
+    default File sign(File file) {
+        exec("sh", "-c", "shasum " + file.toString() + " | awk '{print $1}' > " + file.toString() + ".sha1");
+        exec("sh", "-c", "md5 -q " + file.toString() + " > " + file.toString() + ".md5");
+        File asc;
+        while (!(asc = new File(file.toString() + ".asc")).exists()) {
+            exec("gpg", "--armor", "--detach-sign", "--batch", file.toString());
+        }
+        return asc;
+    }
+
+    default ProcessBuilder inBuildDir(String path) {
+        return new ProcessBuilder().inheritIO().directory(new File(buildPath(path)));
     }
 
     default String releaseArtifacts() {
-        jar(releasePath(".jar"), mainClasses(), mainSources());
-        jar(releasePath("-sources.jar"), mainSources());
-        jar(releasePath("-javadoc.jar"), docs());
-        write(releasePath(".pom"),
-                read("release/pom.xml").replace("{version}", version()));
-        write("jreleaser.yml",
-                read("release/jreleaser.yml").replace("{version}", version()));
-        return "Publish using: jreleaser deploy -g";
+        String artifacts = buildPath(releasePath());
+        sign(jar(releaseArtifact(".jar"), mainClasses(), mainSources()));
+        sign(jar(releaseArtifact("-sources.jar"), mainSources()));
+        sign(jar(releaseArtifact("-javadoc.jar"), docs()));
+        sign(write(releaseArtifact(".pom"), read("release/pom.xml").replace("{version}", version())));
+        exec(inBuildDir("release"), "zip", "-r", "bundle.zip", "org/");
+        return artifacts;
+    }
+
+    default void publish() throws Exception {
+        releaseArtifacts();
+        java.awt.Desktop.getDesktop().browse(new java.net.URI("https://central.sonatype.com/publishing/deployments"));
     }
 
     default void viewTestCoverage() throws Exception {
