@@ -9,6 +9,7 @@
   <name>Jam</name>
   <description>Memoizer and build tool</description>
   <url>https://github.com/gilesjb/jam</url>
+  <inceptionYear>2024</inceptionYear>
 
   <licenses>
     <license>

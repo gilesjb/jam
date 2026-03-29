@@ -1,0 +1,18 @@
+<ivysettings>
+    <credentials host="central.sonatype.com"
+        realm="Central Repository"
+        username="${env.SONATYPE_USER}"
+        passwd="${env.SONATYPE_PASS}" />
+    <settings defaultResolver="maven-publish" />
+    <resolvers>
+        <ibiblio name="maven-publish"
+            m2compatible="true"
+            root="https://central.sonatype.com/api/v1/publisher"
+            checkmodified="false" />
+    </resolvers>
+    <publish resolver="maven-publish"
+        pubrevision="${env.VERSION}"
+        publishivy="false"
+        overwrite="false"
+        artifactspattern="${env.ARTIFACT_PATH}/[artifact]-[revision](-[classifier]).[ext]" />
+</ivysettings>
