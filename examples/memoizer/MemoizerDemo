@@ -1,4 +1,4 @@
-#!/usr/bin/java -classpath ../../build/jam-0.9.1.jar --source 17
+#!/usr/bin/java -classpath ../../build/jam-0.9.2.jar --source 17
 
 import org.copalis.jam.memo.Memorizer;
 

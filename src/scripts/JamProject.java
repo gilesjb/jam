@@ -82,6 +82,8 @@ public interface JamProject extends JavaProject {
     }
 
     default File sign(File file) {
+        exec("sh", "-c", "shasum " + file.toString() + " | awk '{print $1}' > " + file.toString() + ".sha1");
+        exec("sh", "-c", "md5 -q " + file.toString() + " > " + file.toString() + ".md5");
         File asc;
         while (!(asc = new File(file.toString() + ".asc")).exists()) {
             exec("gpg", "--armor", "--detach-sign", "--batch", file.toString());
@@ -89,25 +91,23 @@ public interface JamProject extends JavaProject {
         return asc;
     }
 
+    default ProcessBuilder inBuildDir(String path) {
+        return new ProcessBuilder().inheritIO().directory(new File(buildPath(path)));
+    }
+
     default String releaseArtifacts() {
-        buildPath(releasePath());
+        String artifacts = buildPath(releasePath());
         sign(jar(releaseArtifact(".jar"), mainClasses(), mainSources()));
         sign(jar(releaseArtifact("-sources.jar"), mainSources()));
         sign(jar(releaseArtifact("-javadoc.jar"), docs()));
         sign(write(releaseArtifact(".pom"), read("release/pom.xml").replace("{version}", version())));
-        return releasePath();
+        exec(inBuildDir("release"), "zip", "-r", "bundle.zip", "org/");
+        return artifacts;
     }
 
-    default void publish() {
-        assert System.getenv("SONATYPE_USER") != null : "SONATYPE_USER must be set";
-        assert System.getenv("SONATYPE_PASS") != null : "SONATYPE_PASS must be set";
-
-        java("-jar", ((org.copalis.jam.util.IvyResolver) packageResolver()).ivyJar().toString(),
-                "-publish", "maven-publish",
-                "-ivy", sourceFile("release/ivy.xml").toString(),
-                "-settings", sourceFile("release/ivysettings.xml").toString(),
-                "-DVERSION=" + version(),
-                "-DARTIFACT_PATH=" + releaseArtifacts());
+    default void publish() throws Exception {
+        releaseArtifacts();
+        java.awt.Desktop.getDesktop().browse(new java.net.URI("https://central.sonatype.com/publishing/deployments"));
     }
 
     default void viewTestCoverage() throws Exception {
