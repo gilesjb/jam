@@ -47,11 +47,11 @@ public record IvyResolver(String url, String cacheDir, File settingsFile) implem
             int pound = ident.indexOf('#');
             if (pound >= 0) {
                 String[] parts = ident.substring(0, pound).split(":");
-                xml.append(String.format("<dependency org='%s' name='%s' rev='%s' m:classifier='%s'/>",
+                xml.append("<dependency org='%s' name='%s' rev='%s' m:classifier='%s'/>".formatted(
                         parts[0], parts[parts.length - 2], parts[parts.length - 1], ident.substring(pound + 1)));
             } else {
                 String[] parts = ident.split(":");
-                xml.append(String.format("<dependency org='%s' name='%s' rev='%s' />",
+                xml.append("<dependency org='%s' name='%s' rev='%s' />".formatted(
                         parts[0], parts[parts.length - 2], parts[parts.length - 1]));
             }
         }
