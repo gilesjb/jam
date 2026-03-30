@@ -13,7 +13,7 @@ This is what a Jam build script for a simple Java project looks like:
 ```kotlin
 #!/usr/bin/env -S kotlin -Xjvm-default=all
 
-@file:DependsOn("org.copalis:jam:0.9.1")
+@file:DependsOn("org.copalis:jam:0.9.2")
 
 interface DemoProject : JavaProject {
 
@@ -72,7 +72,7 @@ If you have Kotlin installed you can easily try out this script.
 ```kotlin
 #!/usr/bin/env -S kotlin -Xjvm-default=all
 
-@file:DependsOn("org.copalis:jam:0.9.1")
+@file:DependsOn("org.copalis:jam:0.9.2")
 
 interface Fibonacci : Project {
 
@@ -121,7 +121,7 @@ and also see what happens when you execute the `fib50` target.
 ## Mutable resources
 
 We've seen how Jam caches return values across runs.
-If a return value is is reference to a mutable resource like a file,
+If a return value is a reference to a mutable resource like a file,
 Jam can detect if the resource has been modified since the last run and mark the cached value as *stale*.
 The next time a build target that depends on that resource is executed, 
 Jam will re-execute the functions that depend on it.
@@ -135,7 +135,7 @@ and writes their HTML equivalents to the build directory:
 ```kotlin
 #!/usr/bin/env kotlin -Xjvm-default=all
 
-@file:DependsOn("org.copalis:jam:0.9.1")
+@file:DependsOn("org.copalis:jam:0.9.2")
 @file:DependsOn("org.commonmark:commonmark:0.22.0")
 
 interface MarkdownBuild : FileProject {
