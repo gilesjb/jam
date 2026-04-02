@@ -106,7 +106,7 @@ public interface JamProject extends JavaProject {
     }
 
     default void publish() throws Exception {
-        releaseArtifacts();
+        System.out.println("Upload bundle zip from: " + releaseArtifacts());
         java.awt.Desktop.getDesktop().browse(new java.net.URI("https://central.sonatype.com/publishing/deployments"));
     }
 

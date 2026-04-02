@@ -118,7 +118,7 @@ We can examine the contents of the cache by using the `--cache` option.
 Try the other command-line options,
 and also see what happens when you execute the `fib50` target.
 
-## Mutable resources
+## Incremental builds
 
 We've seen how Jam caches return values across runs.
 If a return value is a reference to a mutable resource like a file,
