@@ -1,6 +1,7 @@
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -19,17 +20,11 @@ public final class File extends java.io.File implements Mutable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The modified time of the file
-     */
-    private final long modified;
-
-    /**
      * Creates a reference to a file specified by a URI
      * @param uri the file's URI
      */
     public File(URI uri) {
         super(uri);
-        this.modified = lastModified();
     }
 
     /**
@@ -38,7 +33,6 @@ public final class File extends java.io.File implements Mutable {
      */
     public File(String pathname) {
         super(pathname);
-        this.modified = lastModified();
     }
 
     /**
@@ -78,11 +72,11 @@ public final class File extends java.io.File implements Mutable {
         }
     }
 
-    public boolean modified() {
-        return modified == 0L || modified != lastModified();
-    }
-
     @Override public boolean equals(Object other) {
         return !(other instanceof File file) || super.equals(other);
+    }
+
+    public Serializable currentState() {
+        return lastModified();
     }
 }

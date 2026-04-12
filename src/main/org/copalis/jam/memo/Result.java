@@ -1,5 +1,8 @@
 package org.copalis.jam.memo;
 
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Set;
 
 /**
@@ -12,7 +15,11 @@ public record Result(Invocation signature, Object value, Set<Mutable> dependenci
     boolean serializable() {
         return Memorizer.objSerializable(value) && signature.serializable();
     }
-    public boolean modified() {
-        return signature.modified() || Mutable.hasChanged(value) || dependencies.stream().anyMatch(Mutable::hasChanged);
+//    public boolean modified() {
+//        return signature.modified() || Mutable.hasChanged(value) || dependencies.stream().anyMatch(Mutable::hasChanged);
+//    }
+
+    public Serializable currentState() {
+        return new LinkedList<>(Arrays.asList(signature.currentState(), Mutable.currently(value), Mutable.snapshots(dependencies.stream())));
     }
 }

@@ -1,5 +1,6 @@
 package org.copalis.jam.memo;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -7,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The signature of a method call
@@ -40,7 +42,7 @@ public record Invocation(String name, List<Object> params) implements Mutable {
         return params.stream().allMatch(Memorizer::objSerializable);
     }
 
-    public boolean modified() {
-        return params.stream().anyMatch(Mutable::hasChanged);
+    public Serializable currentState() {
+        return params.stream().map(Mutable::currently).collect(Collectors.toCollection(LinkedList::new));
     }
 }

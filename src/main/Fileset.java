@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,14 +105,16 @@ public final class Fileset implements Mutable, Iterable<File> {
         if (!new File(path).exists()) {
             return null;
         }
+        return new Fileset(findFiles(path, pattern).collect(Collectors.toCollection(TreeSet::new)), base, pattern);
+    }
+
+    private static Stream<File> findFiles(Path path, String pattern) {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
         try {
-            TreeSet<File> matches = Files.walk(path)
+            return Files.walk(path)
                 .filter(p -> matcher.matches(path.relativize(p)))
                 .map(File::new)
-                .filter(File::isFile)
-                .collect(Collectors.toCollection(TreeSet::new));
-            return new Fileset(matches, base, pattern);
+                .filter(File::isFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -149,11 +152,6 @@ public final class Fileset implements Mutable, Iterable<File> {
         return Objects.nonNull(root) ? Stream.of(new File(root)) : stream();
     }
 
-    public boolean modified() {
-        return Objects.nonNull(pattern) && !Objects.equals(this, find(root, pattern))
-                || files.stream().anyMatch(File::modified);
-    }
-
     /**
      * Gets a file from this fileset
      * @param path the relative path of the file
@@ -182,5 +180,9 @@ public final class Fileset implements Mutable, Iterable<File> {
         return !(obj instanceof Fileset other) || Objects.equals(files, other.files)
                 && Objects.equals(root, other.root)
                 && Objects.equals(pattern, other.pattern);
+    }
+
+    public Serializable currentState() {
+        return Mutable.snapshots(Objects.nonNull(pattern) ? findFiles(Path.of(root), pattern) : files.stream());
     }
 }

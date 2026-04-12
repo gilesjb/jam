@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,7 +47,7 @@ import java.util.stream.Stream;
  * The method handler performs <i>staleness checking</i> on cached method calls which return or depend on
  * references to mutable resources such as files.
  * To enable staleness checking, objects which reference resources must implement {@link Mutable}.
- * A resource reference object is <i>modified</i> if {@link Mutable#modified} is true.
+ * A resource reference object is <i>modified</i> if its {@link Mutable#currentState} value changes.
  *<p>
  * A cached method call is <i>stale</i> if any of these conditions are met:
  * <ul>
@@ -63,7 +65,8 @@ import java.util.stream.Stream;
 public class Memorizer {
 
     private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
-    private Map<Invocation, Result> cache = new LinkedHashMap<>();
+    private final Map<Mutable, Serializable> states = new HashMap<>();
+    private final Map<Invocation, Result> results = new LinkedHashMap<>();
     private final Observer observer;
 
     /**
@@ -91,11 +94,14 @@ public class Memorizer {
      * @throws IOException if an IO exception occurs
      * @throws ClassNotFoundException if a serialized class cannot be found
      */
+    @SuppressWarnings("unchecked")
     public void load(InputStream in) throws IOException, ClassNotFoundException {
         try (ObjectInputStream obj = new ObjectInputStream(in)) {
-            @SuppressWarnings("unchecked")
-            List<Result> results = (List<Result>) obj.readObject();
-            results.forEach(result -> cache.put(result.signature(), result));
+            Map<Mutable, Serializable> loadedStates = (Map<Mutable, Serializable>) obj.readObject();
+            states.clear();
+            loadedStates.forEach((key, value) -> {if (!key.modifiedSince(value) ) states.put(key, value);});
+            results.clear();
+            ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
         }
     }
 
@@ -108,7 +114,8 @@ public class Memorizer {
      */
     public void save(OutputStream out) throws IOException {
         try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
-            obj.writeObject(cache.values().stream().filter(Result::serializable)
+            obj.writeObject(states);
+            obj.writeObject(results.values().stream().filter(Result::serializable)
                     .collect(Collectors.toList()));
         }
     }
@@ -118,7 +125,15 @@ public class Memorizer {
      * @return a stream of cached method results
      */
     public Stream<Result> entries() {
-        return cache.values().stream();
+        return results.values().stream();
+    }
+
+    /**
+     * Iterates over the cache contents
+     * @param fn a callback
+     */
+    public void entries(BiConsumer<Result, Boolean> fn) {
+        results.values().forEach(val -> fn.accept(val, states.containsKey(val)));
     }
 
     /**
@@ -127,14 +142,14 @@ public class Memorizer {
      * @return a Result or null
      */
     public Result lookup(Invocation invocation) {
-        return cache.get(invocation);
+        return results.get(invocation);
     }
 
     /**
      * Erases all method call results from the cache
      */
     public void forget() {
-        cache = new LinkedHashMap<>();
+        results.clear();
     }
 
     /**
@@ -154,16 +169,17 @@ public class Memorizer {
         Invocation signature = new Invocation(method, args);
 
         Observer.Status status = Observer.Status.COMPUTE;
-        if (cache.containsKey(signature)) {
-            Result result = cache.get(signature);
+        if (results.containsKey(signature)) {
+            Result result = results.get(signature);
+            Object value = result.value();
 
-            if (result.modified()) {
+            if (value instanceof Mutable && !states.containsKey(value)) {
                 status = Observer.Status.REFRESH;
-                cache.remove(signature);
+                results.remove(signature);
             } else {
                 observer.startMethod(Observer.Status.CURRENT, method, signature.params());
                 dependencies.peek().addAll(result.dependencies());
-                observer.endMethod(Observer.Status.CURRENT, method, signature.params(), result.value());
+                observer.endMethod(Observer.Status.CURRENT, method, signature.params(), value);
                 return result.value();
             }
         }
@@ -180,10 +196,16 @@ public class Memorizer {
             value = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (method.getReturnType() != Void.TYPE) {
-                cache.put(signature, new Result(signature, value, dependencies.peek()));
+                results.put(signature, new Result(signature, value, dependencies.peek()));
             }
             if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-                dependencies.peek().add((Mutable) Objects.requireNonNullElse(value, Mutable.CHANGED));
+                if (Objects.isNull(value)) {
+                    dependencies.peek().add(Mutable.CHANGED);
+                } else {
+                    Mutable m = (Mutable) value;
+                    dependencies.peek().add(m);
+                    states.computeIfAbsent(m, Mutable::currentState);
+                }
             }
             return value;
         } finally {

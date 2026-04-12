@@ -244,12 +244,18 @@ public class BuildController<T> {
 
     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
-        memo.entries().forEach(e -> {
-                printResultStatus(e);
-                color(BOLD).printMethod(e.signature().name(), e.signature().params());
-                color(RESET).print(" = ").printValue(e.value());
-                line();
-            });
+        memo.entries((e, current) -> {
+            printResultStatus(e, current);
+            color(BOLD).printMethod(e.signature().name(), e.signature().params());
+            color(RESET).print(" = ").printValue(e.value());
+            line();
+        });
+//        memo.entries().forEach(e -> {
+//                printResultStatus(e);
+//                color(BOLD).printMethod(e.signature().name(), e.signature().params());
+//                color(RESET).print(" = ").printValue(e.value());
+//                line();
+//            });
     }
 
     private void printBuildTargets(Consumer<T> buildFn) {
@@ -273,7 +279,7 @@ public class BuildController<T> {
         if (!targets.isEmpty()) {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
-                printResultStatus(memo.lookup(new Invocation(m)));
+                printResultStatus(memo.lookup(new Invocation(m)), false);
                 color(BOLD).print(m.getName()).color(RESET).print(" : ");
                 print(m.getReturnType().getSimpleName()).line();
                 visited.add(m.getName());
@@ -286,13 +292,13 @@ public class BuildController<T> {
         }
     }
 
-    private void printResultStatus(Result result) {
+    private void printResultStatus(Result result, boolean fresh) {
         if (Objects.isNull(result)) {
             print("         ");
-        } else if (result.modified()) {
-            color(CYAN).print("[stale]  ");
-        } else {
+        } else if (fresh) {
             color(GREEN).print("[fresh]  ");
+        } else {
+            color(CYAN).print("[stale]  ");
         }
         color(RESET);
     }
