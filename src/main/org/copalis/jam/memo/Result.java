@@ -26,7 +26,7 @@ public record Result(Invocation signature, Object value, Set<Result> dependencie
      * @return true if it is stale
      */
     public boolean isStale() {
-        return value instanceof Mutable && Objects.isNull(state); // || dependencies.stream().anyMatch(Result::isStale);
+        return value instanceof Mutable && Objects.isNull(state) || dependencies.stream().anyMatch(Result::isStale);
     }
 
     /**

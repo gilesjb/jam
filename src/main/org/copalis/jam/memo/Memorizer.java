@@ -180,13 +180,12 @@ public class Memorizer {
         try {
             value = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
+            Result result = new Result(signature, value, dependencies.peek());
             if (method.getReturnType() != Void.TYPE) {
-                Result result = new Result(signature, value, dependencies.peek());
                 results.put(signature, result);
-
-                if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-                    dependencies.peek().add(result);
-                }
+            }
+            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
+                dependencies.peek().add(result);
             }
             return value;
         } finally {
