@@ -244,18 +244,12 @@ public class BuildController<T> {
 
     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
-        memo.entries((e, current) -> {
-            printResultStatus(e, current);
-            color(BOLD).printMethod(e.signature().name(), e.signature().params());
-            color(RESET).print(" = ").printValue(e.value());
-            line();
-        });
-//        memo.entries().forEach(e -> {
-//                printResultStatus(e);
-//                color(BOLD).printMethod(e.signature().name(), e.signature().params());
-//                color(RESET).print(" = ").printValue(e.value());
-//                line();
-//            });
+        memo.entries().forEach(e -> {
+                printResultStatus(e);
+                color(BOLD).printMethod(e.signature().name(), e.signature().params());
+                color(RESET).print(" = ").printValue(e.value());
+                line();
+            });
     }
 
     private void printBuildTargets(Consumer<T> buildFn) {
@@ -279,7 +273,7 @@ public class BuildController<T> {
         if (!targets.isEmpty()) {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
-                printResultStatus(memo.lookup(new Invocation(m)), false);
+                printResultStatus(memo.lookup(new Invocation(m)));
                 color(BOLD).print(m.getName()).color(RESET).print(" : ");
                 print(m.getReturnType().getSimpleName()).line();
                 visited.add(m.getName());
@@ -292,13 +286,13 @@ public class BuildController<T> {
         }
     }
 
-    private void printResultStatus(Result result, boolean fresh) {
+    private void printResultStatus(Result result) {
         if (Objects.isNull(result)) {
             print("         ");
-        } else if (fresh) {
-            color(GREEN).print("[fresh]  ");
-        } else {
+        } else if (result.isStale()) {
             color(CYAN).print("[stale]  ");
+        } else {
+            color(GREEN).print("[fresh]  ");
         }
         color(RESET);
     }

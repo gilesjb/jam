@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,7 +45,7 @@ import java.util.stream.Stream;
  * The method handler performs <i>staleness checking</i> on cached method calls which return or depend on
  * references to mutable resources such as files.
  * To enable staleness checking, objects which reference resources must implement {@link Mutable}.
- * A resource reference object is <i>modified</i> if its {@link Mutable#currentState} value changes.
+ * A resource reference object is <i>modified</i> if its {@link Mutable#currentState} changes.
  *<p>
  * A cached method call is <i>stale</i> if any of these conditions are met:
  * <ul>
@@ -64,8 +62,7 @@ import java.util.stream.Stream;
  */
 public class Memorizer {
 
-    private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
-    private final Map<Mutable, Serializable> states = new HashMap<>();
+    private final LinkedList<Set<Result>> dependencies = new LinkedList<>();
     private final Map<Invocation, Result> results = new LinkedHashMap<>();
     private final Observer observer;
 
@@ -97,11 +94,8 @@ public class Memorizer {
     @SuppressWarnings("unchecked")
     public void load(InputStream in) throws IOException, ClassNotFoundException {
         try (ObjectInputStream obj = new ObjectInputStream(in)) {
-            Map<Mutable, Serializable> loadedStates = (Map<Mutable, Serializable>) obj.readObject();
-            states.clear();
-            loadedStates.forEach((key, value) -> {if (!key.modifiedSince(value) ) states.put(key, value);});
             results.clear();
-            ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
+            ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result.currently()));
         }
     }
 
@@ -114,7 +108,6 @@ public class Memorizer {
      */
     public void save(OutputStream out) throws IOException {
         try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
-            obj.writeObject(states);
             obj.writeObject(results.values().stream().filter(Result::serializable)
                     .collect(Collectors.toList()));
         }
@@ -126,14 +119,6 @@ public class Memorizer {
      */
     public Stream<Result> entries() {
         return results.values().stream();
-    }
-
-    /**
-     * Iterates over the cache contents
-     * @param fn a callback
-     */
-    public void entries(BiConsumer<Result, Boolean> fn) {
-        results.values().forEach(val -> fn.accept(val, states.containsKey(val)));
     }
 
     /**
@@ -173,7 +158,7 @@ public class Memorizer {
             Result result = results.get(signature);
             Object value = result.value();
 
-            if (value instanceof Mutable && !states.containsKey(value)) {
+            if (result.isStale()) {
                 status = Observer.Status.REFRESH;
                 results.remove(signature);
             } else {
@@ -196,20 +181,16 @@ public class Memorizer {
             value = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (method.getReturnType() != Void.TYPE) {
-                results.put(signature, new Result(signature, value, dependencies.peek()));
-            }
-            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-                if (Objects.isNull(value)) {
-                    dependencies.peek().add(Mutable.CHANGED);
-                } else {
-                    Mutable m = (Mutable) value;
-                    dependencies.peek().add(m);
-                    states.computeIfAbsent(m, Mutable::currentState);
+                Result result = new Result(signature, value, dependencies.peek());
+                results.put(signature, result);
+
+                if (Mutable.class.isAssignableFrom(method.getReturnType())) {
+                    dependencies.peek().add(result);
                 }
             }
             return value;
         } finally {
-            Set<Mutable> used = dependencies.pop();
+            Set<Result> used = dependencies.pop();
             dependencies.peek().addAll(used);
         }
     }
