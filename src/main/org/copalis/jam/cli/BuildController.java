@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import org.copalis.jam.memo.Invocation;
 import org.copalis.jam.memo.Memorizer;
 import org.copalis.jam.memo.Observer;
-import org.copalis.jam.memo.Result;
 
 /**
  * A build process command-line argument parser and controller.
@@ -204,7 +203,7 @@ public class BuildController<T> {
                     }
 
                 } finally {
-                    if (memo.entries().findAny().isPresent()) {
+                    if (memo.entries((e, p) -> {}) > 0) {
                         try (OutputStream out = new FileOutputStream(cacheFile)) {
                             memo.save(out);
                         }
@@ -245,17 +244,11 @@ public class BuildController<T> {
     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
         memo.entries((e, current) -> {
-            printResultStatus(e, current);
+            printResultStatus(Objects.nonNull(e) ? current : null);
             color(BOLD).printMethod(e.signature().name(), e.signature().params());
             color(RESET).print(" = ").printValue(e.value());
             line();
         });
-//        memo.entries().forEach(e -> {
-//                printResultStatus(e);
-//                color(BOLD).printMethod(e.signature().name(), e.signature().params());
-//                color(RESET).print(" = ").printValue(e.value());
-//                line();
-//            });
     }
 
     private void printBuildTargets(Consumer<T> buildFn) {
@@ -279,7 +272,7 @@ public class BuildController<T> {
         if (!targets.isEmpty()) {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
-                printResultStatus(memo.lookup(new Invocation(m)), false);
+                printResultStatus(memo.status(new Invocation(m)));
                 color(BOLD).print(m.getName()).color(RESET).print(" : ");
                 print(m.getReturnType().getSimpleName()).line();
                 visited.add(m.getName());
@@ -292,10 +285,10 @@ public class BuildController<T> {
         }
     }
 
-    private void printResultStatus(Result result, boolean fresh) {
-        if (Objects.isNull(result)) {
+    private void printResultStatus(Boolean status) {
+        if (Objects.isNull(status)) {
             print("         ");
-        } else if (fresh) {
+        } else if (status) {
             color(GREEN).print("[fresh]  ");
         } else {
             color(CYAN).print("[stale]  ");
@@ -322,6 +315,10 @@ public class BuildController<T> {
                 System.err.println("\tat " + el);
                 if (last) break;
                 last = last || el.getClassName().equals(BuildController.class.getName());
+            }
+            if (Objects.nonNull(ex.getCause())) {
+                System.err.println("Caused by:");
+                printStackTrace(ex.getCause());
             }
         }
     }

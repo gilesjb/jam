@@ -17,10 +17,12 @@ public record Result(Invocation signature, Object value, Set<Mutable> dependenci
     boolean serializable() {
         return Memorizer.objSerializable(value) && signature.serializable();
     }
-//    public boolean modified() {
-//        return signature.modified() || Mutable.hasChanged(value) || dependencies.stream().anyMatch(Mutable::hasChanged);
-//    }
 
+    /**
+     * Indicates whether this result is up to date with mutable state
+     * @param states a map of mutable states
+     * @return true if this result is up to date
+     */
     public boolean current(Map<Mutable, Serializable> states) {
         if (!(value instanceof Mutable)) return true;
         if (!Objects.equals(value, states.get(value))) return false;

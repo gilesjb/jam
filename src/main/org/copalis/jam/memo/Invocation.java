@@ -43,6 +43,11 @@ public record Invocation(String name, List<Object> params) implements Mutable {
         return params.stream().allMatch(Memorizer::objSerializable);
     }
 
+    /**
+     * Indicates whether this object is up to date with mutable state
+     * @param states a map of mutable states
+     * @return true if this object is up to date
+     */
     public boolean current(Map<Mutable, Serializable> states) {
         return params.stream().allMatch(o -> !(o instanceof Mutable m) || Objects.equals(m.currentState(), states.get(m)));
     }

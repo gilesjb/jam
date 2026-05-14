@@ -109,6 +109,9 @@ public final class Fileset implements Mutable, Iterable<File> {
     }
 
     private static Stream<File> findFiles(Path path, String pattern) {
+        if (!Files.exists(path)) {
+            return Stream.empty();
+        }
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
         try {
             return Files.walk(path)

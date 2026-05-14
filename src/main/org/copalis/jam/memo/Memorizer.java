@@ -10,8 +10,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A method memoizer that can also determine when methods need to be re-executed as a result of
@@ -65,7 +64,7 @@ import java.util.stream.Stream;
 public class Memorizer {
 
     private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
-    private final Map<Mutable, Serializable> states = new HashMap<>();
+    private final Map<Mutable, Serializable> states = new IdentityHashMap<>();
     private final Map<Invocation, Result> results = new LinkedHashMap<>();
     private final Observer observer;
 
@@ -123,28 +122,23 @@ public class Memorizer {
     }
 
     /**
-     * Gets the cache contents
-     * @return a stream of cached method results
-     */
-    public Stream<Result> entries() {
-        return results.values().stream();
-    }
-
-    /**
      * Iterates over the cache contents
      * @param fn a callback
+     * @return the number of cache entries
      */
-    public void entries(BiConsumer<Result, Boolean> fn) {
+    public int entries(BiConsumer<Result, Boolean> fn) {
         results.values().forEach(res -> fn.accept(res, res.current(states)));
+        return results.values().size();
     }
 
     /**
-     * Looks up a cache entry
+     * Checks if there is a current cache entry for a method call
      * @param invocation the method call
-     * @return a Result or null
+     * @return True if there is a current cache entry, False if it is stale, or null if there is no entry
      */
-    public Result lookup(Invocation invocation) {
-        return results.get(invocation);
+    public Boolean status(Invocation invocation) {
+        Result result = results.get(invocation);
+        return Objects.isNull(result) ? null : result.current(states);
     }
 
     /**
@@ -152,6 +146,7 @@ public class Memorizer {
      */
     public void forget() {
         results.clear();
+        states.clear();
     }
 
     /**

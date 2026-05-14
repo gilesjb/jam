@@ -81,32 +81,29 @@ public class MemorizerTest {
         }
     }
 
-//    @Test synchronized public void testMutableChange() {
-//        List<String> called = new LinkedList<>();
-//
-//        Memorizer memo = new Memorizer(new Observer() {
-//            public void startMethod(Observer.Status status, Method method, List<Object> params) {
-//                if (status == Observer.Status.COMPUTE || status == Observer.Status.REFRESH) {
-//                    called.add(method.getName());
-//                }
-//            }
-//        });
-//
-//        boolean[] changed = new boolean[] {false};
-//        mutable = () -> changed[0];
-//
-//        Mutables t = memo.instantiate(Mutables.class);
-//        t.a();
-//        assertEquals(List.of("a", "aa", "ab", "ac", "ad", "ae"), called);
-//        assertTrue(memo.entries().noneMatch(Result::modifiedSince));
-//
-//        called.clear();
-//        t.a();
-//        assertEquals(List.of(), called);
-//        assertTrue(memo.entries().noneMatch(Result::modifiedSince));
-//
+    @Test synchronized public void testMutableChange() {
+        List<String> called = new LinkedList<>();
+
+        Memorizer memo = new Memorizer(new Observer() {
+            public void startMethod(Observer.Status status, Method method, List<Object> params) {
+                if (status == Observer.Status.COMPUTE || status == Observer.Status.REFRESH) {
+                    called.add(method.getName());
+                }
+            }
+        });
+
+        boolean[] changed = new boolean[] {false};
+        mutable = () -> changed[0];
+
+        Mutables t = memo.instantiate(Mutables.class);
+        t.a();
+        assertEquals(List.of("a", "aa", "ab", "ac", "ad", "ae"), called);
+
+        called.clear();
+        t.a();
+        assertEquals(List.of(), called);
+
 //        changed[0] = true;
-//        assertTrue(memo.entries().anyMatch(Result::modifiedSince));
 //
 //        called.clear();
 //        t.a();
@@ -125,6 +122,5 @@ public class MemorizerTest {
 //        called.clear();
 //        t.a();
 //        assertEquals(List.of(), called);
-//        assertTrue(memo.entries().noneMatch(Result::modifiedSince));
-//    }
+    }
 }
