@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,10 @@ public record Invocation(String name, List<Object> params) implements Mutable {
 
     boolean serializable() {
         return params.stream().allMatch(Memorizer::objSerializable);
+    }
+
+    public boolean current(Map<Mutable, Serializable> states) {
+        return params.stream().allMatch(o -> !(o instanceof Mutable m) || Objects.equals(m.currentState(), states.get(m)));
     }
 
     public Serializable currentState() {

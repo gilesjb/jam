@@ -99,7 +99,9 @@ public class Memorizer {
         try (ObjectInputStream obj = new ObjectInputStream(in)) {
             Map<Mutable, Serializable> loadedStates = (Map<Mutable, Serializable>) obj.readObject();
             states.clear();
-            loadedStates.forEach((key, value) -> {if (!key.modifiedSince(value) ) states.put(key, value);});
+            loadedStates.forEach((key, value) -> {
+                if (!key.modifiedSince(value)) states.put(key, value);
+            });
             results.clear();
             ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
         }
@@ -133,7 +135,7 @@ public class Memorizer {
      * @param fn a callback
      */
     public void entries(BiConsumer<Result, Boolean> fn) {
-        results.values().forEach(val -> fn.accept(val, states.containsKey(val)));
+        results.values().forEach(res -> fn.accept(res, res.current(states)));
     }
 
     /**
@@ -173,7 +175,7 @@ public class Memorizer {
             Result result = results.get(signature);
             Object value = result.value();
 
-            if (value instanceof Mutable && !states.containsKey(value)) {
+            if (value instanceof Mutable && !result.current(states)) {
                 status = Observer.Status.REFRESH;
                 results.remove(signature);
             } else {
