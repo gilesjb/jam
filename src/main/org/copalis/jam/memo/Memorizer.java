@@ -170,7 +170,7 @@ public class Memorizer {
             Result result = results.get(signature);
             Object value = result.value();
 
-            if (value instanceof Mutable && !result.current(states)) {
+            if (!result.current(states)) {
                 status = Observer.Status.REFRESH;
                 results.remove(signature);
             } else {
