@@ -67,8 +67,12 @@ public class MemorizerTest {
         }
 
         default State put(String key, String value) {
-            states.put(key, value);
-            return get(key);
+            try {
+                return get(key);
+            } finally {
+                // Verify memoizer caches the state at the time this method returns
+                states.put(key, value);
+            }
         }
 
         default String name() {
