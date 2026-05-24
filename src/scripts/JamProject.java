@@ -16,7 +16,7 @@
 public interface JamProject extends JavaProject {
 
     default String version() {
-        return "0.9.2";
+        return "0.9.3";
     }
 
     default Fileset mainSources() {
