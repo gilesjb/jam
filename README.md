@@ -13,7 +13,7 @@ This is what a Jam build script for a simple Java project looks like:
 ```kotlin
 #!/usr/bin/env -S kotlin -Xjvm-default=all
 
-@file:DependsOn("org.copalis:jam:0.9.2")
+@file:DependsOn("org.copalis:jam:0.9.3")
 
 interface DemoProject : JavaProject {
 
@@ -72,7 +72,7 @@ If you have Kotlin installed you can easily try out this script.
 ```kotlin
 #!/usr/bin/env -S kotlin -Xjvm-default=all
 
-@file:DependsOn("org.copalis:jam:0.9.2")
+@file:DependsOn("org.copalis:jam:0.9.3")
 
 interface Fibonacci : Project {
 
@@ -135,7 +135,7 @@ and writes their HTML equivalents to the build directory:
 ```kotlin
 #!/usr/bin/env kotlin -Xjvm-default=all
 
-@file:DependsOn("org.copalis:jam:0.9.2")
+@file:DependsOn("org.copalis:jam:0.9.3")
 @file:DependsOn("org.commonmark:commonmark:0.22.0")
 
 interface MarkdownBuild : FileProject {

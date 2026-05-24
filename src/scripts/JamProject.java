@@ -95,14 +95,14 @@ public interface JamProject extends JavaProject {
         return new ProcessBuilder().inheritIO().directory(new File(buildPath(path)));
     }
 
-    default String releaseArtifacts() {
-        String artifacts = buildPath(releasePath());
+    default Fileset releaseArtifacts() {
+        buildPath(releasePath());
         sign(jar(releaseArtifact(".jar"), mainClasses(), mainSources()));
         sign(jar(releaseArtifact("-sources.jar"), mainSources()));
         sign(jar(releaseArtifact("-javadoc.jar"), docs()));
         sign(write(releaseArtifact(".pom"), read("release/pom.xml").replace("{version}", version())));
         exec(inBuildDir("release"), "zip", "-r", "bundle.zip", "org/");
-        return artifacts;
+        return builtFiles("release/bundle.zip");
     }
 
     default void publish() throws Exception {
