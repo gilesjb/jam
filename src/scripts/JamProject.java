@@ -105,17 +105,21 @@ public interface JamProject extends JavaProject {
         return builtFiles("release/bundle.zip");
     }
 
+    default void browse(java.net.URI uri) throws Exception {
+        java.awt.Desktop.getDesktop().browse(uri);
+    }
+
     default void publish() throws Exception {
         System.out.println("Upload bundle zip from: " + releaseArtifacts());
-        java.awt.Desktop.getDesktop().browse(new java.net.URI("https://central.sonatype.com/publishing/deployments"));
+        browse(new java.net.URI("https://central.sonatype.com/publishing/deployments"));
     }
 
     default void viewTestCoverage() throws Exception {
-        java.awt.Desktop.getDesktop().browse(coverageReport().toURI());
+        browse(coverageReport().toURI());
     }
 
     default void viewDocs() throws Exception {
-        java.awt.Desktop.getDesktop().browse(docs().file("index.html").toURI());
+        browse(docs().file("index.html").toURI());
     }
 
     static void main(String[] args) {

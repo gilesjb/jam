@@ -25,11 +25,13 @@ public record Result(Invocation signature, Object value, Set<Mutable> dependenci
      */
     public boolean current(Map<Mutable, Serializable> states) {
         if (!signature.current(states)) return false;
+        for (Mutable dependency : dependencies) {
+            Serializable prevState = states.get(dependency);
+            Serializable currentState = dependency.currentState();
+            if (!Objects.equals(currentState, prevState)) return false;
+        }
         if (!(value instanceof Mutable m)) return true;
         if (!Objects.equals(m.currentState(), states.get(value))) return false;
-        for (Mutable dependency : dependencies) {
-            if (!Objects.equals(dependency.currentState(), states.get(dependency))) return false;
-        }
         return true;
     }
 

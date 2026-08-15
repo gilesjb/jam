@@ -127,7 +127,10 @@ public class Memorizer {
      * @return the number of cache entries
      */
     public int entries(BiConsumer<Result, Boolean> fn) {
-        results.values().forEach(res -> fn.accept(res, res.current(states)));
+        results.values().forEach(res -> {
+            boolean current = res.current(states);
+            fn.accept(res, current);
+        });
         return results.values().size();
     }
 
