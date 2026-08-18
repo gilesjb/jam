@@ -18,8 +18,8 @@ public interface Mutable extends Serializable {
      * A Mutable instance that always returns true from {@link #modifiedSince(Serializable)}
      */
     static final Mutable CHANGED = () -> new Serializable() {
-
         private static final long serialVersionUID = 1L;
+
         @Override public boolean equals(Object other) {
             return false;
         }
