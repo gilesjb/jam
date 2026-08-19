@@ -48,7 +48,7 @@ public record Invocation(String name, List<Object> params) implements Mutable {
      * @param states a map of mutable states
      * @return true if this object is up to date
      */
-    public boolean current(Map<Mutable, Serializable> states) {
+    public boolean isCurrent(Map<Mutable, Serializable> states) {
         return params.stream().allMatch(o -> !(o instanceof Mutable m) || Objects.equals(m.currentState(), states.get(m)));
     }
 

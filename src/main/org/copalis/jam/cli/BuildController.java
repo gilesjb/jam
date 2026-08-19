@@ -272,7 +272,7 @@ public class BuildController<T> {
         if (!targets.isEmpty()) {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
-                printResultStatus(memo.status(new Invocation(m)));
+                printResultStatus(memo.resultStatus(new Invocation(m)));
                 color(BOLD).print(m.getName()).color(RESET).print(" : ");
                 print(m.getReturnType().getSimpleName()).line();
                 visited.add(m.getName());

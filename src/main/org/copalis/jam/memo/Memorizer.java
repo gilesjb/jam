@@ -128,7 +128,7 @@ public class Memorizer {
      */
     public int entries(BiConsumer<Result, Boolean> fn) {
         results.values().forEach(res -> {
-            boolean current = res.current(states);
+            boolean current = res.isCurrent(states);
             fn.accept(res, current);
         });
         return results.values().size();
@@ -139,9 +139,9 @@ public class Memorizer {
      * @param invocation the method call
      * @return True if there is a current cache entry, False if it is stale, or null if there is no entry
      */
-    public Boolean status(Invocation invocation) {
+    public Boolean resultStatus(Invocation invocation) {
         Result result = results.get(invocation);
-        return Objects.isNull(result) ? null : result.current(states);
+        return Objects.isNull(result) ? null : result.isCurrent(states);
     }
 
     /**
@@ -173,7 +173,7 @@ public class Memorizer {
             Result result = results.get(signature);
             Object value = result.value();
 
-            if (!result.current(states)) {
+            if (!result.isCurrent(states)) {
                 status = Observer.Status.REFRESH;
                 results.remove(signature);
             } else {
