@@ -78,7 +78,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#load(java.io.InputStream)" tabindex="0">load(InputStream)</a></li>
 <li><a href="#save(java.io.OutputStream)" tabindex="0">save(OutputStream)</a></li>
 <li><a href="#entries(java.util.function.BiConsumer)" tabindex="0">entries(BiConsumer)</a></li>
-<li><a href="#status(org.copalis.jam.memo.Invocation)" tabindex="0">status(Invocation)</a></li>
+<li><a href="#resultStatus(org.copalis.jam.memo.Invocation)" tabindex="0">resultStatus(Invocation)</a></li>
 <li><a href="#forget()" tabindex="0">forget()</a></li>
 <li><a href="#instantiate(java.lang.Class)" tabindex="0">instantiate(Class)</a></li>
 </ol>
@@ -188,16 +188,16 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Loads the cache</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#save(java.io.OutputStream)" class="member-name-link">save</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;out)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resultStatus(org.copalis.jam.memo.Invocation)" class="member-name-link">resultStatus</a><wbr>(<a href="Invocation.html" title="class in org.copalis.jam.memo">Invocation</a>&nbsp;invocation)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Checks if there is a current cache entry for a method call</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#save(java.io.OutputStream)" class="member-name-link">save</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;out)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Writes the contents of the method call cache to an output stream,
  excluding method calls which are not serializable.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#status(org.copalis.jam.memo.Invocation)" class="member-name-link">status</a><wbr>(<a href="Invocation.html" title="class in org.copalis.jam.memo">Invocation</a>&nbsp;invocation)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Checks if there is a current cache entry for a method call</div>
 </div>
 </div>
 </div>
@@ -297,10 +297,10 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="status(org.copalis.jam.memo.Invocation)">
-<h3>status</h3>
+<section class="detail" id="resultStatus(org.copalis.jam.memo.Invocation)">
+<h3>resultStatus</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a></span>&nbsp;<span class="element-name">status</span><wbr><span class="parameters">(<a href="Invocation.html" title="class in org.copalis.jam.memo">Invocation</a>&nbsp;invocation)</span></div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a></span>&nbsp;<span class="element-name">resultStatus</span><wbr><span class="parameters">(<a href="Invocation.html" title="class in org.copalis.jam.memo">Invocation</a>&nbsp;invocation)</span></div>
 <div class="block">Checks if there is a current cache entry for a method call</div>
 <dl class="notes">
 <dt>Parameters:</dt>

@@ -151,14 +151,6 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Gets the current build context</div>
 </dd>
-<dt><a href="org/copalis/jam/memo/Invocation.html#current(java.util.Map)" class="member-name-link">current(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Invocation.html" title="class in org.copalis.jam.memo">Invocation</a></dt>
-<dd>
-<div class="block">Indicates whether this object is up to date with mutable state</div>
-</dd>
-<dt><a href="org/copalis/jam/memo/Result.html#current(java.util.Map)" class="member-name-link">current(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
-<dd>
-<div class="block">Indicates whether this result is up to date with mutable state</div>
-</dd>
 <dt><a href="org/copalis/jam/memo/Observer.Status.html#CURRENT" class="member-name-link">CURRENT</a> - Enum constant in enum class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></dt>
 <dd>
 <div class="block">The cache contains a fresh result for the method invocation</div>
@@ -341,6 +333,14 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/copalis/jam/memo/Invocation.html#%3Cinit%3E(java.lang.String,java.util.List)" class="member-name-link">Invocation(String, List&lt;Object&gt;)</a> - Constructor for record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Invocation.html" title="class in org.copalis.jam.memo">Invocation</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>Invocation</code> record class.</div>
+</dd>
+<dt><a href="org/copalis/jam/memo/Invocation.html#isCurrent(java.util.Map)" class="member-name-link">isCurrent(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Invocation.html" title="class in org.copalis.jam.memo">Invocation</a></dt>
+<dd>
+<div class="block">Indicates whether this object is up to date with mutable state</div>
+</dd>
+<dt><a href="org/copalis/jam/memo/Result.html#isCurrent(java.util.Map)" class="member-name-link">isCurrent(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
+<dd>
+<div class="block">Indicates whether this result is up to date with mutable state</div>
 </dd>
 <dt><a href="Fileset.html#iterator()" class="member-name-link">iterator()</a> - Method in class <a href="Fileset.html" title="class in Unnamed Package">Fileset</a></dt>
 <dd>&nbsp;</dd>
@@ -566,6 +566,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Creates an instance of a <code>Result</code> record class.</div>
 </dd>
+<dt><a href="org/copalis/jam/memo/Memorizer.html#resultStatus(org.copalis.jam.memo.Invocation)" class="member-name-link">resultStatus(Invocation)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
+<dd>
+<div class="block">Checks if there is a current cache entry for a method call</div>
+</dd>
 <dt><a href="FileProject.html#rmdir(java.lang.String)" class="member-name-link">rmdir(String)</a> - Method in interface <a href="FileProject.html" title="interface in Unnamed Package">FileProject</a></dt>
 <dd>
 <div class="block">Deletes a directory, which must be the build directory or one of its children</div>
@@ -604,7 +608,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/copalis/jam/memo/Result.html#signature()" class="member-name-link">signature()</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
 <dd>
-<div class="block">Returns the value of the <a href="./org/copalis/jam/memo/Result.html#param-signature"><code>signature</code></a> record component.</div>
+<div class="block">Returns the value of the <code>signature</code> record component.</div>
 </dd>
 <dt><a href="Fileset.html#size()" class="member-name-link">size()</a> - Method in class <a href="Fileset.html" title="class in Unnamed Package">Fileset</a></dt>
 <dd>
@@ -631,10 +635,6 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/copalis/jam/memo/Observer.html#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List)" class="member-name-link">startMethod(Observer.Status, Method, List&lt;Object&gt;)</a> - Method in interface org.copalis.jam.memo.<a href="org/copalis/jam/memo/Observer.html" title="interface in org.copalis.jam.memo">Observer</a></dt>
 <dd>
 <div class="block">Notification that a method is about to be invoked</div>
-</dd>
-<dt><a href="org/copalis/jam/memo/Memorizer.html#status(org.copalis.jam.memo.Invocation)" class="member-name-link">status(Invocation)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
-<dd>
-<div class="block">Checks if there is a current cache entry for a method call</div>
 </dd>
 <dt><a href="Fileset.html#stream()" class="member-name-link">stream()</a> - Method in class <a href="Fileset.html" title="class in Unnamed Package">Fileset</a></dt>
 <dd>
