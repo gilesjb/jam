@@ -66,6 +66,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#enum-constant-detail" tabindex="0">Enum Constant Details</a>
 <ol class="toc-list">
+<li><a href="#EXECUTE" tabindex="0">EXECUTE</a></li>
 <li><a href="#COMPUTE" tabindex="0">COMPUTE</a></li>
 <li><a href="#REFRESH" tabindex="0">REFRESH</a></li>
 <li><a href="#CURRENT" tabindex="0">CURRENT</a></li>
@@ -126,14 +127,18 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code><a href="#COMPUTE" class="member-name-link">COMPUTE</a></code></div>
 <div class="col-last even-row-color">
-<div class="block">The method must be executed as there is no cached result for the invocation</div>
+<div class="block">The method result must be computed as there is no cached result for the invocation</div>
 </div>
 <div class="col-first odd-row-color"><code><a href="#CURRENT" class="member-name-link">CURRENT</a></code></div>
 <div class="col-last odd-row-color">
 <div class="block">The cache contains a fresh result for the method invocation</div>
 </div>
-<div class="col-first even-row-color"><code><a href="#REFRESH" class="member-name-link">REFRESH</a></code></div>
+<div class="col-first even-row-color"><code><a href="#EXECUTE" class="member-name-link">EXECUTE</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">The method is void so it can only be executed</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="#REFRESH" class="member-name-link">REFRESH</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The method must be executed because the cached result is stale</div>
 </div>
 </div>
@@ -182,11 +187,20 @@ the order they are declared.</div>
 <h2>Enum Constant Details</h2>
 <ul class="member-list">
 <li>
+<section class="detail" id="EXECUTE">
+<h3>EXECUTE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></span>&nbsp;<span class="element-name">EXECUTE</span></div>
+<div class="block">The method is void so it can only be executed</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="COMPUTE">
 <h3>COMPUTE</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></span>&nbsp;<span class="element-name">COMPUTE</span></div>
-<div class="block">The method must be executed as there is no cached result for the invocation</div>
+<div class="block">The method result must be computed as there is no cached result for the invocation</div>
 </div>
 </section>
 </li>

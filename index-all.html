@@ -145,7 +145,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/copalis/jam/memo/Observer.Status.html#COMPUTE" class="member-name-link">COMPUTE</a> - Enum constant in enum class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></dt>
 <dd>
-<div class="block">The method must be executed as there is no cached result for the invocation</div>
+<div class="block">The method result must be computed as there is no cached result for the invocation</div>
 </dd>
 <dt><a href="Project.html#context()" class="member-name-link">context()</a> - Method in interface <a href="Project.html" title="interface in Unnamed Package">Project</a></dt>
 <dd>
@@ -157,7 +157,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/copalis/jam/memo/Mutable.html#currently(java.lang.Object)" class="member-name-link">currently(Object)</a> - Static method in interface org.copalis.jam.memo.<a href="org/copalis/jam/memo/Mutable.html" title="interface in org.copalis.jam.memo">Mutable</a></dt>
 <dd>
-<div class="block">Returns an object's current state</div>
+<div class="block">Returns an object's current mutable state, if it has one</div>
 </dd>
 <dt><a href="Project.html#currently(T)" class="member-name-link">currently(T)</a> - Method in interface <a href="Project.html" title="interface in Unnamed Package">Project</a></dt>
 <dd>
@@ -205,7 +205,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Notification that a method has completed</div>
 </dd>
-<dt><a href="org/copalis/jam/memo/Memorizer.html#entries(java.util.function.BiConsumer)" class="member-name-link">entries(BiConsumer&lt;Result, Boolean&gt;)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
+<dt><a href="org/copalis/jam/memo/Memorizer.html#entries(java.util.function.BiConsumer)" class="member-name-link">entries(BiConsumer&lt;Result, Observer.Status&gt;)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
 <dd>
 <div class="block">Iterates over the cache contents</div>
 </dd>
@@ -236,6 +236,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="FileProject.html#exec(java.lang.String...)" class="member-name-link">exec(String...)</a> - Method in interface <a href="FileProject.html" title="interface in Unnamed Package">FileProject</a></dt>
 <dd>
 <div class="block">Executes an external process</div>
+</dd>
+<dt><a href="org/copalis/jam/memo/Observer.Status.html#EXECUTE" class="member-name-link">EXECUTE</a> - Enum constant in enum class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a></dt>
+<dd>
+<div class="block">The method is void so it can only be executed</div>
 </dd>
 <dt><a href="org/copalis/jam/cli/BuildController.html#executeBuild(java.util.function.Consumer,java.lang.String%5B%5D)" class="member-name-link">executeBuild(Consumer&lt;T&gt;, String[])</a> - Method in class org.copalis.jam.cli.<a href="org/copalis/jam/cli/BuildController.html" title="class in org.copalis.jam.cli">BuildController</a></dt>
 <dd>
@@ -333,10 +337,6 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/copalis/jam/memo/Invocation.html#%3Cinit%3E(java.lang.String,java.util.List)" class="member-name-link">Invocation(String, List&lt;Object&gt;)</a> - Constructor for record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Invocation.html" title="class in org.copalis.jam.memo">Invocation</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>Invocation</code> record class.</div>
-</dd>
-<dt><a href="org/copalis/jam/memo/Invocation.html#isCurrent(java.util.Map)" class="member-name-link">isCurrent(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Invocation.html" title="class in org.copalis.jam.memo">Invocation</a></dt>
-<dd>
-<div class="block">Indicates whether this object is up to date with mutable state</div>
 </dd>
 <dt><a href="org/copalis/jam/memo/Result.html#isCurrent(java.util.Map)" class="member-name-link">isCurrent(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
 <dd>
