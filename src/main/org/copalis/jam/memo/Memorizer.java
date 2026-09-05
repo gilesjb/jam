@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -126,10 +127,10 @@ public class Memorizer {
      * @param fn a callback
      * @return the number of cache entries
      */
-    public int entries(BiConsumer<Result, Boolean> fn) {
+    public int entries(BiConsumer<Result, Observer.Status> fn) {
         results.values().forEach(res -> {
             boolean current = res.isCurrent(states);
-            fn.accept(res, current);
+            fn.accept(res, current ? Observer.Status.CURRENT : Observer.Status.REFRESH);
         });
         return results.values().size();
     }
@@ -139,9 +140,10 @@ public class Memorizer {
      * @param invocation the method call
      * @return True if there is a current cache entry, False if it is stale, or null if there is no entry
      */
-    public Boolean resultStatus(Invocation invocation) {
+    public Observer.Status resultStatus(Invocation invocation) {
         Result result = results.get(invocation);
-        return Objects.isNull(result) ? null : result.isCurrent(states);
+        return Objects.isNull(result) ? Observer.Status.COMPUTE
+                : result.isCurrent(states) ? Observer.Status.CURRENT : Observer.Status.REFRESH;
     }
 
     /**
@@ -168,7 +170,7 @@ public class Memorizer {
             throws Throwable {
         Invocation signature = new Invocation(method, args);
 
-        Observer.Status status = Observer.Status.COMPUTE;
+        Observer.Status status = method.getReturnType() == Void.TYPE ? Observer.Status.EXECUTE : Observer.Status.COMPUTE;
         if (results.containsKey(signature)) {
             Result result = results.get(signature);
             Object value = result.value();
@@ -185,9 +187,9 @@ public class Memorizer {
         }
 
         if (Arrays.stream(method.getParameterTypes()).allMatch(Mutable.class::isAssignableFrom)) {
-            dependencies.push(new HashSet<>());
+            dependencies.push(new LinkedHashSet<>());
         } else { // propagate dependencies to invoked method if it has params without version info
-            dependencies.push(new HashSet<>(dependencies.peek()));
+            dependencies.push(new LinkedHashSet<>(dependencies.peek()));
         }
         observer.startMethod(status, method, signature.params());
 

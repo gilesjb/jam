@@ -14,6 +14,7 @@ import java.util.Set;
  * @param dependencies the dependencies of the method call
  */
 public record Result(Invocation signature, Object value, Set<Mutable> dependencies) implements Mutable {
+
     boolean serializable() {
         return Memorizer.objSerializable(value) && signature.serializable();
     }
@@ -25,7 +26,9 @@ public record Result(Invocation signature, Object value, Set<Mutable> dependenci
      */
     public boolean isCurrent(Map<Mutable, Serializable> states) {
         // have any parameter states changed?
-        if (!signature.isCurrent(states)) return false;
+        if (!signature.params().stream()
+                .allMatch(o -> !(o instanceof Mutable m1) || Objects.equals(m1.currentState(), states.get(m1))))
+            return false;
 
         // have any transitive dependencies changed?
         for (Mutable dependency : dependencies) {

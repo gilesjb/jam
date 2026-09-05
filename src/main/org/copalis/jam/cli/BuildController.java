@@ -101,7 +101,7 @@ public class BuildController<T> {
             if (status != Observer.Status.CURRENT || cached.add(new Call(method, params))) {
                 switch (status) {
                 case CURRENT: color(GREEN); break;
-                case COMPUTE: color(YELLOW); break;
+                case COMPUTE: case EXECUTE: color(YELLOW); break;
                 case REFRESH: color(CYAN); break;
                 }
                 print("[").print(status.name().toLowerCase());
@@ -244,7 +244,7 @@ public class BuildController<T> {
     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
         memo.entries((e, current) -> {
-            printResultStatus(Objects.nonNull(e) ? current : null);
+            printResultStatus(current);
             color(BOLD).printMethod(e.signature().name(), e.signature().params());
             color(RESET).print(" = ").printValue(e.value());
             line();
@@ -285,13 +285,14 @@ public class BuildController<T> {
         }
     }
 
-    private void printResultStatus(Boolean status) {
-        if (Objects.isNull(status)) {
+    private void printResultStatus(Observer.Status status) {
+        switch (status) {
+        case REFRESH:
+            color(CYAN).print("[stale]  "); break;
+        case CURRENT:
+            color(GREEN).print("[fresh]  "); break;
+        default:
             print("         ");
-        } else if (status) {
-            color(GREEN).print("[fresh]  ");
-        } else {
-            color(CYAN).print("[stale]  ");
         }
         color(RESET);
     }

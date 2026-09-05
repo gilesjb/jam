@@ -12,7 +12,11 @@ public interface Observer {
      */
     enum Status {
         /**
-         * The method must be executed as there is no cached result for the invocation
+         * The method is void so it can only be executed
+         */
+        EXECUTE,
+        /**
+         * The method result must be computed as there is no cached result for the invocation
          */
         COMPUTE,
         /**
@@ -24,7 +28,6 @@ public interface Observer {
          */
         CURRENT
     }
-
     /**
      * Notification that a method is about to be invoked
      * @param status the cache status

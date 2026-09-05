@@ -41,7 +41,7 @@ public interface Mutable extends Serializable {
     }
 
     /**
-     * Returns an object's current state
+     * Returns an object's current mutable state, if it has one
      * @param obj the object
      * @return the object's current state if it is mutable, otherwise null
      */
