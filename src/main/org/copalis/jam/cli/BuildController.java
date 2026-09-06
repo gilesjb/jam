@@ -276,8 +276,12 @@ public class BuildController<T> {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
                 printResultStatus(memo.resultStatus(new Invocation(m)));
-                color(BOLD).print(m.getName()).color(RESET).print(" : ");
-                print(m.getReturnType().getSimpleName()).line();
+                color(BOLD).print(m.getName()).color(RESET);
+                Class<?> returnType = m.getReturnType();
+                if (returnType != Void.TYPE) {
+                    print(" : ").print(returnType.getSimpleName());
+                }
+                line();
                 visited.add(m.getName());
             }
         }
