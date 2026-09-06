@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -267,6 +268,8 @@ public class BuildController<T> {
                 .filter(Method::isDefault)
                 .filter(m -> m.getParameterCount() == 0 && !m.isSynthetic())
                 .filter(m -> !visited.contains(m.getName()))
+                .sorted(Comparator.comparing((Method m) -> m.getReturnType() == Void.TYPE)
+                        .thenComparing(Method::getName))
                 .collect(Collectors.toList());
 
         if (!targets.isEmpty()) {
