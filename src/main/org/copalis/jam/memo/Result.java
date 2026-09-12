@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,20 +25,19 @@ public record Result(Invocation signature, Object value, Set<Mutable> dependenci
      */
     public boolean isCurrent(Map<Mutable, Serializable> states) {
         // have any parameter states changed?
-        if (!signature.params().stream()
-                .allMatch(o -> !(o instanceof Mutable m1) || Objects.equals(m1.currentState(), states.get(m1))))
+        if (signature.params().stream()
+                .anyMatch(o -> o instanceof Mutable m1 && m1.modifiedSince(states.get(m1))))
             return false;
 
         // have any transitive dependencies changed?
         for (Mutable dependency : dependencies) {
             Serializable prevState = states.get(dependency);
-            Serializable currentState = dependency.currentState();
-            if (!Objects.equals(currentState, prevState)) return false;
+            if (dependency.modifiedSince(prevState)) return false;
         }
 
         // has the return value changed?
         if (!(value instanceof Mutable m)) return true;
-        if (!Objects.equals(m.currentState(), states.get(value))) return false;
+        if (m.modifiedSince(states.get(value))) return false;
         return true;
     }
 
