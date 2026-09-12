@@ -99,8 +99,10 @@ public class Memorizer {
         try (ObjectInputStream obj = new ObjectInputStream(in)) {
             Map<Mutable, Serializable> loadedStates = (Map<Mutable, Serializable>) obj.readObject();
             states.clear();
-            loadedStates.forEach((key, value) -> {
-                if (!key.modifiedSince(value)) states.put(key, value);
+            loadedStates.forEach((mutable, prevState) -> {
+                if (!mutable.modifiedSince(prevState)) {
+                    states.put(mutable, prevState);
+                }
             });
             results.clear();
             ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
