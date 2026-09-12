@@ -168,22 +168,24 @@ public class Memorizer {
 
     private Object invokeMethod(Object proxy, Method method, Object[] args)
             throws Throwable {
-        Invocation signature = new Invocation(method, args);
+        final Invocation signature = new Invocation(method, args);
 
-        Observer.Status status = method.getReturnType() == Void.TYPE ? Observer.Status.EXECUTE : Observer.Status.COMPUTE;
-        if (results.containsKey(signature)) {
-            Result result = results.get(signature);
-            Object value = result.value();
+        final Result cached = results.get(signature);
+        final Class<?> returnType = method.getReturnType();
+        final Observer.Status status;
 
-            if (!result.isCurrent(states)) {
-                status = Observer.Status.REFRESH;
-                results.remove(signature);
-            } else {
-                observer.startMethod(Observer.Status.CURRENT, method, signature.params());
-                dependencies.peek().addAll(result.dependencies());
-                observer.endMethod(Observer.Status.CURRENT, method, signature.params(), value);
-                return result.value();
-            }
+        if (Objects.nonNull(cached) && cached.isCurrent(states)) {
+            observer.startMethod(Observer.Status.CURRENT, method, signature.params());
+            observer.endMethod(Observer.Status.CURRENT, method, signature.params(), cached.value());
+            dependencies.peek().addAll(cached.dependencies());
+            return cached.value();
+        } else if (Objects.nonNull(cached)) {
+            status = Observer.Status.REFRESH;
+            results.remove(signature);
+        } else if (returnType == Void.TYPE) {
+            status = Observer.Status.EXECUTE;
+        } else {
+            status = Observer.Status.COMPUTE;
         }
 
         if (Arrays.stream(method.getParameterTypes()).allMatch(Mutable.class::isAssignableFrom)) {
@@ -193,23 +195,22 @@ public class Memorizer {
         }
         observer.startMethod(status, method, signature.params());
 
-        Object value = null;
         try {
-            value = observer.endMethod(status, method, signature.params(),
+            final Object returnValue = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
-            if (method.getReturnType() != Void.TYPE) {
-                results.put(signature, new Result(signature, value, dependencies.peek()));
+            if (returnType != Void.TYPE) {
+                results.put(signature, new Result(signature, returnValue, dependencies.peek()));
             }
-            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-                if (Objects.isNull(value)) {
-                    dependencies.peek().add(Mutable.CHANGED);
-                } else {
-                    Mutable m = (Mutable) value;
+            if (Mutable.class.isAssignableFrom(returnType)) {
+                if (Objects.nonNull(returnValue)) {
+                    final Mutable m = (Mutable) returnValue;
                     dependencies.peek().add(m);
                     states.computeIfAbsent(m, Mutable::currentState);
+                } else {
+                    dependencies.peek().add(Mutable.CHANGED);
                 }
             }
-            return value;
+            return returnValue;
         } finally {
             Set<Mutable> used = dependencies.pop();
             dependencies.peek().addAll(used);
