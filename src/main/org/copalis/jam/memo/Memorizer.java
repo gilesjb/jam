@@ -171,19 +171,21 @@ public class Memorizer {
     private Object invokeMethod(Object proxy, Method method, Object[] args)
             throws Throwable {
         final Invocation signature = new Invocation(method, args);
-
         final Result cached = results.get(signature);
-        final Class<?> returnType = method.getReturnType();
-        final Observer.Status status;
 
         if (Objects.nonNull(cached) && cached.isCurrent(states)) {
             observer.startMethod(Observer.Status.CURRENT, method, signature.params());
             observer.endMethod(Observer.Status.CURRENT, method, signature.params(), cached.value());
             dependencies.peek().addAll(cached.dependencies());
             return cached.value();
-        } else if (Objects.nonNull(cached)) {
-            status = Observer.Status.REFRESH;
+        }
+
+        final Class<?> returnType = method.getReturnType();
+        final Observer.Status status;
+
+        if (Objects.nonNull(cached)) {
             results.remove(signature);
+            status = Observer.Status.REFRESH;
         } else if (returnType == Void.TYPE) {
             status = Observer.Status.EXECUTE;
         } else {
