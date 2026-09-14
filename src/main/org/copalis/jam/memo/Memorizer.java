@@ -172,6 +172,7 @@ public class Memorizer {
             throws Throwable {
         final Invocation signature = new Invocation(method, args);
         final Result cached = results.get(signature);
+        observer.cacheLookup(method, signature.params(), cached, states);
 
         if (Objects.nonNull(cached) && cached.isCurrent(states)) {
             observer.startMethod(Observer.Status.CURRENT, method, signature.params());
@@ -203,7 +204,9 @@ public class Memorizer {
             final Object returnValue = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (returnType != Void.TYPE) {
-                results.put(signature, new Result(signature, returnValue, dependencies.peek()));
+                final Result result = new Result(signature, returnValue, dependencies.peek());
+                observer.cacheAddition(method, signature.params(), result);
+                results.put(signature, result);
             }
             if (Mutable.class.isAssignableFrom(returnType)) {
                 if (Objects.nonNull(returnValue)) {
