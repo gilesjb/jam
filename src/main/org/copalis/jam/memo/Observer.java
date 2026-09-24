@@ -55,8 +55,9 @@ public interface Observer {
      * @param params the method parameters
      * @param cached a previously cached result, if found
      * @param states current states which can be passed to {@link Result#isCurrent(Map)}
+     * @param sources the result which each value came from
      */
-    default void cacheLookup(Method method, List<Object> params, Result cached, Map<Mutable, Serializable> states) {
+    default void cacheLookup(Method method, List<Object> params, Result cached, Map<Mutable, Serializable> states, Map<Object, Result> sources) {
     }
 
     /**

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -15,6 +16,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -23,7 +25,9 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.memo.Invocation;
 import org.copalis.jam.memo.Memorizer;
+import org.copalis.jam.memo.Mutable;
 import org.copalis.jam.memo.Observer;
+import org.copalis.jam.memo.Result;
 
 /**
  * A build process command-line argument parser and controller.
@@ -98,7 +102,7 @@ public class BuildController<T> {
     private final PrintStream out = System.out;
 
     private final Observer observer = new Observer() {
-        public void startMethod(Observer.Status status, Method method, List<Object> params) {
+        @Override public void startMethod(Observer.Status status, Method method, List<Object> params) {
             if (status != Observer.Status.CURRENT || cached.add(new Call(method, params))) {
                 switch (status) {
                 case CURRENT: color(GREEN); break;
@@ -115,13 +119,45 @@ public class BuildController<T> {
             calls++;
         }
 
-        public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
+        @Override public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
             calls--;
             if (result == BuildContext.REFERENCE)
                 lastResult = new BuildContext(memo, cacheFile);
             else
                 lastResult = result;
             return lastResult;
+        }
+
+        @Override public void cacheAddition(Method method, List<Object> params, Result result) {
+            print("[caching] ").indent().print(method.getName()).print("@").print(System.identityHashCode(result.value()));
+            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
+                print(" mutable");
+            } else if (!Serializable.class.isAssignableFrom(method.getReturnType())) {
+                print(" non-serializable");
+            }
+            line();
+        }
+
+        @Override public void cacheLookup(Method method, List<Object> params, Result cached, Map<Mutable, Serializable> states, Map<Object, Result> sources) {
+            if (Objects.isNull(cached)) return;
+            print("[because]  ").indent().print(method.getName()).print("@").print(System.identityHashCode(cached.value()));
+            if (!cached.isCurrent(states)) print("*");
+            print(" ");
+
+            for (Object param : params) {
+                Result source = sources.get(param);
+                if (Objects.nonNull(source)) print(source.signature().name());
+                print("@").print(System.identityHashCode(param));
+                if (Objects.nonNull(source) && !source.isCurrent(states)) print("*");
+                print(" ");
+            }
+            print("<-");
+            cached.dependencies().forEach(dep -> {
+                print(" ").print(sources.get(dep).signature().name()).print("@").print(System.identityHashCode(dep));
+                if (dep.modifiedSince(states.get(dep))) print("*");
+
+            });
+            line();
         }
     };
 
@@ -202,7 +238,6 @@ public class BuildController<T> {
                         color(BOLD).print("Result: ").printValue(lastResult);
                         line();
                     }
-
                 } finally {
                     if (memo.entries((e, p) -> {}) > 0) {
                         try (OutputStream out = new FileOutputStream(cacheFile)) {
@@ -332,7 +367,8 @@ public class BuildController<T> {
     }
 
     private void printMethod(String method, List<Object> params) {
-        print("  ".repeat(calls)).print(method);
+        indent();
+        print(method);
         for (Object param : params) {
             print(" ");
             printValue(param);
@@ -360,6 +396,10 @@ public class BuildController<T> {
             }
         }
         return this;
+    }
+
+    private BuildController<T> indent() {
+        return print("  ".repeat(calls));
     }
 
     private BuildController<T> print(Object obj) {

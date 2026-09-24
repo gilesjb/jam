@@ -64,10 +64,15 @@ import java.util.stream.Collectors;
  */
 public class Memorizer {
 
-    private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
+    // persisted state
     private final Map<Mutable, Serializable> states = new IdentityHashMap<>();
     private final Map<Invocation, Result> results = new LinkedHashMap<>();
+    private final Map<Object, Result> sources = new IdentityHashMap<>();
+
+    // local state
     private final Observer observer;
+    private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
+//    private long resultId = 1L;
 
     /**
      * Creates an instance
@@ -105,7 +110,14 @@ public class Memorizer {
                 }
             });
             results.clear();
-            ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
+            ((List<Result>) obj.readObject()).forEach(result -> {
+                results.put(result.signature(), result);
+            });
+            sources.clear();
+            ((List<Result>) obj.readObject()).forEach(result -> {
+                sources.put(result.value(), result);
+            });
+
         }
     }
 
@@ -120,6 +132,8 @@ public class Memorizer {
         try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
             obj.writeObject(states);
             obj.writeObject(results.values().stream().filter(Result::serializable)
+                    .collect(Collectors.toList()));
+            obj.writeObject(sources.values().stream().filter(Result::serializable)
                     .collect(Collectors.toList()));
         }
     }
@@ -172,7 +186,7 @@ public class Memorizer {
             throws Throwable {
         final Invocation signature = new Invocation(method, args);
         final Result cached = results.get(signature);
-        observer.cacheLookup(method, signature.params(), cached, states);
+        observer.cacheLookup(method, signature.params(), cached, states, sources);
 
         if (Objects.nonNull(cached) && cached.isCurrent(states)) {
             observer.startMethod(Observer.Status.CURRENT, method, signature.params());
@@ -207,6 +221,9 @@ public class Memorizer {
                 final Result result = new Result(signature, returnValue, dependencies.peek());
                 observer.cacheAddition(method, signature.params(), result);
                 results.put(signature, result);
+                if (Objects.nonNull(returnValue) && !sources.containsKey(returnValue)) {
+                    sources.putIfAbsent(returnValue, result);
+                }
             }
             if (Mutable.class.isAssignableFrom(returnType)) {
                 if (Objects.nonNull(returnValue)) {
