@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -16,7 +15,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -25,7 +23,6 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.memo.Invocation;
 import org.copalis.jam.memo.Memorizer;
-import org.copalis.jam.memo.Mutable;
 import org.copalis.jam.memo.Observer;
 import org.copalis.jam.memo.Result;
 
@@ -102,7 +99,7 @@ public class BuildController<T> {
     private final PrintStream out = System.out;
 
     private final Observer observer = new Observer() {
-        @Override public void startMethod(Observer.Status status, Method method, List<Object> params) {
+        @Override public void startMethod(Status status, Method method, List<Object> params, Result cachedResult) {
             if (status != Observer.Status.CURRENT || cached.add(new Call(method, params))) {
                 switch (status) {
                 case CURRENT: color(GREEN); break;
@@ -128,37 +125,38 @@ public class BuildController<T> {
             return lastResult;
         }
 
-        @Override public void cacheAddition(Method method, List<Object> params, Result result) {
-            print("[caching] ").indent().print(method.getName()).print("@").print(System.identityHashCode(result.value()));
-            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-                print(" mutable");
-            } else if (!Serializable.class.isAssignableFrom(method.getReturnType())) {
-                print(" non-serializable");
-            }
-            line();
-        }
-
-        @Override public void cacheLookup(Method method, List<Object> params, Result cached, Map<Mutable, Serializable> states, Map<Object, Result> sources) {
-            if (Objects.isNull(cached)) return;
-            print("[because]  ").indent().print(method.getName()).print("@").print(System.identityHashCode(cached.value()));
-            if (!cached.isCurrent(states)) print("*");
-            print(" ");
-
-            for (Object param : params) {
-                Result source = sources.get(param);
-                if (Objects.nonNull(source)) print(source.signature().name());
-                print("@").print(System.identityHashCode(param));
-                if (Objects.nonNull(source) && !source.isCurrent(states)) print("*");
-                print(" ");
-            }
-            print("<-");
-            cached.dependencies().forEach(dep -> {
-                print(" ").print(sources.get(dep).signature().name()).print("@").print(System.identityHashCode(dep));
-                if (dep.modifiedSince(states.get(dep))) print("*");
-
-            });
-            line();
-        }
+//        @Override public void cacheAddition(Method method, List<Object> params, Result result) {
+//            print("[caching] ").indent().print(method.getName()).print("@").print(System.identityHashCode(result.value()));
+//            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
+//                print(" mutable");
+//            } else if (!Serializable.class.isAssignableFrom(method.getReturnType())) {
+//                print(" non-serializable");
+//            }
+//            line();
+//        }
+//
+//        @Override public void cacheLookup(Method method, List<Object> params, Result cached) {
+//            if (Objects.isNull(cached)) return;
+//            print("[because]  ").indent().print(cached.signature().name()).print("@").print(System.identityHashCode(cached.value()));
+//            if (memo.resultStatus(cached) != Observer.Status.CURRENT) print("*");
+//            print(" ");
+//
+//            for (Object param : cached.signature().params()) {
+//                Result source = memo.sourceResult(param);
+//                if (Objects.nonNull(source)) print(source.signature().name());
+//                print("@").print(System.identityHashCode(param));
+//                if (Objects.nonNull(source) && memo.resultStatus(source) != Observer.Status.CURRENT) print("*");
+//                print(" ");
+//            }
+//            print("<-");
+//            cached.dependencies().forEach(dep -> {
+//                Result sourceResult = memo.sourceResult(dep);
+//                print(" ").print(sourceResult.signature().name()).print("@").print(System.identityHashCode(dep));
+//                if (memo.resultStatus(sourceResult) != Observer.Status.CURRENT) print("*");
+//
+//            });
+//            line();
+//        }
     };
 
     private int calls = 0;
@@ -239,7 +237,7 @@ public class BuildController<T> {
                         line();
                     }
                 } finally {
-                    if (memo.entries((e, p) -> {}) > 0) {
+                    if (memo.cacheEntries().count() > 0) {
                         try (OutputStream out = new FileOutputStream(cacheFile)) {
                             memo.save(out);
                         }
@@ -279,8 +277,8 @@ public class BuildController<T> {
 
     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
-        memo.entries((e, current) -> {
-            printResultStatus(current);
+        memo.cacheEntries().forEach(e -> {
+            printResultStatus(e);
             color(BOLD).printMethod(e.signature().name(), e.signature().params());
             color(RESET).print(" = ").printValue(e.value());
             line();
@@ -310,7 +308,8 @@ public class BuildController<T> {
         if (!targets.isEmpty()) {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
-                printResultStatus(memo.resultStatus(new Invocation(m)));
+                Result result = memo.findResult(new Invocation(m));
+                printResultStatus(result);
                 color(BOLD).print(m.getName()).color(RESET);
                 Class<?> returnType = m.getReturnType();
                 if (returnType != Void.TYPE) {
@@ -327,13 +326,12 @@ public class BuildController<T> {
         }
     }
 
-    private void printResultStatus(Observer.Status status) {
-        switch (status) {
-        case REFRESH:
-            color(CYAN).print("[stale]  "); break;
-        case CURRENT:
-            color(GREEN).print("[fresh]  "); break;
-        default:
+    private void printResultStatus(Result result) {
+        if (Objects.nonNull(result) && memo.isResultCurrent(result)) {
+            color(GREEN).print("[fresh]  ");
+        } else if (Objects.nonNull(result)) {
+            color(CYAN).print("[stale]  ");
+        } else {
             print("         ");
         }
         color(RESET);

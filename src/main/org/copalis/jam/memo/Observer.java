@@ -1,9 +1,7 @@
 package org.copalis.jam.memo;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A method invocation observer that is allowed to modify return values
@@ -31,12 +29,13 @@ public interface Observer {
         CURRENT
     }
     /**
-     * Notification that a method is about to be invoked
-     * @param status the cache status
+     * Notification that a method is called
+     * @param status the method status
      * @param method the method
      * @param params the method parameter values
+     * @param cachedResult the cached result
      */
-    default void startMethod(Status status, Method method, List<Object> params) { };
+    default void startMethod(Status status, Method method, List<Object> params, Result cachedResult) { };
     /**
      * Notification that a method has completed
      * @param status the cache status
@@ -47,25 +46,5 @@ public interface Observer {
      */
     default Object endMethod(Status status, Method method, List<Object> params, Object result) {
         return result;
-    }
-
-    /**
-     * Notification of a method invocation cache lookup
-     * @param method the method
-     * @param params the method parameters
-     * @param cached a previously cached result, if found
-     * @param states current states which can be passed to {@link Result#isCurrent(Map)}
-     * @param sources the result which each value came from
-     */
-    default void cacheLookup(Method method, List<Object> params, Result cached, Map<Mutable, Serializable> states, Map<Object, Result> sources) {
-    }
-
-    /**
-     * Notification of a method result being added to the cache
-     * @param method the invoked method
-     * @param params the method parameters
-     * @param result the result
-     */
-    default void cacheAddition(Method method, List<Object> params, Result result) {
     }
 }

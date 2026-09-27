@@ -26,7 +26,7 @@ public class MemorizerTest {
         List<Observer.Status> calls = new LinkedList<>();
 
         Memorizer memo = new Memorizer(new Observer() {
-            public void startMethod(Observer.Status status, Method method, List<Object> params) {
+            @Override public void startMethod(Status status, Method method, List<Object> params, Result cachedResult) {
                 calls.add(status);
             }
         });
@@ -94,7 +94,7 @@ public class MemorizerTest {
 
     Observer methodObserver(List<String> called) {
         return new Observer() {
-            public void startMethod(Observer.Status status, Method method, List<Object> params) {
+            @Override public void startMethod(Status status, Method method, List<Object> params, Result cachedResult) {
                 if (status == Observer.Status.COMPUTE || status == Observer.Status.REFRESH) {
                     called.add(method.getName());
                 }
