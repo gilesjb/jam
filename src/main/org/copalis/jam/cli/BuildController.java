@@ -99,6 +99,7 @@ public class BuildController<T> {
     private final PrintStream out = System.out;
 
     private final Observer observer = new Observer() {
+
         @Override public void startMethod(Status status, Method method, List<Object> params, Result cachedResult) {
             if (status != Observer.Status.CURRENT || cached.add(new Call(method, params))) {
                 switch (status) {
@@ -124,39 +125,6 @@ public class BuildController<T> {
                 lastResult = result;
             return lastResult;
         }
-
-//        @Override public void cacheAddition(Method method, List<Object> params, Result result) {
-//            print("[caching] ").indent().print(method.getName()).print("@").print(System.identityHashCode(result.value()));
-//            if (Mutable.class.isAssignableFrom(method.getReturnType())) {
-//                print(" mutable");
-//            } else if (!Serializable.class.isAssignableFrom(method.getReturnType())) {
-//                print(" non-serializable");
-//            }
-//            line();
-//        }
-//
-//        @Override public void cacheLookup(Method method, List<Object> params, Result cached) {
-//            if (Objects.isNull(cached)) return;
-//            print("[because]  ").indent().print(cached.signature().name()).print("@").print(System.identityHashCode(cached.value()));
-//            if (memo.resultStatus(cached) != Observer.Status.CURRENT) print("*");
-//            print(" ");
-//
-//            for (Object param : cached.signature().params()) {
-//                Result source = memo.sourceResult(param);
-//                if (Objects.nonNull(source)) print(source.signature().name());
-//                print("@").print(System.identityHashCode(param));
-//                if (Objects.nonNull(source) && memo.resultStatus(source) != Observer.Status.CURRENT) print("*");
-//                print(" ");
-//            }
-//            print("<-");
-//            cached.dependencies().forEach(dep -> {
-//                Result sourceResult = memo.sourceResult(dep);
-//                print(" ").print(sourceResult.signature().name()).print("@").print(System.identityHashCode(dep));
-//                if (memo.resultStatus(sourceResult) != Observer.Status.CURRENT) print("*");
-//
-//            });
-//            line();
-//        }
     };
 
     private int calls = 0;
@@ -209,6 +177,10 @@ public class BuildController<T> {
                     load(script);
                     printBuildTargets(buildFn);
                     break;
+                case "--analyze":
+                    load(script);
+                    analyzeCache();
+                    break;
                 default:
                     color(RED_BRIGHT).print("Illegal option: ").color(RESET).print(args[opt]).line();
                 case "--help":
@@ -218,6 +190,7 @@ public class BuildController<T> {
                     print(path).print(" ").color(ITALIC).print("<target-name>...").color(RESET).print("   Build specified target(s)").line();
                     print(path).print(" --targets          Print available build targets").line();
                     print(path).print(" --cache            Print cache contents").line();
+                    print(path).print(" --analyze          Print analysis of cache entries").line();
                     print(path).print(" --help             Print this help message").line();
                 }
                 exit = true;
@@ -277,12 +250,41 @@ public class BuildController<T> {
 
     private void printCacheContents() {
         print("Contents of cache file ").print(cacheFile).line();
-        memo.cacheEntries().forEach(e -> {
-            printResultStatus(e);
-            color(BOLD).printMethod(e.signature().name(), e.signature().params());
-            color(RESET).print(" = ").printValue(e.value());
+        memo.cacheEntries().forEach(result -> {
+            printResultStatus(result);
+            color(BOLD).printMethod(result.signature().name(), result.signature().params());
+            color(RESET).print(" = ").printValue(result.value());
             line();
         });
+    }
+
+    private void analyzeCache() {
+        print("Contents of cache file ").print(cacheFile).line();
+        memo.cacheEntries().forEach(cached -> {
+            printResult(cached, cached.value()).print(" ");
+
+            for (Object param : cached.signature().params()) {
+                printResult(memo.sourceResult(param), param).print(" ");
+            }
+            print("<-");
+            cached.dependencies().forEach(dep -> {
+                print(" ").printResult(memo.sourceResult(dep), dep);
+            });
+            line();
+        });
+    }
+
+    private BuildController<T> printResult(Result source, Object value) {
+        if (Objects.nonNull(source)) {
+            boolean stale = !memo.isResultCurrent(source);
+            color(stale? RED_BRIGHT : GREEN_BRIGHT);
+            print(source.signature().name()).print("@").print(System.identityHashCode(value));
+            if (stale) print("*");
+            color(RESET);
+        } else {
+            print("@").print(System.identityHashCode(value));
+        }
+        return this;
     }
 
     private void printBuildTargets(Consumer<T> buildFn) {
