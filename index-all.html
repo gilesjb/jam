@@ -111,6 +111,10 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/copalis/jam/memo/Memorizer.html#cache-eligibility-heading" class="search-tag-link">Cache eligibility</a> - Search tag in class org.copalis.jam.memo.Memorizer</dt>
 <dd>Section</dd>
+<dt><a href="org/copalis/jam/memo/Memorizer.html#cacheEntries()" class="member-name-link">cacheEntries()</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
+<dd>
+<div class="block">Gets the method call results currently in the cache</div>
+</dd>
 <dt><a href="org/copalis/jam/cli/BuildContext.html#cacheFile()" class="member-name-link">cacheFile()</a> - Method in record class org.copalis.jam.cli.<a href="org/copalis/jam/cli/BuildContext.html" title="class in org.copalis.jam.cli">BuildContext</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./org/copalis/jam/cli/BuildContext.html#param-cacheFile"><code>cacheFile</code></a> record component.</div>
@@ -205,10 +209,6 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Notification that a method has completed</div>
 </dd>
-<dt><a href="org/copalis/jam/memo/Memorizer.html#entries(java.util.function.BiConsumer)" class="member-name-link">entries(BiConsumer&lt;Result, Observer.Status&gt;)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
-<dd>
-<div class="block">Iterates over the cache contents</div>
-</dd>
 <dt><a href="File.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class <a href="File.html" title="class in Unnamed Package">File</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="Fileset.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class <a href="Fileset.html" title="class in Unnamed Package">Fileset</a></dt>
@@ -288,6 +288,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Creates a Fileset containing all files that match a selection string</div>
 </dd>
+<dt><a href="org/copalis/jam/memo/Memorizer.html#findResult(org.copalis.jam.memo.Invocation)" class="member-name-link">findResult(Invocation)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
+<dd>
+<div class="block">Finds a cached invocation result</div>
+</dd>
 <dt><a href="org/copalis/jam/memo/Memorizer.html#forget()" class="member-name-link">forget()</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
 <dd>
 <div class="block">Erases all method call results from the cache</div>
@@ -320,6 +324,10 @@ loadScripts(document, 'script');</script>
 </dl>
 <h2 class="title" id="I:I">I</h2>
 <dl class="index">
+<dt><a href="org/copalis/jam/memo/Result.html#id()" class="member-name-link">id()</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./org/copalis/jam/memo/Result.html#param-id"><code>id</code></a> record component.</div>
+</dd>
 <dt><a href="org/copalis/jam/cli/BuildController.html#incremental-builds-heading" class="search-tag-link">Incremental builds</a> - Search tag in class org.copalis.jam.cli.BuildController</dt>
 <dd>Section</dd>
 <dt><a href="org/copalis/jam/memo/Memorizer.html#instantiate(java.lang.Class)" class="member-name-link">instantiate(Class&lt;T&gt;)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
@@ -341,6 +349,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/copalis/jam/memo/Result.html#isCurrent(java.util.Map)" class="member-name-link">isCurrent(Map&lt;Mutable, Serializable&gt;)</a> - Method in record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
 <dd>
 <div class="block">Indicates whether this result is up to date with mutable state</div>
+</dd>
+<dt><a href="org/copalis/jam/memo/Memorizer.html#isResultCurrent(org.copalis.jam.memo.Result)" class="member-name-link">isResultCurrent(Result)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
+<dd>
+<div class="block">Checks is a cached method result value is current</div>
 </dd>
 <dt><a href="Fileset.html#iterator()" class="member-name-link">iterator()</a> - Method in class <a href="Fileset.html" title="class in Unnamed Package">Fileset</a></dt>
 <dd>&nbsp;</dd>
@@ -562,13 +574,9 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">The result of a method call</div>
 </dd>
-<dt><a href="org/copalis/jam/memo/Result.html#%3Cinit%3E(org.copalis.jam.memo.Invocation,java.lang.Object,java.util.Set)" class="member-name-link">Result(Invocation, Object, Set&lt;Mutable&gt;)</a> - Constructor for record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
+<dt><a href="org/copalis/jam/memo/Result.html#%3Cinit%3E(long,org.copalis.jam.memo.Invocation,java.lang.Object,java.util.Set)" class="member-name-link">Result(long, Invocation, Object, Set&lt;Mutable&gt;)</a> - Constructor for record class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Result.html" title="class in org.copalis.jam.memo">Result</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>Result</code> record class.</div>
-</dd>
-<dt><a href="org/copalis/jam/memo/Memorizer.html#resultStatus(org.copalis.jam.memo.Invocation)" class="member-name-link">resultStatus(Invocation)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
-<dd>
-<div class="block">Checks if there is a current cache entry for a method call</div>
 </dd>
 <dt><a href="FileProject.html#rmdir(java.lang.String)" class="member-name-link">rmdir(String)</a> - Method in interface <a href="FileProject.html" title="interface in Unnamed Package">FileProject</a></dt>
 <dd>
@@ -630,11 +638,15 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Gets the root directory for the project's source code.</div>
 </dd>
+<dt><a href="org/copalis/jam/memo/Memorizer.html#sourceResult(java.lang.Object)" class="member-name-link">sourceResult(Object)</a> - Method in class org.copalis.jam.memo.<a href="org/copalis/jam/memo/Memorizer.html" title="class in org.copalis.jam.memo">Memorizer</a></dt>
+<dd>
+<div class="block">Gets the method Result that a value originated from</div>
+</dd>
 <dt><a href="org/copalis/jam/memo/Memorizer.html#staleness-checking-heading" class="search-tag-link">Staleness checking</a> - Search tag in class org.copalis.jam.memo.Memorizer</dt>
 <dd>Section</dd>
-<dt><a href="org/copalis/jam/memo/Observer.html#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List)" class="member-name-link">startMethod(Observer.Status, Method, List&lt;Object&gt;)</a> - Method in interface org.copalis.jam.memo.<a href="org/copalis/jam/memo/Observer.html" title="interface in org.copalis.jam.memo">Observer</a></dt>
+<dt><a href="org/copalis/jam/memo/Observer.html#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List,org.copalis.jam.memo.Result)" class="member-name-link">startMethod(Observer.Status, Method, List&lt;Object&gt;, Result)</a> - Method in interface org.copalis.jam.memo.<a href="org/copalis/jam/memo/Observer.html" title="interface in org.copalis.jam.memo">Observer</a></dt>
 <dd>
-<div class="block">Notification that a method is about to be invoked</div>
+<div class="block">Notification that a method is called</div>
 </dd>
 <dt><a href="Fileset.html#stream()" class="member-name-link">stream()</a> - Method in class <a href="Fileset.html" title="class in Unnamed Package">Fileset</a></dt>
 <dd>

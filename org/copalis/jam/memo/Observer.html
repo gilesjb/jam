@@ -64,7 +64,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List)" tabindex="0">startMethod(Observer.Status, Method, List)</a></li>
+<li><a href="#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List,org.copalis.jam.memo.Result)" tabindex="0">startMethod(Observer.Status, Method, List, Result)</a></li>
 <li><a href="#endMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List,java.lang.Object)" tabindex="0">endMethod(Observer.Status, Method, List, Object)</a></li>
 </ol>
 </li>
@@ -121,11 +121,12 @@ loadScripts(document, 'script');</script>
 <div class="block">Notification that a method has completed</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List)" class="member-name-link">startMethod</a><wbr>(<a href="Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a>&nbsp;status,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List,org.copalis.jam.memo.Result)" class="member-name-link">startMethod</a><wbr>(<a href="Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a>&nbsp;status,
  <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/reflect/Method.html" title="class or interface in java.lang.reflect" class="external-link">Method</a>&nbsp;method,
- <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;params)</code></div>
+ <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;params,
+ <a href="Result.html" title="class in org.copalis.jam.memo">Result</a>&nbsp;cachedResult)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Notification that a method is about to be invoked</div>
+<div class="block">Notification that a method is called</div>
 </div>
 </div>
 </div>
@@ -142,18 +143,20 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List)">
+<section class="detail" id="startMethod(org.copalis.jam.memo.Observer.Status,java.lang.reflect.Method,java.util.List,org.copalis.jam.memo.Result)">
 <h3>startMethod</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">startMethod</span><wbr><span class="parameters">(<a href="Observer.Status.html" title="enum class in org.copalis.jam.memo">Observer.Status</a>&nbsp;status,
  <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/reflect/Method.html" title="class or interface in java.lang.reflect" class="external-link">Method</a>&nbsp;method,
- <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;params)</span></div>
-<div class="block">Notification that a method is about to be invoked</div>
+ <a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;params,
+ <a href="Result.html" title="class in org.copalis.jam.memo">Result</a>&nbsp;cachedResult)</span></div>
+<div class="block">Notification that a method is called</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>status</code> - the cache status</dd>
+<dd><code>status</code> - the method status</dd>
 <dd><code>method</code> - the method</dd>
 <dd><code>params</code> - the method parameter values</dd>
+<dd><code>cachedResult</code> - the cached result</dd>
 </dl>
 </div>
 </section>
