@@ -23,7 +23,9 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.memo.Invocation;
 import org.copalis.jam.memo.Memorizer;
+import org.copalis.jam.memo.Mutable;
 import org.copalis.jam.memo.Observer;
+import org.copalis.jam.memo.Result;
 
 /**
  * A build process command-line argument parser and controller.
@@ -98,7 +100,8 @@ public class BuildController<T> {
     private final PrintStream out = System.out;
 
     private final Observer observer = new Observer() {
-        public void startMethod(Observer.Status status, Method method, List<Object> params) {
+
+        @Override public void startMethod(Status status, Method method, List<Object> params, Result cachedResult) {
             if (status != Observer.Status.CURRENT || cached.add(new Call(method, params))) {
                 switch (status) {
                 case CURRENT: color(GREEN); break;
@@ -115,7 +118,7 @@ public class BuildController<T> {
             calls++;
         }
 
-        public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
+        @Override public Object endMethod(Observer.Status status, Method method, List<Object> params, Object result) {
             calls--;
             if (result == BuildContext.REFERENCE)
                 lastResult = new BuildContext(memo, cacheFile);
@@ -175,6 +178,10 @@ public class BuildController<T> {
                     load(script);
                     printBuildTargets(buildFn);
                     break;
+                case "--dependencies":
+                    load(script);
+                    printDependencies();
+                    break;
                 default:
                     color(RED_BRIGHT).print("Illegal option: ").color(RESET).print(args[opt]).line();
                 case "--help":
@@ -184,6 +191,7 @@ public class BuildController<T> {
                     print(path).print(" ").color(ITALIC).print("<target-name>...").color(RESET).print("   Build specified target(s)").line();
                     print(path).print(" --targets          Print available build targets").line();
                     print(path).print(" --cache            Print cache contents").line();
+                    print(path).print(" --dependencies     Print dependency graph of cache entries").line();
                     print(path).print(" --help             Print this help message").line();
                 }
                 exit = true;
@@ -202,9 +210,8 @@ public class BuildController<T> {
                         color(BOLD).print("Result: ").printValue(lastResult);
                         line();
                     }
-
                 } finally {
-                    if (memo.entries((e, p) -> {}) > 0) {
+                    if (memo.cacheEntries().count() > 0) {
                         try (OutputStream out = new FileOutputStream(cacheFile)) {
                             memo.save(out);
                         }
@@ -242,14 +249,39 @@ public class BuildController<T> {
         return object;
     }
 
-    private void printCacheContents() {
-        print("Contents of cache file ").print(cacheFile).line();
-        memo.entries((e, current) -> {
-            printResultStatus(current);
-            color(BOLD).printMethod(e.signature().name(), e.signature().params());
-            color(RESET).print(" = ").printValue(e.value());
-            line();
-        });
+    private void printDependencies() {
+        print("Dependencies and status of entries in cache file ").print(cacheFile).line();
+        memo.cacheEntries().forEach(this::printResultDependencies);
+    }
+
+    private void printResultDependencies(Result result) {
+        printResult(result, result.value()).print("(");
+        String comma = "";
+
+        for (Object param : result.signature().params()) {
+            print(comma).printResult(memo.sourceResult(param), param);
+            comma = ", ";
+        }
+        print(")");
+        comma = " => ";
+        for (Mutable dep : result.dependencies()) {
+            print(comma).printResult(memo.sourceResult(dep), dep);
+            comma = ", ";
+        }
+        line();
+    }
+
+    private BuildController<T> printResult(Result source, Object value) {
+        if (Objects.nonNull(source)) {
+            boolean stale = !memo.isResultCurrent(source);
+            color(stale? CYAN : GREEN);
+            print(source.signature().name()).print("#").print(source.id());
+            if (stale) print("*");
+            color(RESET);
+        } else {
+            print(value.getClass().getSimpleName());
+        }
+        return this;
     }
 
     private void printBuildTargets(Consumer<T> buildFn) {
@@ -261,6 +293,16 @@ public class BuildController<T> {
                         return null;
                     })));
         } catch (NullPointerException e) { } // thrown if buildFn has primitive return type
+    }
+
+    private void printCacheContents() {
+        print("Contents of cache file ").print(cacheFile).line();
+        memo.cacheEntries().forEach(result -> {
+            printResultStatus(result);
+            color(BOLD).printMethod(result.signature().name(), result.signature().params());
+            color(RESET).print(" = ").printValue(result.value());
+            line();
+        });
     }
 
     private void printTargets(Class<?> t, Set<String> visited) {
@@ -275,7 +317,8 @@ public class BuildController<T> {
         if (!targets.isEmpty()) {
             color(ITALIC).print(t.getSimpleName() + " targets").line();
             for (Method m : targets) {
-                printResultStatus(memo.resultStatus(new Invocation(m)));
+                Result result = memo.findResult(new Invocation(m));
+                printResultStatus(result);
                 color(BOLD).print(m.getName()).color(RESET);
                 Class<?> returnType = m.getReturnType();
                 if (returnType != Void.TYPE) {
@@ -292,13 +335,12 @@ public class BuildController<T> {
         }
     }
 
-    private void printResultStatus(Observer.Status status) {
-        switch (status) {
-        case REFRESH:
-            color(CYAN).print("[stale]  "); break;
-        case CURRENT:
-            color(GREEN).print("[fresh]  "); break;
-        default:
+    private void printResultStatus(Result result) {
+        if (Objects.nonNull(result) && memo.isResultCurrent(result)) {
+            color(GREEN).print("[fresh]  ");
+        } else if (Objects.nonNull(result)) {
+            color(CYAN).print("[stale]  ");
+        } else {
             print("         ");
         }
         color(RESET);
@@ -332,7 +374,8 @@ public class BuildController<T> {
     }
 
     private void printMethod(String method, List<Object> params) {
-        print("  ".repeat(calls)).print(method);
+        indent();
+        print(method);
         for (Object param : params) {
             print(" ");
             printValue(param);
@@ -360,6 +403,10 @@ public class BuildController<T> {
             }
         }
         return this;
+    }
+
+    private BuildController<T> indent() {
+        return print("  ".repeat(calls));
     }
 
     private BuildController<T> print(Object obj) {

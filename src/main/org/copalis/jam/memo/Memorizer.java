@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A method memoizer that can also determine when methods need to be re-executed as a result of
@@ -64,10 +64,15 @@ import java.util.stream.Collectors;
  */
 public class Memorizer {
 
-    private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
+    // persisted state
     private final Map<Mutable, Serializable> states = new IdentityHashMap<>();
     private final Map<Invocation, Result> results = new LinkedHashMap<>();
+    private final Map<Object, Result> sources = new IdentityHashMap<>();
+
+    // local state
     private final Observer observer;
+    private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
+    private long resultId = 1L;
 
     /**
      * Creates an instance
@@ -106,6 +111,8 @@ public class Memorizer {
             });
             results.clear();
             ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
+            sources.clear();
+            ((List<Result>) obj.readObject()).forEach(result -> sources.put(result.value(), result));
         }
     }
 
@@ -121,31 +128,44 @@ public class Memorizer {
             obj.writeObject(states);
             obj.writeObject(results.values().stream().filter(Result::serializable)
                     .collect(Collectors.toList()));
+            obj.writeObject(sources.values().stream().filter(Result::serializable)
+                    .collect(Collectors.toList()));
         }
     }
 
     /**
-     * Iterates over the cache contents
-     * @param fn a callback
-     * @return the number of cache entries
+     * Gets the method call results currently in the cache
+     * @return a stream of result objects
      */
-    public int entries(BiConsumer<Result, Observer.Status> fn) {
-        results.values().forEach(res -> {
-            boolean current = res.isCurrent(states);
-            fn.accept(res, current ? Observer.Status.CURRENT : Observer.Status.REFRESH);
-        });
-        return results.values().size();
+    public Stream<Result> cacheEntries() {
+        return results.values().stream();
     }
 
     /**
-     * Checks if there is a current cache entry for a method call
-     * @param invocation the method call
-     * @return True if there is a current cache entry, False if it is stale, or null if there is no entry
+     * Finds a cached invocation result
+     * @param invocation the method invocation to find
+     * @return the cached invocation result, if it exists
      */
-    public Observer.Status resultStatus(Invocation invocation) {
-        Result result = results.get(invocation);
-        return Objects.isNull(result) ? Observer.Status.COMPUTE
-                : result.isCurrent(states) ? Observer.Status.CURRENT : Observer.Status.REFRESH;
+    public Result findResult(Invocation invocation) {
+        return results.get(invocation);
+    }
+
+    /**
+     * Checks is a cached method result value is current
+     * @param result the result to check
+     * @return true if the result is non-null and fresh
+     */
+    public boolean isResultCurrent(Result result) {
+        return Objects.nonNull(result) && result.isCurrent(states);
+    }
+
+    /**
+     * Gets the method Result that a value originated from
+     * @param value the value to look up
+     * @return the method Result it originated from, if it exists
+     */
+    public Result sourceResult(Object value) {
+        return sources.get(value);
     }
 
     /**
@@ -154,6 +174,7 @@ public class Memorizer {
     public void forget() {
         results.clear();
         states.clear();
+        resultId = 1L;
     }
 
     /**
@@ -174,7 +195,7 @@ public class Memorizer {
         final Result cached = results.get(signature);
 
         if (Objects.nonNull(cached) && cached.isCurrent(states)) {
-            observer.startMethod(Observer.Status.CURRENT, method, signature.params());
+            observer.startMethod(Observer.Status.CURRENT, method, signature.params(), cached);
             observer.endMethod(Observer.Status.CURRENT, method, signature.params(), cached.value());
             dependencies.peek().addAll(cached.dependencies());
             return cached.value();
@@ -197,13 +218,17 @@ public class Memorizer {
         } else { // propagate dependencies to invoked method if it has params without version info
             dependencies.push(new LinkedHashSet<>(dependencies.peek()));
         }
-        observer.startMethod(status, method, signature.params());
 
         try {
+            observer.startMethod(status, method, signature.params(), cached);
             final Object returnValue = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (returnType != Void.TYPE) {
-                results.put(signature, new Result(signature, returnValue, dependencies.peek()));
+                final Result result = new Result(resultId++, signature, returnValue, new LinkedHashSet<>(dependencies.peek()));
+                results.put(signature, result);
+                if (Objects.nonNull(returnValue) && !sources.containsKey(returnValue)) {
+                    sources.putIfAbsent(returnValue, result);
+                }
             }
             if (Mutable.class.isAssignableFrom(returnType)) {
                 if (Objects.nonNull(returnValue)) {

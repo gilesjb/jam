@@ -29,12 +29,13 @@ public interface Observer {
         CURRENT
     }
     /**
-     * Notification that a method is about to be invoked
-     * @param status the cache status
+     * Notification that a method is called
+     * @param status the method status
      * @param method the method
      * @param params the method parameter values
+     * @param cachedResult the cached result
      */
-    default void startMethod(Status status, Method method, List<Object> params) { };
+    default void startMethod(Status status, Method method, List<Object> params, Result cachedResult) { };
     /**
      * Notification that a method has completed
      * @param status the cache status
