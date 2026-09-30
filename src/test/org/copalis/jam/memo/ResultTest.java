@@ -25,7 +25,7 @@ class ResultTest {
 
     @Test
     void testParametersChanged() {
-        Result readFileResult = new Result(readFileCall, foo, Collections.emptySet());
+        Result readFileResult = new Result(1L, readFileCall, foo, Collections.emptySet());
 
         assertFalse(readFileResult.isCurrent(Collections.emptyMap()));
         assertTrue(readFileResult.isCurrent(Collections.singletonMap(foo, "foo")));

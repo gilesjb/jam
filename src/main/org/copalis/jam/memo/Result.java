@@ -8,11 +8,12 @@ import java.util.Set;
 
 /**
  * The result of a method call
+ * @param id a numeric identifier
  * @param signature the method call signature
  * @param value the method call result
  * @param dependencies the dependencies of the method call
  */
-public record Result(Invocation signature, Object value, Set<Mutable> dependencies) implements Mutable {
+public record Result(long id, Invocation signature, Object value, Set<Mutable> dependencies) implements Mutable {
 
     boolean serializable() {
         return Memorizer.objSerializable(value) && signature.serializable();

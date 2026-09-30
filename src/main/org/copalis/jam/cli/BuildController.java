@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import org.copalis.jam.memo.Invocation;
 import org.copalis.jam.memo.Memorizer;
+import org.copalis.jam.memo.Mutable;
 import org.copalis.jam.memo.Observer;
 import org.copalis.jam.memo.Result;
 
@@ -177,9 +178,9 @@ public class BuildController<T> {
                     load(script);
                     printBuildTargets(buildFn);
                     break;
-                case "--analyze":
+                case "--dependencies":
                     load(script);
-                    analyzeCache();
+                    printDependencies();
                     break;
                 default:
                     color(RED_BRIGHT).print("Illegal option: ").color(RESET).print(args[opt]).line();
@@ -190,7 +191,7 @@ public class BuildController<T> {
                     print(path).print(" ").color(ITALIC).print("<target-name>...").color(RESET).print("   Build specified target(s)").line();
                     print(path).print(" --targets          Print available build targets").line();
                     print(path).print(" --cache            Print cache contents").line();
-                    print(path).print(" --analyze          Print analysis of cache entries").line();
+                    print(path).print(" --dependencies     Print dependency graph of cache entries").line();
                     print(path).print(" --help             Print this help message").line();
                 }
                 exit = true;
@@ -248,41 +249,37 @@ public class BuildController<T> {
         return object;
     }
 
-    private void printCacheContents() {
-        print("Contents of cache file ").print(cacheFile).line();
-        memo.cacheEntries().forEach(result -> {
-            printResultStatus(result);
-            color(BOLD).printMethod(result.signature().name(), result.signature().params());
-            color(RESET).print(" = ").printValue(result.value());
-            line();
-        });
+    private void printDependencies() {
+        print("Dependencies and status of entries in cache file ").print(cacheFile).line();
+        memo.cacheEntries().forEach(this::printResultDependencies);
     }
 
-    private void analyzeCache() {
-        print("Contents of cache file ").print(cacheFile).line();
-        memo.cacheEntries().forEach(cached -> {
-            printResult(cached, cached.value()).print(" ");
+    private void printResultDependencies(Result result) {
+        printResult(result, result.value()).print("(");
+        String comma = "";
 
-            for (Object param : cached.signature().params()) {
-                printResult(memo.sourceResult(param), param).print(" ");
-            }
-            print("<-");
-            cached.dependencies().forEach(dep -> {
-                print(" ").printResult(memo.sourceResult(dep), dep);
-            });
-            line();
-        });
+        for (Object param : result.signature().params()) {
+            print(comma).printResult(memo.sourceResult(param), param);
+            comma = ", ";
+        }
+        print(")");
+        comma = " => ";
+        for (Mutable dep : result.dependencies()) {
+            print(comma).printResult(memo.sourceResult(dep), dep);
+            comma = ", ";
+        }
+        line();
     }
 
     private BuildController<T> printResult(Result source, Object value) {
         if (Objects.nonNull(source)) {
             boolean stale = !memo.isResultCurrent(source);
-            color(stale? RED_BRIGHT : GREEN_BRIGHT);
-            print(source.signature().name()).print("@").print(System.identityHashCode(value));
+            color(stale? CYAN : GREEN);
+            print(source.signature().name()).print("#").print(source.id());
             if (stale) print("*");
             color(RESET);
         } else {
-            print("@").print(System.identityHashCode(value));
+            print(value.getClass().getSimpleName());
         }
         return this;
     }
@@ -296,6 +293,16 @@ public class BuildController<T> {
                         return null;
                     })));
         } catch (NullPointerException e) { } // thrown if buildFn has primitive return type
+    }
+
+    private void printCacheContents() {
+        print("Contents of cache file ").print(cacheFile).line();
+        memo.cacheEntries().forEach(result -> {
+            printResultStatus(result);
+            color(BOLD).printMethod(result.signature().name(), result.signature().params());
+            color(RESET).print(" = ").printValue(result.value());
+            line();
+        });
     }
 
     private void printTargets(Class<?> t, Set<String> visited) {

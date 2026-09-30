@@ -72,7 +72,7 @@ public class Memorizer {
     // local state
     private final Observer observer;
     private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
-//    private long resultId = 1L;
+    private long resultId = 1L;
 
     /**
      * Creates an instance
@@ -110,13 +110,9 @@ public class Memorizer {
                 }
             });
             results.clear();
-            ((List<Result>) obj.readObject()).forEach(result -> {
-                results.put(result.signature(), result);
-            });
+            ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
             sources.clear();
-            ((List<Result>) obj.readObject()).forEach(result -> {
-                sources.put(result.value(), result);
-            });
+            ((List<Result>) obj.readObject()).forEach(result -> sources.put(result.value(), result));
         }
     }
 
@@ -178,6 +174,7 @@ public class Memorizer {
     public void forget() {
         results.clear();
         states.clear();
+        resultId = 1L;
     }
 
     /**
@@ -227,7 +224,7 @@ public class Memorizer {
             final Object returnValue = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (returnType != Void.TYPE) {
-                final Result result = new Result(signature, returnValue, dependencies.peek());
+                final Result result = new Result(resultId++, signature, returnValue, new LinkedHashSet<>(dependencies.peek()));
                 results.put(signature, result);
                 if (Objects.nonNull(returnValue) && !sources.containsKey(returnValue)) {
                     sources.putIfAbsent(returnValue, result);
