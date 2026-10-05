@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -20,7 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A method memoizer that can also determine when methods need to be re-executed as a result of
@@ -67,12 +67,10 @@ public class Memorizer {
     // persisted state
     private final Map<Mutable, Serializable> states = new IdentityHashMap<>();
     private final Map<Invocation, Result> results = new LinkedHashMap<>();
-    private final Map<Object, Result> sources = new IdentityHashMap<>();
 
     // local state
     private final Observer observer;
     private final LinkedList<Set<Mutable>> dependencies = new LinkedList<>();
-    private long resultId = 1L;
 
     /**
      * Creates an instance
@@ -111,8 +109,6 @@ public class Memorizer {
             });
             results.clear();
             ((List<Result>) obj.readObject()).forEach(result -> results.put(result.signature(), result));
-            sources.clear();
-            ((List<Result>) obj.readObject()).forEach(result -> sources.put(result.value(), result));
         }
     }
 
@@ -125,20 +121,21 @@ public class Memorizer {
      */
     public void save(OutputStream out) throws IOException {
         try (ObjectOutputStream obj = new ObjectOutputStream(out)) {
+            List<Result> currentResults = results.values().stream()
+                    .filter(Result::serializable)
+                    .collect(Collectors.toList());
+
             obj.writeObject(states);
-            obj.writeObject(results.values().stream().filter(Result::serializable)
-                    .collect(Collectors.toList()));
-            obj.writeObject(sources.values().stream().filter(Result::serializable)
-                    .collect(Collectors.toList()));
+            obj.writeObject(currentResults);
         }
     }
 
     /**
      * Gets the method call results currently in the cache
-     * @return a stream of result objects
+     * @return a collection of result objects in insertion order
      */
-    public Stream<Result> cacheEntries() {
-        return results.values().stream();
+    public Collection<Result> cacheEntries() {
+        return results.values();
     }
 
     /**
@@ -160,21 +157,11 @@ public class Memorizer {
     }
 
     /**
-     * Gets the method Result that a value originated from
-     * @param value the value to look up
-     * @return the method Result it originated from, if it exists
-     */
-    public Result sourceResult(Object value) {
-        return sources.get(value);
-    }
-
-    /**
      * Erases all method call results from the cache
      */
     public void forget() {
         results.clear();
         states.clear();
-        resultId = 1L;
     }
 
     /**
@@ -224,11 +211,8 @@ public class Memorizer {
             final Object returnValue = observer.endMethod(status, method, signature.params(),
                     InvocationHandler.invokeDefault(proxy, method, args));
             if (returnType != Void.TYPE) {
-                final Result result = new Result(resultId++, signature, returnValue, new LinkedHashSet<>(dependencies.peek()));
+                final Result result = new Result(signature, returnValue, new LinkedHashSet<>(dependencies.peek()));
                 results.put(signature, result);
-                if (Objects.nonNull(returnValue) && !sources.containsKey(returnValue)) {
-                    sources.putIfAbsent(returnValue, result);
-                }
             }
             if (Mutable.class.isAssignableFrom(returnType)) {
                 if (Objects.nonNull(returnValue)) {

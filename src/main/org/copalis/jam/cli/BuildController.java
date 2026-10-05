@@ -14,7 +14,9 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -211,7 +213,7 @@ public class BuildController<T> {
                         line();
                     }
                 } finally {
-                    if (memo.cacheEntries().count() > 0) {
+                    if (!memo.cacheEntries().isEmpty()) {
                         try (OutputStream out = new FileOutputStream(cacheFile)) {
                             memo.save(out);
                         }
@@ -250,32 +252,39 @@ public class BuildController<T> {
     }
 
     private void printDependencies() {
+        Map<Object, Result> sources = new IdentityHashMap<>();
+        Map<Object, Integer> indices = new IdentityHashMap<>();
         print("Dependencies and status of entries in cache file ").print(cacheFile).line();
-        memo.cacheEntries().forEach(this::printResultDependencies);
+        int idx = 1;
+        for (Result result : memo.cacheEntries()) {
+            printResultDependencies(idx++, result, sources, indices);
+        }
     }
 
-    private void printResultDependencies(Result result) {
-        printResult(result, result.value()).print("(");
+    private void printResultDependencies(int idx, Result result, Map<Object, Result> sources, Map<Object, Integer> indices) {
+        print("[entry]  ").printResult(idx, result, result.value()).print("(");
         String comma = "";
 
         for (Object param : result.signature().params()) {
-            print(comma).printResult(memo.sourceResult(param), param);
+            print(comma).printResult(indices.getOrDefault(param, 0), sources.get(param), param);
             comma = ", ";
         }
         print(")");
         comma = " => ";
         for (Mutable dep : result.dependencies()) {
-            print(comma).printResult(memo.sourceResult(dep), dep);
+            print(comma).printResult(indices.getOrDefault(dep, 0), sources.get(dep), dep);
             comma = ", ";
         }
         line();
+        sources.put(result.value(), result);
+        indices.put(result.value(), idx);
     }
 
-    private BuildController<T> printResult(Result source, Object value) {
+    private BuildController<T> printResult(int idx, Result source, Object value) {
         if (Objects.nonNull(source)) {
             boolean stale = !memo.isResultCurrent(source);
             color(stale? CYAN : GREEN);
-            print(source.signature().name()).print("#").print(source.id());
+            print(idx).print(":").print(source.signature().name());
             if (stale) print("*");
             color(RESET);
         } else {
