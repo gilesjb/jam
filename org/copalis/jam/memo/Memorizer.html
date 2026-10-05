@@ -80,7 +80,6 @@ loadScripts(document, 'script');</script>
 <li><a href="#cacheEntries()" tabindex="0">cacheEntries()</a></li>
 <li><a href="#findResult(org.copalis.jam.memo.Invocation)" tabindex="0">findResult(Invocation)</a></li>
 <li><a href="#isResultCurrent(org.copalis.jam.memo.Result)" tabindex="0">isResultCurrent(Result)</a></li>
-<li><a href="#sourceResult(java.lang.Object)" tabindex="0">sourceResult(Object)</a></li>
 <li><a href="#forget()" tabindex="0">forget()</a></li>
 <li><a href="#instantiate(java.lang.Class)" tabindex="0">instantiate(Class)</a></li>
 </ol>
@@ -170,7 +169,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/stream/Stream.html" title="class or interface in java.util.stream" class="external-link">Stream</a><wbr>&lt;<a href="Result.html" title="class in org.copalis.jam.memo">Result</a>&gt;</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a><wbr>&lt;<a href="Result.html" title="class in org.copalis.jam.memo">Result</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#cacheEntries()" class="member-name-link">cacheEntries</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Gets the method call results currently in the cache</div>
@@ -205,11 +204,6 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Writes the contents of the method call cache to an output stream,
  excluding method calls which are not serializable.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="Result.html" title="class in org.copalis.jam.memo">Result</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sourceResult(java.lang.Object)" class="member-name-link">sourceResult</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Gets the method Result that a value originated from</div>
 </div>
 </div>
 </div>
@@ -297,11 +291,11 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="cacheEntries()">
 <h3>cacheEntries</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/stream/Stream.html" title="class or interface in java.util.stream" class="external-link">Stream</a>&lt;<a href="Result.html" title="class in org.copalis.jam.memo">Result</a>&gt;</span>&nbsp;<span class="element-name">cacheEntries</span>()</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;<a href="Result.html" title="class in org.copalis.jam.memo">Result</a>&gt;</span>&nbsp;<span class="element-name">cacheEntries</span>()</div>
 <div class="block">Gets the method call results currently in the cache</div>
 <dl class="notes">
 <dt>Returns:</dt>
-<dd>a stream of result objects</dd>
+<dd>a collection of result objects in insertion order</dd>
 </dl>
 </div>
 </section>
@@ -332,21 +326,6 @@ loadScripts(document, 'script');</script>
 <dd><code>result</code> - the result to check</dd>
 <dt>Returns:</dt>
 <dd>true if the result is non-null and fresh</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="sourceResult(java.lang.Object)">
-<h3>sourceResult</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="Result.html" title="class in org.copalis.jam.memo">Result</a></span>&nbsp;<span class="element-name">sourceResult</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</span></div>
-<div class="block">Gets the method Result that a value originated from</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>value</code> - the value to look up</dd>
-<dt>Returns:</dt>
-<dd>the method Result it originated from, if it exists</dd>
 </dl>
 </div>
 </section>
