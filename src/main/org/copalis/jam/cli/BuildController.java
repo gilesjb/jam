@@ -257,7 +257,9 @@ public class BuildController<T> {
         print("Dependencies and status of entries in cache file ").print(cacheFile).line();
         int idx = 1;
         for (Result result : memo.cacheEntries()) {
-            printResultDependencies(idx++, result, sources, indices);
+            printResultDependencies(idx, result, sources, indices);
+            sources.put(result.value(), result);
+            indices.put(result.value(), idx++);
         }
     }
 
@@ -276,8 +278,6 @@ public class BuildController<T> {
             comma = ", ";
         }
         line();
-        sources.put(result.value(), result);
-        indices.put(result.value(), idx);
     }
 
     private BuildController<T> printResult(int idx, Result source, Object value) {

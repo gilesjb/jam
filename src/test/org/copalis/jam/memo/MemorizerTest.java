@@ -2,11 +2,13 @@ package org.copalis.jam.memo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +42,24 @@ public class MemorizerTest {
         calls.clear();
         assertEquals(3736710778780434371L, fib.fib(100));
         assertEquals(1, calls.size());
+    }
+
+    @Test public void testCacheEntries() {
+        Memorizer memo = new Memorizer(new Observer() { });
+        Fibonacci fib = memo.instantiate(Fibonacci.class);
+
+
+        assertTrue(memo.cacheEntries().isEmpty());
+        fib.fib(10);
+
+        Collection<Result> cacheEntries = memo.cacheEntries();
+        assertEquals(11, cacheEntries.size()); // 0..10
+
+        for (Result result : cacheEntries) {
+            assertTrue(result.dependencies().isEmpty());
+        }
+
+        memo.cacheEntries();
     }
 
     interface Foo {
@@ -102,7 +122,7 @@ public class MemorizerTest {
         };
     }
 
-    @Test synchronized public void testDependencies() throws IOException, ClassNotFoundException {
+    @Test synchronized public void testMutables() throws IOException, ClassNotFoundException {
         states.put("project-version", "1.0");
 
         List<String> called = new LinkedList<>();
