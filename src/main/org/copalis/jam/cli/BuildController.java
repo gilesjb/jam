@@ -153,9 +153,10 @@ public class BuildController<T> {
      * <p>
      * Command-line arguments may be
      * <dl>
-     * <dt>{@code --help}<dd>Displays help information
-     * <dt>{@code --cache}<dd>Displays the contents of the memoizer cache
-     * <dt>{@code --targets}<dd>Displays the names, return types, and cache status of the target methods
+     * <dt>{@code --help}<dd>Prints help information
+     * <dt>{@code --targets}<dd>Prints the names, return types, and cache status of the target methods
+     * <dt>{@code --cache}<dd>Prints the contents of the memoizer cache
+     * <dt>{@code --dependencies}<dd>Prints the cache status and dependencies of entries in the memoizer cache
      * <dt><i>target-name</i>...<dd>Executes the target methods with the specified names
      * </dl>
      * If no arguments are specified, {@code buildFn} is invoked.
