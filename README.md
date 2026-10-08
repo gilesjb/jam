@@ -1,10 +1,13 @@
 
 # Jam build tool
 
-Jam is a JVM build tool which lets you write build scripts in plain Kotlin or Java. 
-Build targets are just methods. 
-Jam uses a dependency-tracking dynamic proxy to memoize method calls, giving you incremental builds automatically — no explicit dependency declarations required.
-Jam supports incremental builds by memoizing (caching) method calls with a dependency-tracking dynamic proxy.
+## Easy to understand build automation in plain code
+
+If you already know how to write standard Java or Kotlin, you already know 90% of Jam.
+- **No Domain-Specific API**: You do not have to learn a unique configuration vocabulary. In Jam, build targets are just standard, plain-old language functions `fun build() { ... }`
+- **Linear & Predictable**: Code runs exactly how you read it. If `Method A` calls `Method B`, it is just a standard function call. You can follow the execution path using basic code-tracing skills.
+- **Magical But Simple Caching**: You don't have to manually reason through how caching works. Jam handles incremental builds simply by keeping track of what files your functions use as inputs and detecting when they change.
+- **Nothing to Install**: The Jam library is downloaded automatically when you run a script.
 
 ## An example Jam script
 
